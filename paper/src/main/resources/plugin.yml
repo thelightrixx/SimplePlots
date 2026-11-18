@@ -1,0 +1,28 @@
+name: SimplePlots
+version: ${project.version}
+main: de.lightrixx.plot.paper.SimplePlots
+api-version: '26.1'
+folia-supported: false
+description: Survival-Plotwelt mit Claims und Baurechten.
+commands:
+  plot:
+    description: Betritt die Plotwelt oder verwalte deine Plots.
+    usage: /plot help
+    aliases: [p]
+permissions:
+  simpleplots.use:
+    description: Basisrecht für /plot.
+    default: true
+  simpleplots.claim:
+    description: Eigene Plots beanspruchen.
+    default: true
+  simpleplots.manage:
+    description: Rechte und Zutritt auf den eigenen Plots verwalten.
+    default: true
+  simpleplots.admin:
+    description: Plotwelt administrieren, im Kreativmodus bauen und fremde Plots betreten.
+    default: op
+    children:
+      simpleplots.use: true
+      simpleplots.claim: true
+      simpleplots.manage: true

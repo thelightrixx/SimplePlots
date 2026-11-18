@@ -1,0 +1,219 @@
+package de.lightrixx.plot.paper.world;
+
+import de.lightrixx.plot.model.Plot;
+import de.lightrixx.plot.model.PlotId;
+import de.lightrixx.plot.model.PlotProfil;
+import de.lightrixx.plot.model.PlotRaster;
+import de.lightrixx.plot.paper.config.PlotKonfiguration;
+import de.lightrixx.plot.paper.storage.YamlDatei;
+import de.lightrixx.plot.service.PlotDienst;
+import org.bukkit.GameRules;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
+import org.bukkit.Server;
+import org.bukkit.Tag;
+import org.bukkit.World;
+import org.bukkit.WorldCreator;
+import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
+import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.world.ChunkLoadEvent;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Optional;
+
+public final class PlotWelt implements Listener {
+    private static final String NAME = "plots";
+    private static final NamespacedKey WELT_KEY = new NamespacedKey("simpleplots", NAME);
+    // Welten mit Rasterformat 1 behalten ihre Identität für gespeicherte Spielerpositionen.
+    private static final NamespacedKey ALTER_WELT_KEY = new NamespacedKey("plotsystem", NAME);
+    private final Server server;
+    private final World spielwelt;
+    private final PlotKonfiguration konfiguration;
+    private final PlotDienst plots;
+    private final PlotWegrand wegrand;
+    private final YamlDatei metadaten;
+    private final NamespacedKey weltKey;
+    private Optional<PlotRaster> festesRaster;
+
+    public PlotWelt(Server server, PlotKonfiguration konfiguration, PlotDienst plots, Path pfad) throws IOException {
+        this.server = server;
+        this.spielwelt = server.getWorlds().getFirst();
+        this.konfiguration = konfiguration;
+        this.plots = plots;
+        this.wegrand = new PlotWegrand(plots);
+        this.metadaten = new YamlDatei(pfad);
+        var yaml = metadaten.laden();
+        festesRaster = yaml.isPresent() ? Optional.of(rasterLesen(yaml.get())) : Optional.empty();
+        weltKey = yaml.filter(daten -> daten.getInt("format") == 1).isPresent() ? ALTER_WELT_KEY : WELT_KEY;
+    }
+
+    public boolean rasterFestgelegt() {
+        return festesRaster.isPresent();
+    }
+
+    public PlotRaster raster() {
+        return festesRaster.orElseGet(konfiguration::raster);
+    }
+
+    public void vorhandeneWeltLaden() throws IOException {
+        if (rasterFestgelegt()) {
+            for (var chunk : ladenOderErstellen().getLoadedChunks()) {
+                wegrand.aktualisieren(chunk, raster());
+            }
+        } else {
+            sicherFreierWeltname();
+        }
+    }
+
+    public World ladenOderErstellen() throws IOException {
+        World geladen = server.getWorld(weltKey);
+        if (geladen != null) {
+            if (rasterFestgelegt() && geladen.getGenerator() instanceof PlotGenerator) {
+                return geladen;
+            }
+            throw new IOException("Welt " + weltKey + " wurde bereits mit einem anderen Generator geladen.");
+        }
+        if (!rasterFestgelegt()) {
+            sicherFreierWeltname();
+            PlotRaster aktuell = konfiguration.raster();
+            var yaml = new YamlConfiguration();
+            yaml.set("format", 2);
+            yaml.set("plotgroesse", aktuell.groesse());
+            yaml.set("wegbreite", aktuell.wegbreite());
+            metadaten.speichern(yaml);
+            festesRaster = Optional.of(aktuell);
+        }
+
+        World welt;
+        try {
+            welt = WorldCreator.ofKey(weltKey)
+                    .environment(World.Environment.NORMAL)
+                    .generateStructures(false)
+                    .generator(new PlotGenerator(raster()))
+                    .createWorld();
+        } catch (RuntimeException e) {
+            throw new IOException("Plotwelt " + weltKey + " konnte nicht geladen werden.", e);
+        }
+        if (welt == null || !istPlotWelt(welt)) {
+            throw new IOException("Paper konnte die Plotwelt " + weltKey + " nicht laden.");
+        }
+        welt.setGameRule(GameRules.PVP, false);
+        welt.setGameRule(GameRules.SPAWN_MOBS, false);
+        welt.setGameRule(GameRules.MOB_GRIEFING, false);
+        welt.setGameRule(GameRules.TNT_EXPLODES, false);
+        welt.setGameRule(GameRules.PROJECTILES_CAN_BREAK_BLOCKS, false);
+        welt.setGameRule(GameRules.ALLOW_ENTERING_NETHER_USING_PORTALS, false);
+        return welt;
+    }
+
+    public boolean istPlotWelt(World welt) {
+        return welt != null && weltKey.equals(welt.getKey());
+    }
+
+    @EventHandler
+    public void chunkLaden(ChunkLoadEvent event) {
+        if (istPlotWelt(event.getWorld())) {
+            wegrand.aktualisieren(event.getChunk(), raster());
+        }
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void wegrandAbbauen(BlockBreakEvent event) {
+        var block = event.getBlock();
+        if (block.getY() == PlotGenerator.BODEN_Y + 1 && istPlotWelt(block.getWorld())) {
+            wegrand.markierungEntfernen(block);
+        }
+    }
+
+    public void wegrandAktualisieren(World welt, Plot plot) {
+        int weite = raster().rasterweite();
+        long minX = ((long) plot.zellen().stream().mapToInt(PlotId::x).min().orElseThrow() * weite - 1) >> 4;
+        long maxX = (((long) plot.zellen().stream().mapToInt(PlotId::x).max().orElseThrow() + 1) * weite) >> 4;
+        long minZ = ((long) plot.zellen().stream().mapToInt(PlotId::z).min().orElseThrow() * weite - 1) >> 4;
+        long maxZ = (((long) plot.zellen().stream().mapToInt(PlotId::z).max().orElseThrow() + 1) * weite) >> 4;
+        for (var chunk : welt.getLoadedChunks()) {
+            if (chunk.getX() >= minX && chunk.getX() <= maxX && chunk.getZ() >= minZ && chunk.getZ() <= maxZ) {
+                wegrand.aktualisieren(chunk, raster());
+            }
+        }
+    }
+
+    public Optional<PlotId> plotBei(Location ort) {
+        return istPlotWelt(ort.getWorld()) ? plots.plotBei(raster(), ort.getBlockX(), ort.getBlockZ()) : Optional.empty();
+    }
+
+    public Location spawn(World welt) {
+        int achse = raster().spawnAchse();
+        Location ort = wegOberflaeche(welt, achse, achse);
+        return plotBei(ort).map(id -> wegVor(welt, id)).orElse(ort);
+    }
+
+    public Location wegVor(World welt, PlotId id) {
+        PlotId rand = plots.finden(id).map(Plot::nordrand).orElse(id);
+        return wegOberflaeche(welt, raster().mitteX(rand), raster().nordwegZ(rand));
+    }
+
+    private Location wegOberflaeche(World welt, int x, int z) {
+        Location ort = PlotGenerator.oberflaeche(welt, x, z);
+        if (plots.istWegrand(raster(), x, z)) {
+            ort.add(0, 0.5, 0);
+        }
+        return ort;
+    }
+
+    public Optional<Location> besuchspunkt(World welt, PlotId id, PlotProfil.Besuchspunkt punkt) {
+        Location ziel = new Location(welt, punkt.x() + 0.5, punkt.y(), punkt.z() + 0.5, punkt.yaw(), 0);
+        if (!plotBei(ziel).filter(id::equals).isPresent() || !welt.getWorldBorder().isInside(ziel)
+                || punkt.y() <= PlotGenerator.BODEN_Y || punkt.y() >= welt.getMaxHeight() - 1) {
+            return Optional.empty();
+        }
+        var fuss = welt.getBlockAt(punkt.x(), punkt.y(), punkt.z());
+        Material boden = fuss.getRelative(0, -1, 0).getType();
+        if (!fuss.getType().isAir() || !fuss.getRelative(0, 1, 0).getType().isAir() || !boden.isSolid()
+                || boden == Material.MAGMA_BLOCK || boden == Material.CACTUS || Tag.CAMPFIRES.isTagged(boden)
+                || Tag.WALLS.isTagged(boden) || Tag.FENCES.isTagged(boden) || Tag.FENCE_GATES.isTagged(boden)) {
+            return Optional.empty();
+        }
+        return Optional.of(ziel);
+    }
+
+    public Location mitte(World welt, PlotId id) {
+        return PlotGenerator.oberflaeche(welt, raster().mitteX(id), raster().mitteZ(id));
+    }
+
+    public Location rueckkehr() {
+        return spielwelt.getSpawnLocation();
+    }
+
+    private void sicherFreierWeltname() throws IOException {
+        if (server.getWorld(NAME) != null) {
+            throw new IOException("Vorhandene Welt " + NAME + " ohne registriertes SimplePlots-Raster.");
+        }
+        for (var key : new NamespacedKey[]{WELT_KEY, ALTER_WELT_KEY}) {
+            Path weltOrdner = spielwelt.getWorldPath().resolve("../..").resolve(key.getNamespace())
+                    .resolve(key.getKey()).normalize();
+            if (server.getWorld(key) != null || Files.exists(weltOrdner)) {
+                throw new IOException("Vorhandene Welt " + key + " ohne registriertes SimplePlots-Raster.");
+            }
+        }
+    }
+
+    private static PlotRaster rasterLesen(YamlConfiguration yaml) throws IOException {
+        int format = yaml.getInt("format");
+        if (!yaml.isInt("format") || (format != 1 && format != 2)
+                || !yaml.isInt("plotgroesse") || !yaml.isInt("wegbreite")) {
+            throw new IOException("welt.yml hat kein gültiges Rasterformat.");
+        }
+        try {
+            return new PlotRaster(yaml.getInt("plotgroesse"), yaml.getInt("wegbreite"));
+        } catch (IllegalArgumentException e) {
+            throw new IOException("Ungültiges gespeichertes Raster in welt.yml.", e);
+        }
+    }
+}
