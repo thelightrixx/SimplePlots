@@ -6,9 +6,18 @@
 
     <groupId>de.lightrixx</groupId>
     <artifactId>simpleplots-parent</artifactId>
-    <version>v0.2.0-alpha</version>
+    <version>v0.2.1-alpha</version>
     <packaging>pom</packaging>
     <name>SimplePlots (Parent)</name>
+    <description>Survival-Plotwelt mit Claims, Baurechten, Galerie und Bauwettbewerben.</description>
+    <url>https://github.com/thelightrixx/SimplePlots</url>
+    <licenses>
+        <license>
+            <name>MIT License</name>
+            <url>https://opensource.org/license/mit/</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
 
     <modules>
         <module>common</module>
@@ -53,6 +62,9 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>
                     <version>3.3.1</version>
+                    <configuration>
+                        <argLine>-Djava.io.tmpdir="${project.build.directory}"</argLine>
+                    </configuration>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
@@ -63,6 +75,10 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-jar-plugin</artifactId>
                     <version>3.4.2</version>
+                    <configuration>
+                        <!-- Shade ersetzt die JAR; auch ohne clean zuerst neu packen. -->
+                        <forceCreation>true</forceCreation>
+                    </configuration>
                 </plugin>
             </plugins>
         </pluginManagement>

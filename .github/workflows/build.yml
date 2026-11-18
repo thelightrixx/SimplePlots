@@ -11,9 +11,18 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: simpleplots-build-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref_type != 'tag' }}
+
 jobs:
   build:
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -23,11 +32,15 @@ jobs:
         shell: bash
         run: |
           if [[ "$GITHUB_REF_TYPE" == tag ]]; then
-            version=$(python3 scripts/check-version.py --tag "$GITHUB_REF_NAME")
+            python scripts/check-version.py --tag "$GITHUB_REF_NAME"
           else
-            version=$(python3 scripts/check-version.py)
+            python scripts/check-version.py
           fi
-          echo "PLUGIN_VERSION=$version" >> "$GITHUB_ENV"
+
+      - name: Offline-Dokumentation und Werkzeugtests prüfen
+        run: |
+          python scripts/check-docs.py
+          python -m unittest discover -s scripts -p 'test_*.py'
 
       - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4
         with:
@@ -35,30 +48,52 @@ jobs:
           java-version: "25"
           cache: maven
 
+      - name: Windows-Werkzeuge mit PowerShell 5.1 prüfen
+        if: runner.os == 'Windows'
+        shell: powershell
+        run: ./scripts/test-tools.ps1
+
+      - name: Windows-Werkzeuge mit PowerShell 7 prüfen
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: ./scripts/test-tools.ps1
+
       - name: Mit Tests bauen
         run: mvn -B -ntp -pl paper -am clean verify
 
       - name: Plugin-JAR und Prüfsumme bereitstellen
+        if: runner.os == 'Linux'
         shell: bash
         run: |
-          python3 scripts/check-version.py --jar
-          jar="SimplePlots-${PLUGIN_VERSION}.jar"
-          mkdir -p dist
-          cp "paper/target/$jar" "dist/$jar"
-          (cd dist && sha256sum "$jar" > SHA256SUMS.txt)
+          python scripts/prepare-release.py
+
+      - name: Windows-JAR prüfen
+        if: runner.os == 'Windows'
+        run: python scripts/check-version.py --jar
 
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: runner.os == 'Linux'
         with:
           name: simpleplots-paper
           path: |
             dist/SimplePlots-*.jar
             dist/SHA256SUMS.txt
+            dist/RELEASE_NOTES.md
           if-no-files-found: error
+
+      - name: Testergebnisse sichern
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: tests-${{ matrix.os }}
+          path: '**/target/surefire-reports/'
+          if-no-files-found: ignore
 
   release:
     if: github.ref_type == 'tag'
     needs: build
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
       contents: write
     steps:
@@ -71,7 +106,7 @@ jobs:
         with:
           name: ${{ github.ref_name }}
           prerelease: ${{ contains(github.ref_name, '-') }}
-          generate_release_notes: true
+          body_path: dist/RELEASE_NOTES.md
           fail_on_unmatched_files: true
           files: |
             dist/SimplePlots-*.jar

@@ -43,7 +43,10 @@ public final class PlotWelt implements Listener {
 
     public PlotWelt(Server server, PlotKonfiguration konfiguration, PlotDienst plots, Path pfad) throws IOException {
         this.server = server;
-        this.spielwelt = server.getWorlds().getFirst();
+        this.spielwelt = server.getWorld(NamespacedKey.minecraft("overworld"));
+        if (spielwelt == null) {
+            throw new IOException("Die Hauptwelt minecraft:overworld ist nicht geladen.");
+        }
         this.konfiguration = konfiguration;
         this.plots = plots;
         this.wegrand = new PlotWegrand(plots);

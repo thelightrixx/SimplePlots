@@ -41,4 +41,14 @@ class SimplePlotsDatenordnerTest {
         assertEquals("alter Stand", Files.readString(alt.resolve("plots.yml")));
         assertEquals("neuer Stand", Files.readString(neu.resolve("plots.yml")));
     }
+
+    @Test
+    void laesstEinenLeerenAltordnerUndVorhandeneNeueDatenUnberuehrt() throws IOException {
+        Path alt = Files.createDirectory(plugins.resolve("PlotSystem"));
+        Path neu = Files.createDirectory(plugins.resolve("SimplePlots"));
+        Files.writeString(neu.resolve("plots.yml"), "neuer Stand");
+        assertFalse(SimplePlots.uebernehmeDatenordner(neu));
+        assertTrue(Files.isDirectory(alt));
+        assertEquals("neuer Stand", Files.readString(neu.resolve("plots.yml")));
+    }
 }

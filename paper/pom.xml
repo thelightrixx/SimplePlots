@@ -7,7 +7,7 @@
     <parent>
         <groupId>de.lightrixx</groupId>
         <artifactId>simpleplots-parent</artifactId>
-        <version>v0.2.0-alpha</version>
+        <version>v0.2.1-alpha</version>
     </parent>
 
     <artifactId>simpleplots-paper</artifactId>
@@ -35,6 +35,11 @@
         <finalName>SimplePlots-${project.version}</finalName>
         <resources>
             <resource>
+                <directory>${project.basedir}/..</directory>
+                <targetPath>META-INF</targetPath>
+                <includes><include>LICENSE</include></includes>
+            </resource>
+            <resource>
                 <directory>src/main/resources</directory>
                 <excludes><exclude>plugin.yml</exclude></excludes>
             </resource>
@@ -45,13 +50,6 @@
             </resource>
         </resources>
         <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <configuration>
-                    <argLine>-Djava.io.tmpdir="${project.build.directory}"</argLine>
-                </configuration>
-            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
@@ -65,6 +63,12 @@
                             <artifactSet>
                                 <includes><include>de.lightrixx:simpleplots-common</include></includes>
                             </artifactSet>
+                            <filters>
+                                <filter>
+                                    <artifact>de.lightrixx:simpleplots-common</artifact>
+                                    <excludes><exclude>META-INF/MANIFEST.MF</exclude></excludes>
+                                </filter>
+                            </filters>
                         </configuration>
                     </execution>
                 </executions>
