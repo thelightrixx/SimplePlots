@@ -1,7 +1,7 @@
 package de.lightrixx.plot.service;
 
-import de.lightrixx.plot.model.BauWettbewerb;
 import de.lightrixx.plot.model.BauWettbewerb.Phase;
+import de.lightrixx.plot.model.BauWettbewerb;
 import de.lightrixx.plot.model.PlotId;
 import de.lightrixx.plot.storage.WettbewerbSpeicher;
 
@@ -14,7 +14,7 @@ import java.util.UUID;
 public final class WettbewerbDienst {
     private final WettbewerbSpeicher speicher;
     private final PlotDienst plots;
-    private Optional<BauWettbewerb> aktuell;
+    private volatile Optional<BauWettbewerb> aktuell;
 
     public WettbewerbDienst(WettbewerbSpeicher speicher, PlotDienst plots) throws IOException {
         this.speicher = speicher;
@@ -35,18 +35,19 @@ public final class WettbewerbDienst {
     }
 
     public boolean gesperrt(PlotId id) {
-        return aktiv() && aktuell.orElseThrow().beitraege().containsKey(id);
+        return aktuell.filter(wert -> wert.phase() != Phase.BEENDET)
+                .filter(wert -> wert.beitraege().containsKey(id)).isPresent();
     }
 
     public boolean hatGesperrtePlots() {
-        return aktiv() && !aktuell.orElseThrow().beitraege().isEmpty();
+        return aktuell.filter(wert -> wert.phase() != Phase.BEENDET && !wert.beitraege().isEmpty()).isPresent();
     }
 
     private boolean aktiv() {
-        return aktuell.isPresent() && aktuell.get().phase() != Phase.BEENDET;
+        return aktuell.filter(wert -> wert.phase() != Phase.BEENDET).isPresent();
     }
 
-    public Ergebnis starten(String thema) throws IOException {
+    public synchronized Ergebnis starten(String thema) throws IOException {
         if (aktiv()) {
             return Ergebnis.BEREITS_AKTIV;
         }
@@ -54,7 +55,7 @@ public final class WettbewerbDienst {
         return Ergebnis.ERFOLG;
     }
 
-    public Ergebnis abstimmungOeffnen() throws IOException {
+    public synchronized Ergebnis abstimmungOeffnen() throws IOException {
         var wettbewerb = inPhase(Phase.BAUEN);
         if (wettbewerb.isEmpty()) {
             return Ergebnis.FALSCHE_PHASE;
@@ -67,7 +68,7 @@ public final class WettbewerbDienst {
         return Ergebnis.ERFOLG;
     }
 
-    public Ergebnis beenden() throws IOException {
+    public synchronized Ergebnis beenden() throws IOException {
         var wettbewerb = inPhase(Phase.ABSTIMMEN);
         if (wettbewerb.isEmpty()) {
             return Ergebnis.FALSCHE_PHASE;
@@ -77,7 +78,7 @@ public final class WettbewerbDienst {
         return Ergebnis.ERFOLG;
     }
 
-    public Ergebnis abbrechen() throws IOException {
+    public synchronized Ergebnis abbrechen() throws IOException {
         if (!aktiv()) {
             return Ergebnis.FALSCHE_PHASE;
         }
@@ -85,7 +86,7 @@ public final class WettbewerbDienst {
         return Ergebnis.ERFOLG;
     }
 
-    public Ergebnis einreichen(PlotId id, UUID spieler) throws IOException {
+    public synchronized Ergebnis einreichen(PlotId id, UUID spieler) throws IOException {
         var wettbewerb = inPhase(Phase.BAUEN);
         if (wettbewerb.isEmpty()) {
             return Ergebnis.FALSCHE_PHASE;
@@ -104,7 +105,7 @@ public final class WettbewerbDienst {
         return Ergebnis.ERFOLG;
     }
 
-    public Ergebnis zurueckziehen(UUID spieler) throws IOException {
+    public synchronized Ergebnis zurueckziehen(UUID spieler) throws IOException {
         var wettbewerb = inPhase(Phase.BAUEN);
         if (wettbewerb.isEmpty()) {
             return Ergebnis.FALSCHE_PHASE;
@@ -118,7 +119,7 @@ public final class WettbewerbDienst {
         return Ergebnis.ERFOLG;
     }
 
-    public Ergebnis abstimmen(PlotId id, UUID spieler) throws IOException {
+    public synchronized Ergebnis abstimmen(PlotId id, UUID spieler) throws IOException {
         var wettbewerb = inPhase(Phase.ABSTIMMEN);
         if (wettbewerb.isEmpty()) {
             return Ergebnis.FALSCHE_PHASE;

@@ -21,10 +21,12 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.world.ChunkLoadEvent;
+import org.bukkit.plugin.Plugin;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.Optional;
 
 public final class PlotWelt implements Listener {
@@ -33,6 +35,7 @@ public final class PlotWelt implements Listener {
     // Welten mit Rasterformat 1 behalten ihre Identität für gespeicherte Spielerpositionen.
     private static final NamespacedKey ALTER_WELT_KEY = new NamespacedKey("plotsystem", NAME);
     private final Server server;
+    private final Plugin plugin;
     private final World spielwelt;
     private final PlotKonfiguration konfiguration;
     private final PlotDienst plots;
@@ -41,8 +44,9 @@ public final class PlotWelt implements Listener {
     private final NamespacedKey weltKey;
     private Optional<PlotRaster> festesRaster;
 
-    public PlotWelt(Server server, PlotKonfiguration konfiguration, PlotDienst plots, Path pfad) throws IOException {
-        this.server = server;
+    public PlotWelt(Plugin plugin, PlotKonfiguration konfiguration, PlotDienst plots, Path pfad) throws IOException {
+        this.plugin = plugin;
+        this.server = plugin.getServer();
         this.spielwelt = server.getWorld(NamespacedKey.minecraft("overworld"));
         if (spielwelt == null) {
             throw new IOException("Die Hauptwelt minecraft:overworld ist nicht geladen.");
@@ -54,10 +58,31 @@ public final class PlotWelt implements Listener {
         var yaml = metadaten.laden();
         festesRaster = yaml.isPresent() ? Optional.of(rasterLesen(yaml.get())) : Optional.empty();
         weltKey = yaml.filter(daten -> daten.getInt("format") == 1).isPresent() ? ALTER_WELT_KEY : WELT_KEY;
+        for (Plot plot : plots.alle()) {
+            for (PlotId zelle : plot.zellen()) {
+                try {
+                    raster().mitteX(zelle);
+                    raster().mitteZ(zelle);
+                    raster().nordwegZ(zelle);
+                    Math.toIntExact((long) zelle.x() * raster().rasterweite() + raster().groesse() - 1);
+                    Math.toIntExact((long) zelle.z() * raster().rasterweite() + raster().groesse() - 1);
+                } catch (ArithmeticException e) {
+                    throw new IOException("Plotzelle " + zelle + " liegt außerhalb des darstellbaren Blockrasters.", e);
+                }
+            }
+        }
     }
 
     public boolean rasterFestgelegt() {
         return festesRaster.isPresent();
+    }
+
+    public NamespacedKey schluessel() {
+        return weltKey;
+    }
+
+    public boolean istGeladen() {
+        return server.getWorld(weltKey) != null;
     }
 
     public PlotRaster raster() {
@@ -66,9 +91,7 @@ public final class PlotWelt implements Listener {
 
     public void vorhandeneWeltLaden() throws IOException {
         if (rasterFestgelegt()) {
-            for (var chunk : ladenOderErstellen().getLoadedChunks()) {
-                wegrand.aktualisieren(chunk, raster());
-            }
+            wegrand.vormerken(plugin, Arrays.asList(ladenOderErstellen().getLoadedChunks()), raster());
         } else {
             sicherFreierWeltname();
         }
@@ -140,11 +163,9 @@ public final class PlotWelt implements Listener {
         long maxX = (((long) plot.zellen().stream().mapToInt(PlotId::x).max().orElseThrow() + 1) * weite) >> 4;
         long minZ = ((long) plot.zellen().stream().mapToInt(PlotId::z).min().orElseThrow() * weite - 1) >> 4;
         long maxZ = (((long) plot.zellen().stream().mapToInt(PlotId::z).max().orElseThrow() + 1) * weite) >> 4;
-        for (var chunk : welt.getLoadedChunks()) {
-            if (chunk.getX() >= minX && chunk.getX() <= maxX && chunk.getZ() >= minZ && chunk.getZ() <= maxZ) {
-                wegrand.aktualisieren(chunk, raster());
-            }
-        }
+        var chunks = Arrays.stream(welt.getLoadedChunks()).filter(chunk -> chunk.getX() >= minX && chunk.getX() <= maxX
+                && chunk.getZ() >= minZ && chunk.getZ() <= maxZ).toList();
+        wegrand.vormerken(plugin, chunks, raster());
     }
 
     public Optional<PlotId> plotBei(Location ort) {
@@ -173,7 +194,7 @@ public final class PlotWelt implements Listener {
     public Optional<Location> besuchspunkt(World welt, PlotId id, PlotProfil.Besuchspunkt punkt) {
         Location ziel = new Location(welt, punkt.x() + 0.5, punkt.y(), punkt.z() + 0.5, punkt.yaw(), 0);
         if (!plotBei(ziel).filter(id::equals).isPresent() || !welt.getWorldBorder().isInside(ziel)
-                || punkt.y() <= PlotGenerator.BODEN_Y || punkt.y() >= welt.getMaxHeight() - 1) {
+                || punkt.y() <= welt.getMinHeight() || punkt.y() >= welt.getMaxHeight() - 1) {
             return Optional.empty();
         }
         var fuss = welt.getBlockAt(punkt.x(), punkt.y(), punkt.z());

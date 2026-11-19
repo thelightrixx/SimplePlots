@@ -10,26 +10,28 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.util.Objects;
+import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Map;
 
 public final class PlotNachrichten {
     private static final String RESSOURCE = "config/messages.yml";
-    private final YamlConfiguration texte;
+    private volatile Map<String, String> texte;
+    private final YamlDatei datei;
+    private final YamlConfiguration standard;
     private final MiniMessage miniMessage = MiniMessage.miniMessage();
 
     public PlotNachrichten(JavaPlugin plugin) throws IOException {
-        var pfad = plugin.getDataFolder().toPath().resolve(RESSOURCE);
-        if (Files.notExists(pfad)) {
-            plugin.saveResource(RESSOURCE, false);
-        }
-        var datei = new YamlDatei(pfad);
-        texte = datei.laden().orElseThrow(() -> new IOException(RESSOURCE + " fehlt."));
+        this(plugin.getDataFolder().toPath().resolve(RESSOURCE), plugin.getResource(RESSOURCE));
+    }
 
-        var standard = new YamlConfiguration();
-        var ressource = plugin.getResource(RESSOURCE);
+    public PlotNachrichten(Path pfad, InputStream ressource) throws IOException {
+        datei = new YamlDatei(pfad);
+        standard = new YamlConfiguration();
         if (ressource == null) {
             throw new IOException(RESSOURCE + " fehlt in der Plugin-JAR.");
         }
@@ -38,30 +40,66 @@ public final class PlotNachrichten {
         } catch (InvalidConfigurationException e) {
             throw new IOException("Ungültige Standardnachrichten.", e);
         }
-        boolean prefixAktualisiert = aktualisiereStandardtext(standard, "prefix",
-                "<dark_gray>[<green>PlotSystem</green>]</dark_gray> <gray>");
-        boolean menueAktualisiert = aktualisiereStandardtext(standard, "menue.titel", "<dark_green>PlotSystem</dark_green>");
-        if (prefixAktualisiert || menueAktualisiert) {
-            datei.speichern(texte);
+        if (Files.notExists(pfad)) {
+            datei.speichern(standard);
         }
-        texte.setDefaults(standard);
+        var geladen = datei.laden().orElseThrow(() -> new IOException(RESSOURCE + " fehlt."));
+        boolean prefixAktualisiert = aktualisiereStandardtext(geladen, "prefix",
+                "<dark_gray>[<green>PlotSystem</green>]</dark_gray> <gray>");
+        boolean menueAktualisiert = aktualisiereStandardtext(geladen, "menue.titel", "<dark_green>PlotSystem</dark_green>");
+        if (prefixAktualisiert || menueAktualisiert) {
+            datei.speichern(geladen);
+        }
+        texte = pruefen(geladen);
     }
 
-    private boolean aktualisiereStandardtext(YamlConfiguration standard, String schluessel, String bisher) {
-        if (!bisher.equals(texte.getString(schluessel))) {
+    private boolean aktualisiereStandardtext(YamlConfiguration geladen, String schluessel, String bisher) {
+        if (!bisher.equals(geladen.getString(schluessel))) {
             return false;
         }
-        texte.set(schluessel, standard.getString(schluessel));
+        geladen.set(schluessel, standard.getString(schluessel));
         return true;
     }
 
+    public Map<String, String> vorbereiten() throws IOException {
+        return pruefen(datei.laden().orElseThrow(() -> new IOException(RESSOURCE + " fehlt.")));
+    }
+
+    public void uebernehmen(Map<String, String> neu) {
+        texte = Map.copyOf(neu);
+    }
+
+    private Map<String, String> pruefen(YamlConfiguration geladen) throws IOException {
+        var ergebnis = new HashMap<String, String>();
+        for (String schluessel : standard.getKeys(true)) {
+            if (standard.isConfigurationSection(schluessel)) {
+                if (geladen.contains(schluessel) && !geladen.isConfigurationSection(schluessel)) {
+                    throw new IOException(RESSOURCE + ": " + schluessel + " muss ein Abschnitt sein.");
+                }
+                continue;
+            }
+            if (geladen.contains(schluessel) && !geladen.isString(schluessel)) {
+                throw new IOException(RESSOURCE + ": " + schluessel + " muss Text sein.");
+            }
+            String text = geladen.getString(schluessel, standard.getString(schluessel));
+            try {
+                miniMessage.deserialize(text);
+            } catch (RuntimeException e) {
+                throw new IOException(RESSOURCE + ": Ungültiges MiniMessage bei " + schluessel, e);
+            }
+            ergebnis.put(schluessel, text);
+        }
+        return Map.copyOf(ergebnis);
+    }
+
     public void senden(CommandSender empfaenger, String schluessel, TagResolver... platzhalter) {
-        String text = Objects.requireNonNullElse(texte.getString(schluessel), schluessel);
-        String praefix = Objects.requireNonNullElse(texte.getString("prefix"), "");
+        var aktuell = texte;
+        String text = aktuell.getOrDefault(schluessel, schluessel);
+        String praefix = aktuell.getOrDefault("prefix", "");
         empfaenger.sendMessage(miniMessage.deserialize(praefix + text, platzhalter));
     }
 
     public Component komponente(String schluessel, TagResolver... platzhalter) {
-        return miniMessage.deserialize(Objects.requireNonNullElse(texte.getString(schluessel), schluessel), platzhalter);
+        return miniMessage.deserialize(texte.getOrDefault(schluessel, schluessel), platzhalter);
     }
 }

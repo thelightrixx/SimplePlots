@@ -11,6 +11,7 @@ public record Plot(PlotId id, UUID besitzer, PlotRechte rechte, PlotProfil profi
     public Plot {
         Objects.requireNonNull(id, "Plot-ID");
         Objects.requireNonNull(besitzer, "Besitzer");
+        Objects.requireNonNull(rechte, "Plot-Rechte");
         Objects.requireNonNull(profil, "Plot-Profil");
         if (rechte.enthaelt(besitzer) || profil.likes().contains(besitzer)) {
             throw new IllegalArgumentException("Der Besitzer darf keine zusätzliche Plot-Rolle oder Stimme haben.");
@@ -62,6 +63,9 @@ public record Plot(PlotId id, UUID besitzer, PlotRechte rechte, PlotProfil profi
     }
 
     public Plot vereinigtMit(Plot nachbar) {
+        if (!besitzer.equals(nachbar.besitzer())) {
+            throw new IllegalArgumentException("Nur Plots desselben Besitzers dürfen zusammengelegt werden.");
+        }
         var flaeche = new HashSet<>(zellen);
         flaeche.addAll(nachbar.zellen);
         return new Plot(id, besitzer, rechte.vereinigtMit(nachbar.rechte), profil, flaeche);

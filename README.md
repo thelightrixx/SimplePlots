@@ -1,6 +1,8 @@
-# SimplePlots v0.2.1-alpha
+# SimplePlots v0.3.0-alpha
 
 SimplePlots ergänzt einen Paper-Server um eine separate Survival-Plotwelt mit Claims, Baurechten, Plotgalerie und Bauwettbewerben. Spieler behalten beim Weltwechsel ihr Inventar.
+
+Version v0.3.0-alpha ergänzt bearbeitbaren Plot-Untergrund, eine I/O-Warteschlange mit YAML-Änderungsjournal, Diagnose, sicheren Konfigurations-Reload und konfigurierbare Inventarmenüs.
 
 ## Dokumentation
 
@@ -13,6 +15,7 @@ SimplePlots ergänzt einen Paper-Server um eine separate Survival-Plotwelt mit C
 | Syntax, Aliase und Optionen nachschlagen | [Befehlsreferenz](docs/index.html#/befehle) |
 | Rechte und Konfiguration ändern | [Berechtigungen](docs/index.html#/rechte), [Konfiguration](docs/index.html#/konfiguration) |
 | Spielstände sichern oder Fehler beheben | [Betrieb](docs/index.html#/betrieb) |
+| Speicherung, Threading und Prüfungen nachvollziehen | [Qualität und Architektur](docs/index.html#/qualitaet) |
 | Versionsänderungen nachlesen | [Changelog](docs/index.html#/changelog) |
 
 ## Voraussetzungen und Installation
@@ -25,9 +28,9 @@ SimplePlots ergänzt einen Paper-Server um eine separate Survival-Plotwelt mit C
 
 Folia wird nicht unterstützt. Eine Datenbank und zusätzliche Plugins sind für den aktuellen Funktionsumfang nicht erforderlich. Claims sind derzeit kostenlos.
 
-Das [Release v0.2.1-alpha](https://github.com/thelightrixx/SimplePlots/releases/tag/v0.2.1-alpha) enthält die [Plugin-JAR](https://github.com/thelightrixx/SimplePlots/releases/download/v0.2.1-alpha/SimplePlots-v0.2.1-alpha.jar) und [SHA256SUMS.txt](https://github.com/thelightrixx/SimplePlots/releases/download/v0.2.1-alpha/SHA256SUMS.txt).
+Im [Release v0.3.0-alpha](https://github.com/thelightrixx/SimplePlots/releases/tag/v0.3.0-alpha) findest du die [Plugin-JAR](https://github.com/thelightrixx/SimplePlots/releases/download/v0.3.0-alpha/SimplePlots-v0.3.0-alpha.jar) und die [SHA-256-Prüfsumme](https://github.com/thelightrixx/SimplePlots/releases/download/v0.3.0-alpha/SHA256SUMS.txt).
 
-1. Lade die JAR aus dem Release herunter oder [baue sie selbst](#bauen-und-prüfen). Kopiere `SimplePlots-v0.2.1-alpha.jar` bei gestopptem Server nach `plugins/` und prüfe beim Download die SHA-256.
+1. Lade die JAR aus dem Release herunter oder [baue sie selbst](#bauen-und-prüfen). Prüfe beim Download die SHA-256 und kopiere `SimplePlots-v0.3.0-alpha.jar` bei gestopptem Server nach `plugins/`.
 2. Starte Paper und prüfe das Log. Die Konfiguration entsteht unter `plugins/SimplePlots/`.
 3. Lege vor der ersten Weltgenerierung bei Bedarf das Raster fest, etwa mit `plot admin grid 48 7` in der Konsole.
 4. Erstelle die Welt mit `plot admin create`. Im Spiel öffnet `/plot world` die Plotwelt; `/plot claim` beansprucht den Plot unter dir.
@@ -35,6 +38,14 @@ Das [Release v0.2.1-alpha](https://github.com/thelightrixx/SimplePlots/releases/
 Standardmäßig gelten 32 × 32 Blöcke pro Plot, sieben Blöcke Wegbreite und drei Claims pro Spieler. Das Raster bleibt nach der ersten Generierung fest. `/plot admin info` zeigt die aktiven Werte.
 
 `/plot back` führt aus der Plotwelt zum Spawn der Hauptwelt `minecraft:overworld`. Das Rückkehrziel hängt nicht von der Ladereihenfolge der Welten ab.
+
+Neue Plotflächen bestehen aus Gras auf Y=63, Erde auf Y=60–62 und Stein darunter. Nur die unterste Schicht auf Y=-64 bleibt Bedrock. Besitzer und Spieler mit Baurechten können auf beanspruchten Plots bis Y=-63 bauen und abbauen, den Grasboden bearbeiten und sichere Besuchspunkte unterirdisch setzen. Öffentliche Wege und Wettbewerbsflächen bleiben geschützt. Bereits erzeugte Chunks behalten ihren bisherigen Untergrund; es findet keine automatische Umwandlung statt.
+
+LuckPerms wird nicht benötigt. Eigentum und Plotrollen werden anhand der Spieler-UUID geprüft; die SimplePlots-Befehlsrechte lassen sich über die normalen Paper-Permissions verwalten.
+
+Mit `/plot admin diagnostics` prüfst du Version, Welt, Plotbestand und Speicherwarteschlange. `/plot admin reload` übernimmt `config.yml`, `config/messages.yml` und `config/gui.yml` gemeinsam, sobald alle Dateien gültig sind. Menüplätze, Seitengröße und Item-Materialien stehen in `config/gui.yml`; Texte bleiben in `config/messages.yml`.
+
+Plot- und Wettbewerbsänderungen werden außerhalb des Serverthreads gespeichert. Die Bestätigung und die neuen Rechte erscheinen nach erfolgreicher Speicherung. `plots.yml` und `plots-aenderungen.yml` bilden gemeinsam den Plotbestand und müssen zusammen gesichert werden. Ältere Plotformate werden beim ersten Schreiben übernommen. Ein Downgrade benötigt die vollständige Sicherung vor der Umstellung.
 
 Beim Wechsel von PlotSystem zuerst den Plugin-Datenordner und die Plotwelt gemeinsam sichern und die alte JAR entfernen. Die [Wechselanleitung](docs/index.html#/installation/wechsel) beschreibt die automatische Datenübernahme. Updates und Sicherungen stehen unter [Betrieb](docs/index.html#/betrieb).
 
@@ -50,7 +61,7 @@ Der Aufruf funktioniert unabhängig vom aktuellen Arbeitsverzeichnis. Er prüft 
 
 Der Build prüft Versionen und Doku, führt die Werkzeugtests und `mvn -pl paper -am clean verify` aus und kontrolliert die fertige JAR. Unter `dist/` liegen anschließend:
 
-- `SimplePlots-v0.2.1-alpha.jar` – installierbares Plugin.
+- `SimplePlots-v0.3.0-alpha.jar` – installierbares Plugin.
 - `SHA256SUMS.txt` – SHA-256 der exakt geprüften JAR.
 - `RELEASE_NOTES.md` – Veröffentlichungstext aus dem aktuellen Changelog.
 
@@ -65,7 +76,9 @@ python scripts/check-version.py --jar
 python scripts/prepare-release.py
 ```
 
-Die Maven-Ausgabe bleibt `paper/target/SimplePlots-v0.2.1-alpha.jar`. Für gezielte Kerntests genügt `mvn -pl common -am test`. Der vollständige Build führt alle Tests aus; schnelle Maven-Aufrufe für die Entwicklung sind separat möglich.
+Die Maven-Ausgabe bleibt `paper/target/SimplePlots-v0.3.0-alpha.jar`. Für gezielte Kerntests genügt `mvn -pl common -am test`. Der vollständige Build führt alle Tests aus; schnelle Maven-Aufrufe für die Entwicklung sind separat möglich.
+
+`mvn -Pcoverage -pl paper -am clean verify` erzeugt zusätzlich JaCoCo-Berichte unter `common/target/site/jacoco/` und `paper/target/site/jacoco/`. Die CI führt diese Messung auf Windows und Linux aus und stellt die Berichte als Artefakte bereit. Die [Prüfbereiche und Grenzen](docs/index.html#/qualitaet/pruefungen) sind im Handbuch beschrieben.
 
 ## Lokal auf Paper testen
 
@@ -93,9 +106,11 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/dev-test.ps1 -NoBuil
 | `scripts/` | Build, Werkzeugverwaltung, Testserver, Versions- und Artefaktprüfungen. |
 | `.github/workflows/` | Prüfungen auf Windows/Linux, Release-Vorbereitung und GitHub Pages. |
 | `.mvn/` | Markiert die Maven-Projektwurzel und setzt UTF-8 für den Build-Prozess. |
-| `.tools/` | Lokales Maven und temporäre Werkzeugdaten; ignoriert. |
+| `.tools/` | Lokale Werkzeuge, temporäre Prüfprogramme, isolierte Testinstanzen und Prüfprotokolle; ignoriert. |
 | `test-server/` | Lokaler Paper-Testserver samt Welten und Plugin-Daten; ignoriert. |
 | `dist/`, `*/target/` | Geprüfte Ausgabe bzw. Maven-Builddaten; ignoriert. |
+| `.gitignore` | Hält erzeugte Dateien, lokale Werkzeuge, IDE-Einstellungen und Secrets aus der Versionsverwaltung. |
+| `AGENTS.md` | Lokale Arbeitsregeln für Architektur, Speicherung, Prüfungen und Releases; ignoriert. |
 
 `.editorconfig` und `.gitattributes` legen UTF-8 und Zeilenenden fest. `AGENTS.md`, IDE-Einstellungen, Secrets und erzeugte Dateien bleiben lokal. Zur Versionspflege und Veröffentlichung siehe [Entwicklung](docs/index.html#/entwicklung/versionen).
 

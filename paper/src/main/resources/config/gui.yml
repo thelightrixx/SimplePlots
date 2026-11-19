@@ -1,0 +1,76 @@
+# Menütitel, Namen und Beschreibungstexte stehen in config/messages.yml.
+# Zeilen: 3 bis 6. Slots beginnen bei 0 und müssen innerhalb eines Menüs verschieden sein.
+hauptmenue:
+  zeilen: 3
+  slots:
+    eigene: 10
+    galerie: 12
+    karte: 14
+    wettbewerb: 16
+    plotwelt: 18
+    hauptwelt: 20
+    claim: 24
+    rechte: 26
+
+rechte:
+  zeilen: 3
+  slots:
+    trusted: 10
+    bauhelfer: 12
+    lager: 14
+    doors: 20
+    switches: 24
+    zurueck: 22
+
+# Die letzte Zeile bleibt für Navigation reserviert.
+# Navigation enthält Spalten (0 bis 8) innerhalb dieser letzten Zeile.
+seiten:
+  zeilen: 6
+  navigation:
+    vorherige: 0
+    filter: 2
+    zurueck: 4
+    extra: 6
+    naechste: 8
+
+# Bukkit-Item-Materialien. AIR und reine Blockmaterialien werden abgewiesen.
+symbole:
+  eigene: GRASS_BLOCK
+  galerie: SPYGLASS
+  karte: FILLED_MAP
+  wettbewerb: GOLD_INGOT
+  plotwelt: ENDER_EYE
+  hauptwelt: OAK_DOOR
+  claim: COMPASS
+  rechte: TRIPWIRE_HOOK
+  zurueck: OAK_DOOR
+  vorherige: ARROW
+  naechste: ARROW
+  keine-eigenen: BARRIER
+  galerie-leer: BARRIER
+  keine-mitglieder: BARRIER
+  wettbewerb-leer: BARRIER
+  filter: HOPPER
+  neu: CLOCK
+  beliebt: CLOCK
+  trusted: IRON_PICKAXE
+  bauhelfer: WOODEN_AXE
+  lager: CHEST
+  doors: OAK_DOOR
+  switches: LEVER
+  eigenes-plot: GRASS_BLOCK
+  beitrag: GOLD_INGOT
+  thema: BOOK
+  mitglied: LIME_DYE
+  kandidat: GRAY_DYE
+  karte-mitte: COMPASS
+  karte-frei: GRAY_STAINED_GLASS_PANE
+  karte-gebannt: RED_STAINED_GLASS_PANE
+  karte-eigen: LIME_STAINED_GLASS_PANE
+  karte-fremd: BLUE_STAINED_GLASS_PANE
+  kategorie:
+    build: BRICKS
+    shop: EMERALD
+    museum: PAINTING
+    parkour: LEATHER_BOOTS
+    farm: WHEAT

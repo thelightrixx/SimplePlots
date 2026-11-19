@@ -10,6 +10,7 @@ import de.lightrixx.plot.storage.PlotSpeicher;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -235,6 +236,80 @@ class PlotDienstTest {
         dienst.rolleAendern(id, besitzer, gast, DENY);
         assertTrue(dienst.galerie(gast).isEmpty());
         assertEquals(List.of(id), dienst.galerie(plot -> true).stream().map(Plot::id).toList());
+    }
+
+    @Test
+    void haeltIndizesNachUmbenennenMergeUndSpeicherfehlerKonsistent() throws IOException {
+        var dienst = new PlotDienst(speicher, PlotKauf.kostenlos());
+        var nachbar = id.verschoben(1, 0);
+        dienst.claim(id, besitzer, 2);
+        dienst.claim(nachbar, besitzer, 2);
+        dienst.profilAendern(id, besitzer, profil -> profil.mitName("Alt"));
+        dienst.profilAendern(nachbar, besitzer, profil -> profil.mitName("Nachbar"));
+        speicher.schreibfehler = true;
+        assertThrows(IOException.class, () -> dienst.profilAendern(id, besitzer, profil -> profil.mitName("Neu")));
+        assertTrue(dienst.nachName("Neu").isEmpty());
+        assertEquals(id, dienst.nachName("Alt").orElseThrow().id());
+        speicher.schreibfehler = false;
+        dienst.profilAendern(id, besitzer, profil -> profil.mitName("Neu"));
+        assertTrue(dienst.nachName("Alt").isEmpty());
+        dienst.zusammenlegen(id, nachbar, besitzer, plot -> false, true);
+        assertTrue(dienst.nachName("Nachbar").isEmpty());
+        assertEquals(dienst.alle(), dienst.vomBesitzer(besitzer));
+        assertEquals(1, dienst.anzahlPlots());
+        assertEquals(2, dienst.anzahlZellen());
+        assertEquals(LIMIT, dienst.claim(id.verschoben(2, 0), besitzer, 2));
+        assertThrows(UnsupportedOperationException.class, () -> dienst.vomBesitzer(besitzer).clear());
+    }
+
+    @Test
+    void laedtZehntausendPlotsUndFindetBesitzNameUndFreieZelle() throws IOException {
+        var daten = new ArrayList<Plot>();
+        for (int i = 0; i < 10_000; i++) {
+            daten.add(Plot.neu(new PlotId(i, 0), new UUID(0, i + 1)).mitProfil(PlotProfil.leer().mitName("Plot " + i)));
+        }
+        speicher.daten = daten;
+        var dienst = new PlotDienst(speicher, PlotKauf.kostenlos());
+        assertEquals(10_000, dienst.anzahlPlots());
+        assertEquals(10_000, dienst.anzahlZellen());
+        assertEquals(daten.getLast(), dienst.nachName("PLOT 9999").orElseThrow());
+        assertEquals(List.of(daten.getLast()), dienst.vomBesitzer(new UUID(0, 10_000)));
+        assertTrue(dienst.finden(dienst.naechsterFreierPlot()).isEmpty());
+    }
+
+    @Test
+    void veroeffentlichtWaehrendDerSpeicherungKeinenTeilstand() throws Exception {
+        var begonnen = new java.util.concurrent.CountDownLatch(1);
+        var freigabe = new java.util.concurrent.CountDownLatch(1);
+        var dienst = new PlotDienst(new PlotSpeicher() {
+            public List<Plot> laden() { return List.of(); }
+            public void speichern(List<Plot> plots) throws IOException {
+                begonnen.countDown();
+                try {
+                    if (!freigabe.await(5, java.util.concurrent.TimeUnit.SECONDS)) {
+                        throw new IOException("Testfreigabe fehlt");
+                    }
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    throw new IOException(e);
+                }
+            }
+        }, PlotKauf.kostenlos());
+        var auftraege = new de.lightrixx.plot.storage.SpeicherAuftraege(4);
+        try {
+            var claim = auftraege.einreichen(() -> dienst.claim(id, besitzer, 1));
+            assertTrue(begonnen.await(5, java.util.concurrent.TimeUnit.SECONDS));
+            assertEquals(0, dienst.anzahlPlots());
+            assertTrue(dienst.finden(id).isEmpty());
+            assertTrue(dienst.vomBesitzer(besitzer).isEmpty());
+            freigabe.countDown();
+            assertEquals(CLAIMED, claim.get(5, java.util.concurrent.TimeUnit.SECONDS));
+            assertEquals(1, dienst.anzahlPlots());
+            assertEquals(List.of(Plot.neu(id, besitzer)), dienst.vomBesitzer(besitzer));
+        } finally {
+            freigabe.countDown();
+            assertTrue(auftraege.beenden(java.time.Duration.ofSeconds(5)));
+        }
     }
 
     private static final class TestSpeicher implements PlotSpeicher {

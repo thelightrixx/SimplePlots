@@ -8,6 +8,11 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.type.Slab;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.plugin.Plugin;
+
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 final class PlotWegrand {
     private static final NamespacedKey RAND = new NamespacedKey("simpleplots", "wegrand");
@@ -16,10 +21,39 @@ final class PlotWegrand {
     private static final byte KEIN_RAND = 0;
     private static final byte VORGESEHEN = 1;
     private static final byte GESETZT = 2;
+    private static final int CHUNKS_PRO_TICK = 8;
     private final PlotDienst plots;
+    private final Map<Long, RandAuftrag> ausstehend = new LinkedHashMap<>();
+    private boolean geplant;
 
     PlotWegrand(PlotDienst plots) {
         this.plots = plots;
+    }
+
+    void vormerken(Plugin plugin, List<Chunk> chunks, PlotRaster raster) {
+        for (Chunk chunk : chunks) {
+            long key = ((long) chunk.getX() << 32) | (chunk.getZ() & 0xffffffffL);
+            ausstehend.put(key, new RandAuftrag(chunk, raster));
+        }
+        if (!geplant && !ausstehend.isEmpty()) {
+            geplant = true;
+            plugin.getServer().getScheduler().runTask(plugin, () -> abarbeiten(plugin));
+        }
+    }
+
+    private void abarbeiten(Plugin plugin) {
+        var iterator = ausstehend.entrySet().iterator();
+        for (int i = 0; i < CHUNKS_PRO_TICK && iterator.hasNext(); i++) {
+            var auftrag = iterator.next().getValue();
+            iterator.remove();
+            if (auftrag.chunk().isLoaded()) {
+                aktualisieren(auftrag.chunk(), auftrag.raster());
+            }
+        }
+        geplant = !ausstehend.isEmpty();
+        if (geplant) {
+            plugin.getServer().getScheduler().runTask(plugin, () -> abarbeiten(plugin));
+        }
     }
 
     void aktualisieren(Chunk chunk, PlotRaster raster) {
@@ -68,5 +102,8 @@ final class PlotWegrand {
             rand[index] = VORGESEHEN;
             daten.set(RAND, PersistentDataType.BYTE_ARRAY, rand);
         }
+    }
+
+    private record RandAuftrag(Chunk chunk, PlotRaster raster) {
     }
 }

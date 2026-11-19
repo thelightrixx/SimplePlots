@@ -6,7 +6,7 @@
 
     <groupId>de.lightrixx</groupId>
     <artifactId>simpleplots-parent</artifactId>
-    <version>v0.2.1-alpha</version>
+    <version>v0.3.0-alpha</version>
     <packaging>pom</packaging>
     <name>SimplePlots (Parent)</name>
     <description>Survival-Plotwelt mit Claims, Baurechten, Galerie und Bauwettbewerben.</description>
@@ -30,6 +30,9 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <paper.version>26.1.2.build.74-stable</paper.version>
         <junit.version>5.11.3</junit.version>
+        <mockito.version>5.23.0</mockito.version>
+        <jacoco.version>0.8.16</jacoco.version>
+        <jacocoArgLine></jacocoArgLine>
     </properties>
 
     <repositories>
@@ -45,6 +48,12 @@
                 <groupId>org.junit.jupiter</groupId>
                 <artifactId>junit-jupiter</artifactId>
                 <version>${junit.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-core</artifactId>
+                <version>${mockito.version}</version>
                 <scope>test</scope>
             </dependency>
         </dependencies>
@@ -63,7 +72,7 @@
                     <artifactId>maven-surefire-plugin</artifactId>
                     <version>3.3.1</version>
                     <configuration>
-                        <argLine>-Djava.io.tmpdir="${project.build.directory}"</argLine>
+                        <argLine>@{jacocoArgLine} -Djava.io.tmpdir="${project.build.directory}"</argLine>
                     </configuration>
                 </plugin>
                 <plugin>
@@ -83,4 +92,36 @@
             </plugins>
         </pluginManagement>
     </build>
+
+    <profiles>
+        <profile>
+            <id>coverage</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.jacoco</groupId>
+                        <artifactId>jacoco-maven-plugin</artifactId>
+                        <version>${jacoco.version}</version>
+                        <configuration>
+                            <propertyName>jacocoArgLine</propertyName>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>testabdeckung-messen</id>
+                                <goals><goal>prepare-agent</goal></goals>
+                                <configuration>
+                                    <includes><include>de.lightrixx.plot.*</include></includes>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>testabdeckung-berichten</id>
+                                <phase>verify</phase>
+                                <goals><goal>report</goal></goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>

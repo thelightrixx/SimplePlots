@@ -76,14 +76,14 @@ def pruefen(jar_pruefen=False, tag=None, projekt=PROJEKT):
                         fehler.append(f"{jarname}: Plugin-Klasse fehlt: {name}")
                 for name in eintraege:
                     if name.startswith(("org/bukkit/", "io/papermc/", "net/kyori/", "org/slf4j/",
-                                        "org/junit/", "org/mockito/")):
+                                        "org/junit/", "org/mockito/", "org/yaml/", "net/bytebuddy/", "org/jacoco/")):
                         fehler.append(f"{jarname}: Server- oder Testbibliothek mitgeliefert: {name}")
                         break
                     if name.endswith(".class"):
                         kopf = jar.read(name)[:8]
                         if kopf[:4] != b"\xca\xfe\xba\xbe" or int.from_bytes(kopf[6:8], "big") != 65:
                             fehler.append(f"{jarname}: Kein Java-21-Bytecode in {name}")
-                for name in ("config.yml", "config/messages.yml"):
+                for name in ("config.yml", "config/messages.yml", "config/gui.yml"):
                     if jar.read(name) != (projekt / "paper/src/main/resources" / name).read_bytes():
                         fehler.append(f"{jarname}: Veraltete Ressource {name}")
                 if jar.read("META-INF/LICENSE") != (projekt / "LICENSE").read_bytes():

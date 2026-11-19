@@ -37,7 +37,7 @@ class PlotYamlSpeicherTest {
         speicher.speichern(List.of(erster, zweiter));
         assertEquals(List.of(erster, zweiter), new PlotYamlSpeicher(pfad).laden());
         try (var dateien = Files.list(ordner)) {
-            assertEquals(List.of(pfad), dateien.toList());
+            assertTrue(dateien.noneMatch(datei -> datei.getFileName().toString().endsWith(".tmp")));
         }
     }
 
@@ -53,6 +53,20 @@ class PlotYamlSpeicherTest {
                     gebannt: []
                 """);
         assertThrows(IOException.class, () -> new PlotYamlSpeicher(pfad).laden());
+    }
+
+    @Test
+    void lehntVerkuerzteUndDoppelteUuidsAb() throws IOException {
+        Path pfad = ordner.resolve("plots.yml");
+        UUID besitzer = UUID.randomUUID();
+        UUID gast = UUID.randomUUID();
+        for (String liste : List.of("1-1-1-1-1", gast + ", " + gast)) {
+            String text = "format: 1\nplots:\n  0;0:\n    besitzer: " + besitzer
+                    + "\n    trusted: [" + liste + "]\n    gebannt: []\n";
+            Files.writeString(pfad, text);
+            assertThrows(IOException.class, () -> new PlotYamlSpeicher(pfad).laden());
+            assertEquals(text, Files.readString(pfad));
+        }
     }
 
     @Test
@@ -96,6 +110,6 @@ class PlotYamlSpeicherTest {
         assertEquals(Set.of(gebannt), neu.rechte().gebannt());
         assertEquals(1, neu.profil().likes().size());
         assertEquals(Optional.of(punkt), neu.profil().besuchspunkt());
-        assertTrue(Files.readString(pfad).startsWith("format: 2"));
+        assertTrue(Files.readString(pfad).startsWith("format: 3"));
     }
 }

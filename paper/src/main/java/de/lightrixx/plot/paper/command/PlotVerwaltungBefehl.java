@@ -10,10 +10,11 @@ import de.lightrixx.plot.service.PlotDienst;
 import de.lightrixx.plot.service.WettbewerbDienst;
 import org.bukkit.entity.Player;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.UUID;
+import java.util.function.UnaryOperator;
 
 import static net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.unparsed;
 
@@ -22,57 +23,64 @@ final class PlotVerwaltungBefehl {
     private final PlotWelt welt;
     private final PlotNachrichten texte;
     private final WettbewerbDienst wettbewerbe;
+    private final PlotAuftraege auftraege;
 
-    PlotVerwaltungBefehl(PlotDienst plots, PlotWelt welt, PlotNachrichten texte, WettbewerbDienst wettbewerbe) {
+    PlotVerwaltungBefehl(PlotDienst plots, PlotWelt welt, PlotNachrichten texte, WettbewerbDienst wettbewerbe,
+                         PlotAuftraege auftraege) {
         this.plots = plots;
         this.welt = welt;
         this.texte = texte;
         this.wettbewerbe = wettbewerbe;
+        this.auftraege = auftraege;
     }
 
-    void ausfuehren(Player spieler, PlotId id, String aktion, String[] args) throws IOException {
+    void ausfuehren(Player spieler, PlotId id, String aktion, String[] args) {
         switch (aktion) {
             case "profile" -> profil(spieler, id, args);
             case "sethome" -> setHome(spieler, id, args);
             case "flag" -> flag(spieler, id, args);
             case "like", "unlike" -> {
                 boolean vergeben = aktion.equals("like");
-                aenderungSenden(spieler, plots.like(id, spieler.getUniqueId(), vergeben), "profil." + aktion);
+                UUID spielerId = spieler.getUniqueId();
+                auftraege.ausfuehren(spieler, "/plot " + aktion, () -> plots.like(id, spielerId, vergeben),
+                        ergebnis -> aenderungSenden(spieler, ergebnis, "profil." + aktion));
             }
             case "merge" -> zusammenlegen(spieler, id, args);
             default -> throw new IllegalArgumentException("Unbekannter Plot-Unterbefehl " + aktion);
         }
     }
 
-    private void profil(Player spieler, PlotId id, String[] args) throws IOException {
+    private void profil(Player spieler, PlotId id, String[] args) {
         if (args.length < 3) {
             texte.senden(spieler, "profil.hilfe");
             return;
         }
         String feld = args[1].toLowerCase(Locale.ROOT);
         String wert = String.join(" ", Arrays.copyOfRange(args, 2, args.length));
-        PlotDienst.Aenderung ergebnis;
+        UnaryOperator<PlotProfil> aenderung;
         try {
-            ergebnis = switch (feld) {
-                case "name" -> plots.profilAendern(id, spieler.getUniqueId(), profil -> profil.mitName(wert));
-                case "description" -> plots.profilAendern(id, spieler.getUniqueId(),
-                        profil -> profil.mitBeschreibung(wert.equals("-") ? "" : wert));
+            aenderung = switch (feld) {
+                case "name" -> profil -> profil.mitName(wert);
+                case "description" -> profil -> profil.mitBeschreibung(wert.equals("-") ? "" : wert);
                 case "category" -> {
                     Optional<PlotProfil.Kategorie> kategorie = wert.equalsIgnoreCase("off") ? Optional.empty()
                             : Optional.of(PlotProfil.Kategorie.valueOf(wert.toUpperCase(Locale.ROOT)));
                     long jetzt = System.currentTimeMillis();
-                    yield plots.profilAendern(id, spieler.getUniqueId(), profil -> profil.mitKategorie(kategorie, jetzt));
+                    yield profil -> profil.mitKategorie(kategorie, jetzt);
                 }
                 default -> throw new IllegalArgumentException("Ungültiges Profilfeld.");
             };
+            plots.finden(id).ifPresent(plot -> aenderung.apply(plot.profil()));
         } catch (IllegalArgumentException e) {
             texte.senden(spieler, "profil.ungueltig");
             return;
         }
-        aenderungSenden(spieler, ergebnis, "profil.gespeichert");
+        UUID besitzer = spieler.getUniqueId();
+        auftraege.ausfuehren(spieler, "/plot profile", () -> plots.profilAendern(id, besitzer, aenderung),
+                ergebnis -> aenderungSenden(spieler, ergebnis, "profil.gespeichert"));
     }
 
-    private void setHome(Player spieler, PlotId id, String[] args) throws IOException {
+    private void setHome(Player spieler, PlotId id, String[] args) {
         Optional<PlotProfil.Besuchspunkt> punkt;
         if (args.length == 2 && args[1].equalsIgnoreCase("off")) {
             punkt = Optional.empty();
@@ -88,11 +96,13 @@ final class PlotVerwaltungBefehl {
             texte.senden(spieler, "profil.hilfe");
             return;
         }
-        aenderungSenden(spieler, plots.profilAendern(id, spieler.getUniqueId(), profil -> profil.mitBesuchspunkt(punkt)),
-                punkt.isEmpty() ? "profil.ort-entfernt" : "profil.ort-gesetzt");
+        UUID besitzer = spieler.getUniqueId();
+        auftraege.ausfuehren(spieler, "/plot sethome",
+                () -> plots.profilAendern(id, besitzer, profil -> profil.mitBesuchspunkt(punkt)),
+                ergebnis -> aenderungSenden(spieler, ergebnis, punkt.isEmpty() ? "profil.ort-entfernt" : "profil.ort-gesetzt"));
     }
 
-    private void flag(Player spieler, PlotId id, String[] args) throws IOException {
+    private void flag(Player spieler, PlotId id, String[] args) {
         if (args.length != 3 || !(args[2].equalsIgnoreCase("on") || args[2].equalsIgnoreCase("off"))) {
             texte.senden(spieler, "rollen.flag-hilfe");
             return;
@@ -105,11 +115,12 @@ final class PlotVerwaltungBefehl {
             return;
         }
         boolean erlaubt = args[2].equalsIgnoreCase("on");
-        aenderungSenden(spieler, plots.besucherRecht(id, spieler.getUniqueId(), flag, erlaubt),
-                erlaubt ? "rollen.flag-an" : "rollen.flag-aus");
+        UUID besitzer = spieler.getUniqueId();
+        auftraege.ausfuehren(spieler, "/plot flag", () -> plots.besucherRecht(id, besitzer, flag, erlaubt),
+                ergebnis -> aenderungSenden(spieler, ergebnis, erlaubt ? "rollen.flag-an" : "rollen.flag-aus"));
     }
 
-    private void zusammenlegen(Player spieler, PlotId id, String[] args) throws IOException {
+    private void zusammenlegen(Player spieler, PlotId id, String[] args) {
         if (args.length < 2 || args.length > 3 || (args.length == 3 && !args[2].equalsIgnoreCase("confirm"))) {
             texte.senden(spieler, "merge.hilfe");
             return;
@@ -121,19 +132,24 @@ final class PlotVerwaltungBefehl {
             texte.senden(spieler, "fehler.plot-id");
             return;
         }
-        var ergebnis = plots.zusammenlegen(id, nachbar, spieler.getUniqueId(), wettbewerbe::gesperrt, args.length == 3);
-        texte.senden(spieler, "merge." + ergebnis.name().toLowerCase(Locale.ROOT).replace('_', '-'),
-                unparsed("target", nachbar.toString()), unparsed("source", id.toString()));
-        if (ergebnis == PlotDienst.MergeErgebnis.VEREINIGT) {
-            var plot = plots.finden(id).orElseThrow();
-            welt.wegrandAktualisieren(spieler.getWorld(), plot);
-            for (Player gast : spieler.getWorld().getPlayers()) {
-                if (!PlotBerechtigungen.darfBetreten(gast, plot) && welt.plotBei(gast.getLocation()).filter(id::equals).isPresent()
-                        && gast.teleport(welt.wegVor(gast.getWorld(), id))) {
-                    texte.senden(gast, "zugang.gebannt");
+        UUID besitzer = spieler.getUniqueId();
+        boolean bestaetigt = args.length == 3;
+        var plotwelt = spieler.getWorld();
+        auftraege.ausfuehren(spieler, "/plot merge",
+                () -> plots.zusammenlegen(id, nachbar, besitzer, wettbewerbe::gesperrt, bestaetigt), ergebnis -> {
+            texte.senden(spieler, "merge." + ergebnis.name().toLowerCase(Locale.ROOT).replace('_', '-'),
+                    unparsed("target", nachbar.toString()), unparsed("source", id.toString()));
+            if (ergebnis == PlotDienst.MergeErgebnis.VEREINIGT) {
+                var plot = plots.finden(id).orElseThrow();
+                welt.wegrandAktualisieren(plotwelt, plot);
+                for (Player gast : plotwelt.getPlayers()) {
+                    if (!PlotBerechtigungen.darfBetreten(gast, plot) && welt.plotBei(gast.getLocation()).filter(id::equals).isPresent()
+                            && gast.teleport(welt.wegVor(gast.getWorld(), id))) {
+                        texte.senden(gast, "zugang.gebannt");
+                    }
                 }
             }
-        }
+        });
     }
 
     private void aenderungSenden(Player spieler, PlotDienst.Aenderung ergebnis, String erfolg) {

@@ -41,7 +41,7 @@ class YamlDateiTest {
         assertEquals("Flüsse und Häfen 🧱", neustart.getString("name"));
         assertEquals(1, neustart.getKeys(false).size());
         try (var dateien = Files.list(pfad.getParent())) {
-            assertEquals(1, dateien.count());
+            assertEquals(2, dateien.count());
         }
     }
 
@@ -57,5 +57,51 @@ class YamlDateiTest {
         try (var dateien = Files.list(ordner)) {
             assertEquals(1, dateien.count());
         }
+    }
+
+    @Test
+    void sichertDenVorherigenStandUndBegrenztDieAnzahlDerSicherungen() throws IOException {
+        Path pfad = ordner.resolve("plots.yml");
+        var datei = new YamlDatei(pfad);
+        var daten = new YamlConfiguration();
+        daten.set("name", "Erster Stand");
+        datei.speichern(daten);
+        String erster = Files.readString(pfad);
+        daten.set("name", "Zweiter Stand");
+        datei.speichern(daten);
+        assertEquals(erster, Files.readString(ordner.resolve("plots.yml.bak")));
+        String zweiter = Files.readString(pfad);
+        daten.set("name", "Dritter Stand");
+        datei.speichern(daten);
+        assertEquals(zweiter, Files.readString(ordner.resolve("plots.yml.bak")));
+        try (var dateien = Files.list(ordner)) {
+            assertEquals(2, dateien.count());
+        }
+    }
+
+    @Test
+    void verwirftDieAenderungWennDieSicherungFehlschlaegt() throws IOException {
+        Path pfad = ordner.resolve("plots.yml");
+        var datei = new YamlDatei(pfad);
+        var daten = new YamlConfiguration();
+        daten.set("name", "Behalten");
+        datei.speichern(daten);
+        Files.createDirectory(ordner.resolve("plots.yml.bak"));
+        Files.writeString(ordner.resolve("plots.yml.bak/behalten.txt"), "geschützt");
+        daten.set("name", "Verwerfen");
+        assertThrows(IOException.class, () -> datei.speichern(daten));
+        assertEquals("Behalten", datei.laden().orElseThrow().getString("name"));
+        try (var dateien = Files.list(ordner)) {
+            assertEquals(2, dateien.count());
+        }
+    }
+
+    @Test
+    void lehntDoppelteYamlSchluesselAbOhneSieZuUeberschreiben() throws IOException {
+        Path pfad = ordner.resolve("plots.yml");
+        String text = "format: 1\nformat: 2\nplots: {}\n";
+        Files.writeString(pfad, text);
+        assertThrows(IOException.class, () -> new YamlDatei(pfad).laden());
+        assertEquals(text, Files.readString(pfad));
     }
 }

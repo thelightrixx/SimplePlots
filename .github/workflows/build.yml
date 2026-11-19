@@ -59,7 +59,7 @@ jobs:
         run: ./scripts/test-tools.ps1
 
       - name: Mit Tests bauen
-        run: mvn -B -ntp -pl paper -am clean verify
+        run: mvn -B -ntp -Pcoverage -pl paper -am clean verify
 
       - name: Plugin-JAR und Prüfsumme bereitstellen
         if: runner.os == 'Linux'
@@ -87,6 +87,14 @@ jobs:
         with:
           name: tests-${{ matrix.os }}
           path: '**/target/surefire-reports/'
+          if-no-files-found: ignore
+
+      - name: Testabdeckung sichern
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: coverage-${{ matrix.os }}
+          path: '**/target/site/jacoco/'
           if-no-files-found: ignore
 
   release:

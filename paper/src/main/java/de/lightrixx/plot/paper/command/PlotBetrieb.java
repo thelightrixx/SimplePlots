@@ -1,0 +1,98 @@
+package de.lightrixx.plot.paper.command;
+
+import de.lightrixx.plot.paper.config.PlotKonfiguration;
+import de.lightrixx.plot.paper.config.PlotMenueKonfiguration;
+import de.lightrixx.plot.paper.config.PlotNachrichten;
+import de.lightrixx.plot.paper.gui.PlotMenue;
+import de.lightrixx.plot.paper.world.PlotWelt;
+import de.lightrixx.plot.service.PlotDienst;
+import de.lightrixx.plot.service.WettbewerbDienst;
+import org.bukkit.command.CommandSender;
+import org.bukkit.plugin.java.JavaPlugin;
+
+import java.io.IOException;
+import java.util.Map;
+
+import static net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.unparsed;
+
+public final class PlotBetrieb {
+    private final JavaPlugin plugin;
+    private final PlotKonfiguration konfiguration;
+    private final PlotNachrichten texte;
+    private final PlotMenueKonfiguration gui;
+    private final PlotMenue menue;
+    private final PlotWelt welt;
+    private final PlotDienst plots;
+    private final WettbewerbDienst wettbewerbe;
+    private final PlotAuftraege auftraege;
+    private boolean reloadLaeuft;
+
+    public PlotBetrieb(JavaPlugin plugin, PlotKonfiguration konfiguration, PlotNachrichten texte,
+                      PlotMenueKonfiguration gui, PlotMenue menue, PlotWelt welt, PlotDienst plots,
+                      WettbewerbDienst wettbewerbe, PlotAuftraege auftraege) {
+        this.plugin = plugin;
+        this.konfiguration = konfiguration;
+        this.texte = texte;
+        this.gui = gui;
+        this.menue = menue;
+        this.welt = welt;
+        this.plots = plots;
+        this.wettbewerbe = wettbewerbe;
+        this.auftraege = auftraege;
+    }
+
+    public boolean reloadLaeuft() {
+        return reloadLaeuft;
+    }
+
+    public void neuladen(CommandSender sender) {
+        if (reloadLaeuft) {
+            texte.senden(sender, "admin.reload-laeuft");
+            return;
+        }
+        reloadLaeuft = true;
+        auftraege.ausfuehren(sender, "/plot admin reload", this::vorbereiten, neu -> {
+            if (welt.rasterFestgelegt() && !welt.raster().equals(neu.einstellungen().raster())) {
+                texte.senden(sender, "admin.reload-raster");
+                return;
+            }
+            uebernehmen(konfiguration, texte, gui, neu);
+            menue.schliessen();
+            texte.senden(sender, "admin.reload-erfolg");
+        }, () -> reloadLaeuft = false);
+    }
+
+    private Reload vorbereiten() throws IOException {
+        return new Reload(konfiguration.vorbereiten(), texte.vorbereiten(), gui.vorbereiten());
+    }
+
+    // Nur auf dem Serverthread aufrufen, nachdem sämtliche Dateien erfolgreich geprüft wurden.
+    static void uebernehmen(PlotKonfiguration konfiguration, PlotNachrichten texte,
+                            PlotMenueKonfiguration gui, Reload neu) {
+        konfiguration.uebernehmen(neu.einstellungen());
+        texte.uebernehmen(neu.texte());
+        gui.uebernehmen(neu.gui());
+    }
+
+    public void diagnose(CommandSender sender) {
+        var status = auftraege.status();
+        texte.senden(sender, "diagnose.version", unparsed("version", plugin.getPluginMeta().getVersion()),
+                unparsed("server", plugin.getServer().getVersion()), unparsed("java", Runtime.version().toString()));
+        texte.senden(sender, "diagnose.welt", unparsed("world", welt.schluessel().toString()),
+                unparsed("loaded", Boolean.toString(welt.istGeladen())),
+                unparsed("size", Integer.toString(welt.raster().groesse())),
+                unparsed("road", Integer.toString(welt.raster().wegbreite())));
+        texte.senden(sender, "diagnose.daten", unparsed("plots", Integer.toString(plots.anzahlPlots())),
+                unparsed("cells", Integer.toString(plots.anzahlZellen())),
+                unparsed("entries", Integer.toString(wettbewerbe.aktuell().map(wert -> wert.beitraege().size()).orElse(0))));
+        texte.senden(sender, "diagnose.speicher", unparsed("queued", Integer.toString(status.wartend())),
+                unparsed("running", Integer.toString(status.laufend())),
+                unparsed("success", Long.toString(status.erfolgreich())),
+                unparsed("failed", Long.toString(status.fehlgeschlagen())),
+                unparsed("duration", Long.toString(status.letzteDauerMillis())));
+        texte.senden(sender, "diagnose.hinweis");
+    }
+
+    record Reload(PlotKonfiguration.Werte einstellungen, Map<String, String> texte, PlotMenueKonfiguration.Daten gui) {
+    }
+}

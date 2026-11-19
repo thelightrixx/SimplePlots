@@ -35,6 +35,7 @@ class ProjektPruefungenTest(unittest.TestCase):
         self.schreiben("LICENSE", "MIT License\n")
         self.schreiben("paper/src/main/resources/config.yml", "claims: {}\n")
         self.schreiben("paper/src/main/resources/config/messages.yml", "prefix: 'SimplePlots'\n")
+        self.schreiben("paper/src/main/resources/config/gui.yml", "hauptmenue: {}\n")
         self.klassen = {
             "de/lightrixx/plot/paper/SimplePlots.class": b"\xca\xfe\xba\xbe\x00\x00\x00\x41",
             "de/lightrixx/plot/service/PlotDienst.class": b"\xca\xfe\xba\xbe\x00\x00\x00\x41",
@@ -56,6 +57,7 @@ class ProjektPruefungenTest(unittest.TestCase):
             "plugin.yml": f"name: SimplePlots\nversion: {self.version}\nmain: de.lightrixx.plot.paper.SimplePlots\napi-version: '26.1'\n".encode(),
             "config.yml": b"claims: {}\n",
             "config/messages.yml": b"prefix: 'SimplePlots'\n",
+            "config/gui.yml": b"hauptmenue: {}\n",
             "META-INF/LICENSE": b"MIT License\n",
             **{f"META-INF/maven/de.lightrixx/simpleplots-{modul}/pom.properties": f"version={self.version}\n".encode()
                for modul in ("common", "paper")},
@@ -101,6 +103,8 @@ class ProjektPruefungenTest(unittest.TestCase):
             ({"org/bukkit/Server.class": b"fremd"}, "Server- oder Testbibliothek"),
             ({"de/lightrixx/plot/paper/SimplePlots.class": b"\xca\xfe\xba\xbe\x00\x00\x00\x45"}, "Java-21"),
             ({"config/messages.yml": b"alt"}, "Veraltete Ressource"),
+            ({"config/gui.yml": b"alt"}, "Veraltete Ressource"),
+            ({"org/yaml/snakeyaml/Yaml.class": b"fremd"}, "Server- oder Testbibliothek"),
             ({"META-INF/LICENSE": None}, "konnte nicht geprüft"),
             ({"META-INF/maven/de.lightrixx/simpleplots-common/pom.properties": b"version=alt"}, "Maven-Version"),
         ]

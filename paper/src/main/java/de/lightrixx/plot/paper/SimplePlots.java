@@ -1,8 +1,11 @@
 package de.lightrixx.plot.paper;
 
 import de.lightrixx.plot.economy.PlotKauf;
+import de.lightrixx.plot.paper.command.PlotAuftraege;
 import de.lightrixx.plot.paper.command.PlotBefehl;
+import de.lightrixx.plot.paper.command.PlotBetrieb;
 import de.lightrixx.plot.paper.config.PlotKonfiguration;
+import de.lightrixx.plot.paper.config.PlotMenueKonfiguration;
 import de.lightrixx.plot.paper.config.PlotNachrichten;
 import de.lightrixx.plot.paper.gui.PlotMenue;
 import de.lightrixx.plot.paper.listener.PlotBauListener;
@@ -21,10 +24,13 @@ import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.util.Objects;
 
 public final class SimplePlots extends JavaPlugin {
     private static final String ALTER_PLUGINNAME = "PlotSystem";
+    private PlotAuftraege auftraege;
+    private PlotMenue menue;
 
     @Override
     public void onEnable() {
@@ -40,10 +46,13 @@ public final class SimplePlots extends JavaPlugin {
             saveDefaultConfig();
             var konfiguration = new PlotKonfiguration(datenordner.resolve("config.yml"));
             var texte = new PlotNachrichten(this);
+            var gui = new PlotMenueKonfiguration(this);
             var plots = new PlotDienst(new PlotYamlSpeicher(datenordner.resolve("plots.yml")), PlotKauf.kostenlos());
-            var welt = new PlotWelt(getServer(), konfiguration, plots, datenordner.resolve("welt.yml"));
+            var welt = new PlotWelt(this, konfiguration, plots, datenordner.resolve("welt.yml"));
             var wettbewerbe = new WettbewerbDienst(new WettbewerbYamlSpeicher(datenordner.resolve("wettbewerb.yml")), plots);
-            var menue = new PlotMenue(this, plots, welt, texte, wettbewerbe);
+            auftraege = new PlotAuftraege(this, texte);
+            menue = new PlotMenue(this, plots, welt, texte, wettbewerbe, gui, auftraege);
+            var betrieb = new PlotBetrieb(this, konfiguration, texte, gui, menue, welt, plots, wettbewerbe, auftraege);
 
             pluginManager.registerEvents(new PlotBauListener(welt, plots, wettbewerbe), this);
             pluginManager.registerEvents(new PlotMechanikListener(welt, plots, wettbewerbe), this);
@@ -52,13 +61,28 @@ public final class SimplePlots extends JavaPlugin {
             pluginManager.registerEvents(menue, this);
             welt.vorhandeneWeltLaden();
 
-            var befehl = new PlotBefehl(getServer(), getSLF4JLogger(), plots, welt, konfiguration, texte, menue, wettbewerbe);
+            var befehl = new PlotBefehl(getServer(), getSLF4JLogger(), plots, welt, konfiguration, texte, menue, wettbewerbe,
+                    auftraege, betrieb);
             var plotBefehl = Objects.requireNonNull(getCommand("plot"), "/plot fehlt in plugin.yml");
             plotBefehl.setExecutor(befehl);
             plotBefehl.setTabCompleter(befehl);
+            getSLF4JLogger().info("SimplePlots {} bereit: {} Plots mit {} Rasterzellen, YAML-Speicherung über I/O-Warteschlange.",
+                    getPluginMeta().getVersion(), plots.anzahlPlots(), plots.anzahlZellen());
         } catch (IOException | RuntimeException e) {
             getSLF4JLogger().error("SimplePlots konnte nicht gestartet werden.", e);
             getServer().getPluginManager().disablePlugin(this);
+        }
+    }
+
+    @Override
+    public void onDisable() {
+        if (menue != null) {
+            menue.schliessen();
+        }
+        if (auftraege != null && !auftraege.beenden(Duration.ofSeconds(15))) {
+            var status = auftraege.status();
+            getSLF4JLogger().error("Speicherung nach 15 Sekunden noch nicht beendet: {} laufende und {} wartende Aufträge. "
+                    + "Dateien vor einem Neustart prüfen.", status.laufend(), status.wartend());
         }
     }
 

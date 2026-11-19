@@ -37,15 +37,15 @@ public record PlotRaster(int groesse, int wegbreite) {
     }
 
     public int mitteX(PlotId id) {
-        return id.x() * rasterweite() + (groesse - 1) / 2;
+        return Math.toIntExact((long) id.x() * rasterweite() + (groesse - 1) / 2);
     }
 
     public int mitteZ(PlotId id) {
-        return id.z() * rasterweite() + (groesse - 1) / 2;
+        return Math.toIntExact((long) id.z() * rasterweite() + (groesse - 1) / 2);
     }
 
     public int nordwegZ(PlotId id) {
-        return id.z() * rasterweite() - 1;
+        return Math.toIntExact((long) id.z() * rasterweite() - 1);
     }
 
     public int spawnAchse() {

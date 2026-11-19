@@ -52,13 +52,13 @@ public final class WettbewerbYamlSpeicher implements WettbewerbSpeicher {
         }
         for (String id : beitragsSektion.getKeys(false)) {
             if (!beitragsSektion.isString(id)
-                    || beitraege.putIfAbsent(PlotId.lesen(id), UUID.fromString(beitragsSektion.getString(id))) != null) {
+                    || beitraege.putIfAbsent(PlotId.lesen(id), YamlWerte.uuid(beitragsSektion.getString(id))) != null) {
                 throw new IllegalArgumentException("Ungültiger Wettbewerbsbeitrag.");
             }
         }
         for (String spieler : stimmenSektion.getKeys(false)) {
             if (!stimmenSektion.isString(spieler)
-                    || stimmen.putIfAbsent(UUID.fromString(spieler), PlotId.lesen(stimmenSektion.getString(spieler))) != null) {
+                    || stimmen.putIfAbsent(YamlWerte.uuid(spieler), PlotId.lesen(stimmenSektion.getString(spieler))) != null) {
                 throw new IllegalArgumentException("Ungültige Wettbewerbsstimme.");
             }
         }

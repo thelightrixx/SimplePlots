@@ -8,7 +8,12 @@ import org.bukkit.permissions.Permissible;
 import org.bukkit.persistence.PersistentDataType;
 
 public final class PlotBerechtigungen {
+    public static final String USE = "simpleplots.use";
+    public static final String CLAIM = "simpleplots.claim";
+    public static final String MANAGE = "simpleplots.manage";
     public static final String ADMIN = "simpleplots.admin";
+    public static final String RELOAD = "simpleplots.admin.reload";
+    public static final String DIAGNOSE = "simpleplots.admin.diagnostics";
     private static final NamespacedKey PLOT_KREATIV = new NamespacedKey("simpleplots", "plot-kreativ");
 
     private PlotBerechtigungen() {

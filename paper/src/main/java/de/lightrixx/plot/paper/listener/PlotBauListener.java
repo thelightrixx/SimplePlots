@@ -1,7 +1,6 @@
 package de.lightrixx.plot.paper.listener;
 
 import de.lightrixx.plot.model.PlotRechte.BesucherRecht;
-import de.lightrixx.plot.paper.world.PlotGenerator;
 import de.lightrixx.plot.paper.world.PlotWelt;
 import de.lightrixx.plot.service.PlotDienst;
 import de.lightrixx.plot.service.WettbewerbDienst;
@@ -39,6 +38,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.vehicle.VehicleDamageEvent;
 import org.bukkit.inventory.BlockInventoryHolder;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.InventoryHolder;
 
 public final class PlotBauListener implements Listener {
     private final PlotSchutz schutz;
@@ -78,7 +78,7 @@ public final class PlotBauListener implements Listener {
                 event.setUseInteractedBlock(Event.Result.DENY);
             }
             event.setUseItemInHand(Event.Result.DENY);
-        } else if (block.getY() <= PlotGenerator.BODEN_Y && event.getItem() != null) {
+        } else if (!schutz.darfBlockAendern(event.getPlayer(), block.getLocation()) && event.getItem() != null) {
             var material = event.getItem().getType();
             if (Tag.ITEMS_HOES.isTagged(material) || Tag.ITEMS_SHOVELS.isTagged(material)) {
                 event.setUseItemInHand(Event.Result.DENY);
@@ -151,6 +151,10 @@ public final class PlotBauListener implements Listener {
 
     private boolean darfInventarNutzen(Player spieler, Inventory inventar) {
         var holder = inventar.getHolder(false);
+        if (holder instanceof DoubleChest kiste) {
+            return darfKistenhaelfteNutzen(spieler, kiste.getLeftSide(false))
+                    && darfKistenhaelfteNutzen(spieler, kiste.getRightSide(false));
+        }
         if (!(holder instanceof BlockInventoryHolder || holder instanceof DoubleChest
                 || holder instanceof Entity && !(holder instanceof HumanEntity))) {
             return true;
@@ -160,6 +164,14 @@ public final class PlotBauListener implements Listener {
             case CHEST, BARREL, SHULKER_BOX -> !(holder instanceof Entity) && schutz.darfLagerNutzen(spieler, ort);
             default -> false;
         };
+    }
+
+    private boolean darfKistenhaelfteNutzen(Player spieler, InventoryHolder haelfte) {
+        if (!(haelfte instanceof BlockInventoryHolder block)) {
+            return false;
+        }
+        Location ort = block.getBlock().getLocation();
+        return schutz.darfBenutzen(spieler, ort) || schutz.darfLagerNutzen(spieler, ort);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)

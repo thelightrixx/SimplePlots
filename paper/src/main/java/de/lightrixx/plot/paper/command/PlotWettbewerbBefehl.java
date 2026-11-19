@@ -10,10 +10,10 @@ import de.lightrixx.plot.service.WettbewerbDienst;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+import java.util.UUID;
 
 import static net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.component;
 import static net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.unparsed;
@@ -26,15 +26,18 @@ final class PlotWettbewerbBefehl {
     private final PlotDienst plots;
     private final PlotMenue menue;
     private final PlotNachrichten texte;
+    private final PlotAuftraege auftraege;
 
-    PlotWettbewerbBefehl(WettbewerbDienst wettbewerbe, PlotDienst plots, PlotMenue menue, PlotNachrichten texte) {
+    PlotWettbewerbBefehl(WettbewerbDienst wettbewerbe, PlotDienst plots, PlotMenue menue, PlotNachrichten texte,
+                         PlotAuftraege auftraege) {
         this.wettbewerbe = wettbewerbe;
         this.plots = plots;
         this.menue = menue;
         this.texte = texte;
+        this.auftraege = auftraege;
     }
 
-    void ausfuehren(CommandSender sender, String[] args) throws IOException {
+    void ausfuehren(CommandSender sender, String[] args) {
         String aktion = args.length < 2 ? "status" : args[1].toLowerCase(Locale.ROOT);
         if (ADMINBEFEHLE.contains(aktion)) {
             verwalten(sender, aktion, args);
@@ -53,19 +56,25 @@ final class PlotWettbewerbBefehl {
         }
     }
 
-    void einreichen(Player spieler, PlotId plot) throws IOException {
-        senden(spieler, "submit", wettbewerbe.einreichen(plot, spieler.getUniqueId()));
+    void einreichen(Player spieler, PlotId plot) {
+        UUID id = spieler.getUniqueId();
+        auftraege.ausfuehren(spieler, "/plot submit", () -> wettbewerbe.einreichen(plot, id),
+                ergebnis -> senden(spieler, "submit", ergebnis));
     }
 
-    void zurueckziehen(Player spieler) throws IOException {
-        senden(spieler, "withdraw", wettbewerbe.zurueckziehen(spieler.getUniqueId()));
+    void zurueckziehen(Player spieler) {
+        UUID id = spieler.getUniqueId();
+        auftraege.ausfuehren(spieler, "/plot withdraw", () -> wettbewerbe.zurueckziehen(id),
+                ergebnis -> senden(spieler, "withdraw", ergebnis));
     }
 
-    void abstimmen(Player spieler, PlotId plot) throws IOException {
-        senden(spieler, "vote", wettbewerbe.abstimmen(plot, spieler.getUniqueId()));
+    void abstimmen(Player spieler, PlotId plot) {
+        UUID id = spieler.getUniqueId();
+        auftraege.ausfuehren(spieler, "/plot vote", () -> wettbewerbe.abstimmen(plot, id),
+                ergebnis -> senden(spieler, "vote", ergebnis));
     }
 
-    private void verwalten(CommandSender sender, String aktion, String[] args) throws IOException {
+    private void verwalten(CommandSender sender, String aktion, String[] args) {
         if (!sender.hasPermission(PlotBerechtigungen.ADMIN)) {
             texte.senden(sender, "fehler.kein-recht");
             return;
@@ -75,19 +84,23 @@ final class PlotWettbewerbBefehl {
             return;
         }
         if (aktion.equals("start")) {
+            String thema = String.join(" ", Arrays.copyOfRange(args, 2, args.length));
             try {
-                senden(sender, aktion, wettbewerbe.starten(String.join(" ", Arrays.copyOfRange(args, 2, args.length))));
+                new BauWettbewerb(thema, BauWettbewerb.Phase.BAUEN, java.util.Map.of(), java.util.Map.of());
             } catch (IllegalArgumentException e) {
                 texte.senden(sender, "wettbewerb.thema-ungueltig");
+                return;
             }
+            auftraege.ausfuehren(sender, "/plot contest start", () -> wettbewerbe.starten(thema),
+                    ergebnis -> senden(sender, aktion, ergebnis));
             return;
         }
-        senden(sender, aktion, switch (aktion) {
+        auftraege.ausfuehren(sender, "/plot contest " + aktion, () -> switch (aktion) {
             case "voting" -> wettbewerbe.abstimmungOeffnen();
             case "finish" -> wettbewerbe.beenden();
             case "cancel" -> wettbewerbe.abbrechen();
             default -> throw new IllegalArgumentException("Unbekannte Wettbewerbsaktion " + aktion);
-        });
+        }, ergebnis -> senden(sender, aktion, ergebnis));
     }
 
     private void status(CommandSender sender) {

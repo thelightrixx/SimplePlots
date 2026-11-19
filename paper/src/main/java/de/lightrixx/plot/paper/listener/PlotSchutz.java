@@ -70,11 +70,19 @@ final class PlotSchutz {
     }
 
     boolean darfBlockAendern(Player spieler, Location ort) {
-        return !inPlotwelt(ort) || (ort.getBlockY() > PlotGenerator.BODEN_Y && darfBenutzen(spieler, ort));
+        if (!inPlotwelt(ort)) {
+            return true;
+        }
+        // Öffentliche Wege und unbeanspruchte Flächen behalten ihren festen Boden.
+        if (!ueberWeltboden(ort) || (ort.getBlockY() <= PlotGenerator.BODEN_Y && beanspruchterPlot(ort).isEmpty())) {
+            return false;
+        }
+        return darfBenutzen(spieler, ort);
     }
 
     boolean blockImClaim(Block block) {
-        return block.getY() > PlotGenerator.BODEN_Y && beanspruchterPlot(block.getLocation())
+        Location ort = block.getLocation();
+        return ueberWeltboden(ort) && beanspruchterPlot(ort)
                 .filter(plot -> !wettbewerbe.gesperrt(plot.id())).isPresent();
     }
 
@@ -84,10 +92,13 @@ final class PlotSchutz {
     }
 
     boolean selberClaim(Location quelle, Location ziel) {
-        return quelle != null && ziel != null && quelle.getBlockY() > PlotGenerator.BODEN_Y
-                && ziel.getBlockY() > PlotGenerator.BODEN_Y && beanspruchterPlot(quelle)
+        return ueberWeltboden(quelle) && ueberWeltboden(ziel) && beanspruchterPlot(quelle)
                 .filter(plot -> !wettbewerbe.gesperrt(plot.id()) && welt.plotBei(ziel).filter(plot.id()::equals).isPresent())
                 .isPresent();
+    }
+
+    private boolean ueberWeltboden(Location ort) {
+        return inPlotwelt(ort) && ort.getBlockY() > ort.getWorld().getMinHeight();
     }
 
     boolean selberClaim(Block quelle, Block ziel) {

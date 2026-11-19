@@ -33,9 +33,11 @@ import java.util.stream.Collectors;
 import static net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.unparsed;
 
 public final class PlotBefehl implements TabExecutor {
-    private static final String USE = "simpleplots.use";
-    private static final String CLAIM = "simpleplots.claim";
-    private static final String MANAGE = "simpleplots.manage";
+    private static final String USE = PlotBerechtigungen.USE;
+    private static final String CLAIM = PlotBerechtigungen.CLAIM;
+    private static final String MANAGE = PlotBerechtigungen.MANAGE;
+    private static final List<String> OHNE_ARGUMENTE = List.of("world", "back", "claim", "auto", "list", "info", "menu",
+            "like", "unlike", "submit", "vote", "withdraw");
     private static final List<String> BESUCHSBEFEHLE = List.of("help", "world", "back", "home", "visit", "list", "info",
             "menu", "discover", "like", "unlike", "contest", "vote", "withdraw");
     private static final List<String> ROLLENBEFEHLE = List.of("trust", "untrust", "deny", "undeny", "kick", "ban", "unban",
@@ -51,19 +53,22 @@ public final class PlotBefehl implements TabExecutor {
     private final PlotMenue menue;
     private final PlotVerwaltungBefehl verwaltung;
     private final PlotWettbewerbBefehl wettbewerb;
+    private final PlotAuftraege auftraege;
 
     public PlotBefehl(Server server, Logger log, PlotDienst plots, PlotWelt welt,
-                      PlotKonfiguration konfiguration, PlotNachrichten texte, PlotMenue menue, WettbewerbDienst wettbewerbe) {
+                      PlotKonfiguration konfiguration, PlotNachrichten texte, PlotMenue menue, WettbewerbDienst wettbewerbe,
+                      PlotAuftraege auftraege, PlotBetrieb betrieb) {
         this.server = server;
         this.log = log;
         this.plots = plots;
         this.welt = welt;
         this.konfiguration = konfiguration;
         this.texte = texte;
-        this.admin = new PlotAdminBefehl(konfiguration, welt, texte);
+        this.auftraege = auftraege;
+        this.admin = new PlotAdminBefehl(konfiguration, welt, texte, betrieb);
         this.menue = menue;
-        this.verwaltung = new PlotVerwaltungBefehl(plots, welt, texte, wettbewerbe);
-        this.wettbewerb = new PlotWettbewerbBefehl(wettbewerbe, plots, menue, texte);
+        this.verwaltung = new PlotVerwaltungBefehl(plots, welt, texte, wettbewerbe, auftraege);
+        this.wettbewerb = new PlotWettbewerbBefehl(wettbewerbe, plots, menue, texte, auftraege);
     }
 
     @Override
@@ -93,6 +98,10 @@ public final class PlotBefehl implements TabExecutor {
     }
 
     private void spielerbefehl(Player spieler, String aktion, String[] args) throws IOException {
+        if (OHNE_ARGUMENTE.contains(aktion) && args.length != 1) {
+            texte.senden(spieler, "fehler.syntax", unparsed("command", aktion));
+            return;
+        }
         switch (aktion) {
             case "world" -> {
                 if (plotModus(spieler)) {
@@ -164,7 +173,7 @@ public final class PlotBefehl implements TabExecutor {
             texte.senden(sender, "hilfe.rollen");
             texte.senden(sender, "hilfe.verwaltung");
         }
-        if (sender.hasPermission(PlotBerechtigungen.ADMIN)) {
+        if (!PlotAdminBefehl.erlaubteUnterbefehle(sender).isEmpty()) {
             admin.hilfe(sender);
         }
     }
@@ -178,23 +187,28 @@ public final class PlotBefehl implements TabExecutor {
             return;
         }
         World zielWelt = auto ? welt.ladenOderErstellen() : spieler.getWorld();
-        var id = auto ? Optional.of(plots.naechsterFreierPlot()) : plotAmStandort(spieler);
-        if (id.isEmpty()) {
+        var id = auto ? Optional.<PlotId>empty() : plotAmStandort(spieler);
+        if (!auto && id.isEmpty()) {
             return;
         }
         int limit = konfiguration.claimLimit();
-        PlotDienst.ClaimErgebnis ergebnis = plots.claim(id.get(), spieler.getUniqueId(), limit);
-        switch (ergebnis) {
-            case BELEGT -> texte.senden(spieler, "claim.belegt", unparsed("id", id.get().toString()));
-            case LIMIT -> texte.senden(spieler, "claim.limit", unparsed("limit", Integer.toString(limit)));
-            case ABGELEHNT -> texte.senden(spieler, "claim.abgelehnt");
-            case CLAIMED -> {
-                texte.senden(spieler, "claim.erfolg", unparsed("id", id.get().toString()));
-                if (auto) {
-                    teleport(spieler, welt.mitte(zielWelt, id.get()), "teleport.plot");
+        UUID besitzer = spieler.getUniqueId();
+        auftraege.ausfuehren(spieler, "/plot " + (auto ? "auto" : "claim"), () -> {
+            PlotId ziel = auto ? plots.naechsterFreierPlot() : id.orElseThrow();
+            return new ClaimAntwort(ziel, plots.claim(ziel, besitzer, limit));
+        }, antwort -> {
+            switch (antwort.ergebnis()) {
+                case BELEGT -> texte.senden(spieler, "claim.belegt", unparsed("id", antwort.id().toString()));
+                case LIMIT -> texte.senden(spieler, "claim.limit", unparsed("limit", Integer.toString(limit)));
+                case ABGELEHNT -> texte.senden(spieler, "claim.abgelehnt");
+                case CLAIMED -> {
+                    texte.senden(spieler, "claim.erfolg", unparsed("id", antwort.id().toString()));
+                    if (auto && spieler.isOnline() && plotModus(spieler)) {
+                        teleport(spieler, welt.mitte(zielWelt, antwort.id()), "teleport.plot");
+                    }
                 }
             }
-        }
+        });
     }
 
     private void home(Player spieler, String[] args) throws IOException {
@@ -345,20 +359,25 @@ public final class PlotBefehl implements TabExecutor {
         }
 
         var aenderung = Plot.RollenAktion.valueOf(aktion.toUpperCase(Locale.ROOT));
-        switch (plots.rolleAendern(id.get(), spieler.getUniqueId(), zielId, aenderung)) {
-            case FREMDER_PLOT -> texte.senden(spieler, "fehler.nicht-besitzer");
-            case BESITZER -> texte.senden(spieler, "rollen.selbst");
-            case GEBANNT -> texte.senden(spieler, "rollen.gebannt");
-            case UNVERAENDERT -> texte.senden(spieler, "rollen.unveraendert");
-            case GEAENDERT -> {
-                texte.senden(spieler, "rollen." + aktion, unparsed("player", nameVon(zielId)));
-                if (aenderung == Plot.RollenAktion.DENY && online != null && !PlotBerechtigungen.istAdmin(online)
-                        && welt.plotBei(online.getLocation()).equals(id)
-                        && !rausbringen(online, id.get(), "zugang.gebannt")) {
-                    texte.senden(spieler, "fehler.teleport");
+        UUID besitzer = spieler.getUniqueId();
+        auftraege.ausfuehren(spieler, "/plot " + aktion,
+                () -> plots.rolleAendern(id.get(), besitzer, zielId, aenderung), ergebnis -> {
+            switch (ergebnis) {
+                case FREMDER_PLOT -> texte.senden(spieler, "fehler.nicht-besitzer");
+                case BESITZER -> texte.senden(spieler, "rollen.selbst");
+                case GEBANNT -> texte.senden(spieler, "rollen.gebannt");
+                case UNVERAENDERT -> texte.senden(spieler, "rollen.unveraendert");
+                case GEAENDERT -> {
+                    texte.senden(spieler, "rollen." + aktion, unparsed("player", nameVon(zielId)));
+                    Player anwesend = server.getPlayer(zielId);
+                    if (aenderung == Plot.RollenAktion.DENY && anwesend != null && !PlotBerechtigungen.istAdmin(anwesend)
+                            && welt.plotBei(anwesend.getLocation()).equals(id)
+                            && !rausbringen(anwesend, id.get(), "zugang.gebannt")) {
+                        texte.senden(spieler, "fehler.teleport");
+                    }
                 }
             }
-        }
+        });
     }
 
     private boolean rausbringen(Player spieler, PlotId id, String text) {
@@ -447,8 +466,8 @@ public final class PlotBefehl implements TabExecutor {
         if (args.length != 2) {
             return List.of();
         }
-        if (aktion.equals("admin") && sender.hasPermission(PlotBerechtigungen.ADMIN)) {
-            return passende(PlotAdminBefehl.UNTERBEFEHLE, args[1]);
+        if (aktion.equals("admin")) {
+            return passende(PlotAdminBefehl.erlaubteUnterbefehle(sender), args[1]);
         }
         if (aktion.equals("contest")) {
             var befehle = new ArrayList<>(PlotWettbewerbBefehl.SPIELERBEFEHLE);
@@ -497,7 +516,7 @@ public final class PlotBefehl implements TabExecutor {
         } else {
             befehle.addAll(List.of("help", "contest"));
         }
-        if (sender.hasPermission(PlotBerechtigungen.ADMIN)) {
+        if (!PlotAdminBefehl.erlaubteUnterbefehle(sender).isEmpty()) {
             befehle.add("admin");
         }
         return befehle;
@@ -531,5 +550,8 @@ public final class PlotBefehl implements TabExecutor {
         String klein = praefix.toLowerCase(Locale.ROOT);
         return werte.stream().filter(wert -> wert.toLowerCase(Locale.ROOT).startsWith(klein))
                 .sorted(String.CASE_INSENSITIVE_ORDER).toList();
+    }
+
+    private record ClaimAntwort(PlotId id, PlotDienst.ClaimErgebnis ergebnis) {
     }
 }

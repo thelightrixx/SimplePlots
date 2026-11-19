@@ -18,6 +18,9 @@ fehler:
   plot-id: 'Gib die Plot-ID als X;Z ein, etwa 0;0.'
   nicht-besitzer: 'Das kann nur der Besitzer dieses Plots.'
   unbekannter-spieler: 'Spieler unbekannt. Gib einen bekannten Namen oder die Spieler-UUID ein.'
+  auftrag-laeuft: 'Deine vorherige Änderung wird noch gespeichert. Warte kurz auf die Rückmeldung.'
+  ausgelastet: 'Die Speicherwarteschlange ist voll oder wird beendet. Versuche es später erneut.'
+  syntax: 'Dieser Unterbefehl erwartet keine weiteren Argumente: <green>/plot <command></green>'
 
 teleport:
   welt: 'Du bist in der Plotwelt.'
@@ -86,6 +89,18 @@ admin:
   modus-hilfe: '<green>/plot admin gamemode</green> <yellow>creative</yellow> oder <yellow>survival</yellow>'
   modus-gesetzt: 'Dein Spielmodus in der Plotwelt ist jetzt <yellow><mode></yellow>.'
   modus-fehlgeschlagen: '<red>Der Spielmodus konnte nicht geändert werden.</red>'
+  reload-laeuft: 'Ein Reload läuft bereits. Warte auf dessen Abschluss.'
+  reload-erfolg: 'Einstellungen, Nachrichten und Menüs wurden neu geladen. Offene Plotmenüs wurden geschlossen.'
+  reload-raster: '<red>Reload abgelehnt: Das Raster in config.yml weicht von der bestehenden Plotwelt ab. Der bisherige Stand bleibt aktiv.</red>'
+  reload-hilfe: '<green>/plot admin reload</green> lädt Einstellungen, Nachrichten und Menüs gemeinsam neu.'
+  diagnose-hilfe: '<green>/plot admin diagnostics</green> zeigt Version, Welt und Speicherzustand.'
+
+diagnose:
+  version: 'SimplePlots <yellow><version></yellow> · Java <java><newline><gray><server></gray>'
+  welt: 'Welt <yellow><world></yellow> · geladen <loaded> · Raster <size> × <size> · Wegbreite <road>'
+  daten: 'Plots <yellow><plots></yellow> · Rasterzellen <cells> · Wettbewerbsbeiträge <entries>'
+  speicher: 'YAML-I/O · wartend <queued> · laufend <running> · erfolgreich <success> · fehlgeschlagen <failed> · letzter Auftrag <duration> ms'
+  hinweis: 'Zähler gelten seit dem Pluginstart und umfassen auch Reload-Aufträge. Bei Schreibfehlern das Serverlog prüfen. Spielstände nur bei gestopptem Server bearbeiten.'
 
 profil:
   hilfe: '<green>/plot profile name [Name]</green> · <green>/plot profile description [Text oder -]</green> · <green>/plot profile category [build, shop, museum, parkour, farm oder off]</green> · <green>/plot sethome [off]</green>'
@@ -113,7 +128,7 @@ kategorie:
 merge:
   hilfe: 'Steh auf deinem Plot und wähle einen eigenen Nachbarplot mit <green>/plot merge [X;Z]</green>.'
   bestaetigen: 'Plot <yellow><target></yellow> wird Teil von <yellow><source></yellow>. Das Profil des Ausgangsplots und gemeinsame Freigaben gelten weiter. Die Banns beider Plots werden übernommen. Bestätige mit <green>/plot merge <target> confirm</green>.'
-  vereinigt: 'Plot <yellow><target></yellow> gehört jetzt zu <yellow><source></yellow>. Die Innenwege sind ab Y=64 bebaubar.'
+  vereinigt: 'Plot <yellow><target></yellow> gehört jetzt zu <yellow><source></yellow>. Die Innenwege gehören jetzt zur gemeinsamen Plotfläche.'
   fremder-plot: 'Beide Plots müssen dir gehören.'
   gleich: 'Diese Zelle gehört bereits zu deinem aktuellen Plot.'
   kein-nachbar: 'Wähle einen Plot, der entlang eines Wegs an deinen Plot grenzt.'

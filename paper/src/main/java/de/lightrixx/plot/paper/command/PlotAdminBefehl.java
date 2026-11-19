@@ -16,26 +16,39 @@ import java.util.Locale;
 import static net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.unparsed;
 
 final class PlotAdminBefehl {
-    static final List<String> UNTERBEFEHLE = List.of("info", "create", "grid", "limit", "gamemode");
+    static final List<String> UNTERBEFEHLE = List.of("info", "create", "grid", "limit", "gamemode", "reload", "diagnostics");
     static final List<String> MODI = List.of("creative", "survival");
     private final PlotKonfiguration konfiguration;
     private final PlotWelt welt;
     private final PlotNachrichten texte;
+    private final PlotBetrieb betrieb;
 
-    PlotAdminBefehl(PlotKonfiguration konfiguration, PlotWelt welt, PlotNachrichten texte) {
+    PlotAdminBefehl(PlotKonfiguration konfiguration, PlotWelt welt, PlotNachrichten texte, PlotBetrieb betrieb) {
         this.konfiguration = konfiguration;
         this.welt = welt;
         this.texte = texte;
+        this.betrieb = betrieb;
     }
 
     void ausfuehren(CommandSender sender, String[] args) throws IOException {
-        if (!sender.hasPermission(PlotBerechtigungen.ADMIN)) {
+        String aktion = args.length == 1 ? "info" : args[1].toLowerCase(Locale.ROOT);
+        String recht = berechtigung(aktion);
+        if (!sender.hasPermission(recht)) {
             texte.senden(sender, "fehler.kein-recht");
             return;
         }
-        String aktion = args.length == 1 ? "info" : args[1].toLowerCase(Locale.ROOT);
+        if (betrieb.reloadLaeuft() && List.of("create", "grid", "limit").contains(aktion)) {
+            texte.senden(sender, "admin.reload-laeuft");
+            return;
+        }
         switch (aktion) {
-            case "info" -> info(sender);
+            case "info" -> {
+                if (args.length <= 2) {
+                    info(sender);
+                } else {
+                    hilfe(sender);
+                }
+            }
             case "create" -> {
                 if (args.length == 2) {
                     welt.ladenOderErstellen();
@@ -47,15 +60,44 @@ final class PlotAdminBefehl {
             case "grid" -> rasterSetzen(sender, args);
             case "limit" -> limitSetzen(sender, args);
             case "gamemode" -> spielmodusSetzen(sender, args);
+            case "reload", "diagnostics" -> {
+                if (args.length != 2) {
+                    hilfe(sender);
+                } else if (aktion.equals("reload")) {
+                    betrieb.neuladen(sender);
+                } else {
+                    betrieb.diagnose(sender);
+                }
+            }
             default -> hilfe(sender);
         }
     }
 
     void hilfe(CommandSender sender) {
-        texte.senden(sender, "admin.hilfe");
-        if (sender instanceof Player) {
-            texte.senden(sender, "admin.modus-hilfe");
+        if (sender.hasPermission(PlotBerechtigungen.ADMIN)) {
+            texte.senden(sender, "admin.hilfe");
+            if (sender instanceof Player) {
+                texte.senden(sender, "admin.modus-hilfe");
+            }
         }
+        if (sender.hasPermission(PlotBerechtigungen.RELOAD)) {
+            texte.senden(sender, "admin.reload-hilfe");
+        }
+        if (sender.hasPermission(PlotBerechtigungen.DIAGNOSE)) {
+            texte.senden(sender, "admin.diagnose-hilfe");
+        }
+    }
+
+    static List<String> erlaubteUnterbefehle(CommandSender sender) {
+        return UNTERBEFEHLE.stream().filter(aktion -> sender.hasPermission(berechtigung(aktion))).toList();
+    }
+
+    private static String berechtigung(String aktion) {
+        return switch (aktion) {
+            case "reload" -> PlotBerechtigungen.RELOAD;
+            case "diagnostics" -> PlotBerechtigungen.DIAGNOSE;
+            default -> PlotBerechtigungen.ADMIN;
+        };
     }
 
     private void spielmodusSetzen(CommandSender sender, String[] args) {

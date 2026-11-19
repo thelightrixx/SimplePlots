@@ -26,3 +26,15 @@ permissions:
       simpleplots.use: true
       simpleplots.claim: true
       simpleplots.manage: true
+      simpleplots.admin.reload: true
+      simpleplots.admin.diagnostics: true
+  simpleplots.admin.reload:
+    description: Einstellungen, Nachrichten und Menüs sicher neu laden.
+    default: op
+    children:
+      simpleplots.use: true
+  simpleplots.admin.diagnostics:
+    description: Version, Plotwelt und Speicherwarteschlange prüfen.
+    default: op
+    children:
+      simpleplots.use: true

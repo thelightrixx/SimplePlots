@@ -15,6 +15,7 @@ import java.util.Random;
 
 public final class PlotGenerator extends ChunkGenerator {
     public static final int BODEN_Y = 63;
+    private static final int ERDSCHICHTEN = 3;
     private final PlotRaster raster;
 
     public PlotGenerator(PlotRaster raster) {
@@ -23,7 +24,10 @@ public final class PlotGenerator extends ChunkGenerator {
 
     @Override
     public void generateNoise(WorldInfo welt, Random random, int chunkX, int chunkZ, ChunkData daten) {
-        daten.setRegion(0, daten.getMinHeight(), 0, 16, BODEN_Y, 16, Material.BEDROCK);
+        int minimum = daten.getMinHeight();
+        daten.setRegion(0, minimum, 0, 16, minimum + 1, 16, Material.BEDROCK);
+        daten.setRegion(0, minimum + 1, 0, 16, BODEN_Y - ERDSCHICHTEN, 16, Material.STONE);
+        daten.setRegion(0, BODEN_Y - ERDSCHICHTEN, 0, 16, BODEN_Y, 16, Material.DIRT);
         for (int x = 0; x < 16; x++) {
             for (int z = 0; z < 16; z++) {
                 boolean weg = raster.istWeg(chunkX * 16 + x, chunkZ * 16 + z);

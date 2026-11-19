@@ -11,16 +11,22 @@ import org.bukkit.World;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import de.lightrixx.plot.model.Plot;
+import de.lightrixx.plot.model.PlotId;
 import java.io.IOException;
 import java.lang.reflect.Proxy;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.UUID;
+import org.bukkit.plugin.Plugin;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class PlotWeltTest {
     @TempDir
@@ -52,6 +58,16 @@ class PlotWeltTest {
         assertTrue(fehler.getMessage().contains("minecraft:overworld"));
     }
 
+    @Test
+    void lehntGespeichertePlotzellenMitUeberlaufendenBlockkoordinatenAb() throws IOException {
+        var plot = Plot.neu(new PlotId(Integer.MAX_VALUE, 0),
+                UUID.randomUUID());
+        new PlotYamlSpeicher(ordner.resolve("plots.yml")).speichern(List.of(plot));
+        var hauptwelt = welt(NamespacedKey.minecraft("overworld"), 0, 64, 0);
+        var fehler = assertThrows(IOException.class, () -> verwaltung(List.of(hauptwelt)));
+        assertTrue(fehler.getMessage().contains("Blockrasters"));
+    }
+
     private PlotWelt verwaltung(List<World> welten) throws IOException {
         var server = (Server) Proxy.newProxyInstance(Server.class.getClassLoader(), new Class<?>[]{Server.class},
                 (proxy, methode, argumente) -> switch (methode.getName()) {
@@ -62,7 +78,9 @@ class PlotWeltTest {
         Path config = ordner.resolve("config.yml");
         Files.writeString(config, "raster:\n  plotgroesse: 32\n  wegbreite: 7\nclaims:\n  pro-spieler: 3\n");
         var plots = new PlotDienst(new PlotYamlSpeicher(ordner.resolve("plots.yml")), PlotKauf.kostenlos());
-        return new PlotWelt(server, new PlotKonfiguration(config), plots, ordner.resolve("welt.yml"));
+        var plugin = mock(Plugin.class);
+        when(plugin.getServer()).thenReturn(server);
+        return new PlotWelt(plugin, new PlotKonfiguration(config), plots, ordner.resolve("welt.yml"));
     }
 
     private static World welt(NamespacedKey key, int x, int y, int z) {

@@ -1,5 +1,6 @@
 package de.lightrixx.plot.model;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public record PlotId(int x, int z) {
@@ -12,11 +13,24 @@ public record PlotId(int x, int z) {
     }
 
     public PlotId verschoben(int dx, int dz) {
-        return new PlotId(x + dx, z + dz);
+        return new PlotId(Math.addExact(x, dx), Math.addExact(z, dz));
     }
 
     public List<PlotId> nachbarn() {
-        return List.of(verschoben(1, 0), verschoben(-1, 0), verschoben(0, 1), verschoben(0, -1));
+        var nachbarn = new ArrayList<PlotId>(4);
+        if (x < Integer.MAX_VALUE) {
+            nachbarn.add(verschoben(1, 0));
+        }
+        if (x > Integer.MIN_VALUE) {
+            nachbarn.add(verschoben(-1, 0));
+        }
+        if (z < Integer.MAX_VALUE) {
+            nachbarn.add(verschoben(0, 1));
+        }
+        if (z > Integer.MIN_VALUE) {
+            nachbarn.add(verschoben(0, -1));
+        }
+        return List.copyOf(nachbarn);
     }
 
     @Override

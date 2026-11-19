@@ -9,44 +9,45 @@ import de.lightrixx.plot.model.PlotRechte;
 import de.lightrixx.plot.storage.PlotSpeicher;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
 
 public final class PlotDienst {
-    private Map<PlotId, Plot> plots = new LinkedHashMap<>();
-    private Map<PlotId, PlotId> zellen;
+    // Leser erhalten einen vollständigen, unveränderlichen Stand ohne I/O oder Sperren.
+    private volatile Bestand bestand;
     private final PlotSpeicher speicher;
     private final PlotKauf kauf;
+    private int suchRadius;
 
     public PlotDienst(PlotSpeicher speicher, PlotKauf kauf) throws IOException {
-        this.speicher = speicher;
-        this.kauf = kauf;
-        var namen = new HashSet<String>();
+        this.speicher = Objects.requireNonNull(speicher, "Plotspeicher");
+        this.kauf = Objects.requireNonNull(kauf, "Plotkauf");
+        var plots = new LinkedHashMap<PlotId, Plot>();
         for (Plot plot : speicher.laden()) {
             if (plots.putIfAbsent(plot.id(), plot) != null) {
                 throw new IOException("Doppelte Plot-ID " + plot.id());
             }
-            String name = namenschluessel(plot.profil().name());
-            if (!name.isEmpty() && !namen.add(name)) {
-                throw new IOException("Doppelter Plotname bei " + plot.id());
-            }
         }
-        zellen = zellenIndex(plots);
+        bestand = indexieren(plots);
     }
 
     public Optional<Plot> finden(PlotId id) {
-        return Optional.ofNullable(plots.get(zellen.getOrDefault(id, id)));
+        var aktuell = bestand;
+        return Optional.ofNullable(aktuell.plots().get(aktuell.zellen().getOrDefault(id, id)));
     }
 
     public Optional<PlotId> plotBei(PlotRaster raster, int x, int z) {
+        var zellen = bestand.zellen();
         PlotId zelle = raster.zelleBei(x, z);
         PlotId haupt = zellen.get(zelle);
         boolean wegX = raster.istWegachse(x);
@@ -65,8 +66,8 @@ public final class PlotDienst {
 
     public Optional<Plot> nachName(String name) {
         String schluessel = namenschluessel(name);
-        return schluessel.isEmpty() ? Optional.empty() : plots.values().stream()
-                .filter(plot -> namenschluessel(plot.profil().name()).equals(schluessel)).findFirst();
+        var aktuell = bestand;
+        return Optional.ofNullable(aktuell.namen().get(schluessel)).map(aktuell.plots()::get);
     }
 
     public boolean istWegrand(PlotRaster raster, int x, int z) {
@@ -89,18 +90,36 @@ public final class PlotDienst {
     }
 
     public List<Plot> galerie(Predicate<Plot> sichtbar) {
-        return plots.values().stream().filter(plot -> plot.profil().kategorie().isPresent()).filter(sichtbar).toList();
+        return bestand.galerie().stream().filter(sichtbar).toList();
     }
 
     public List<Plot> vomBesitzer(UUID besitzer) {
-        return plots.values().stream().filter(plot -> plot.besitzer().equals(besitzer)).toList();
+        return bestand.besitzer().getOrDefault(besitzer, List.of());
     }
 
-    public ClaimErgebnis claim(PlotId id, UUID besitzer, int limit) throws IOException {
-        if (zellen.containsKey(id)) {
+    public List<Plot> alle() {
+        return List.copyOf(bestand.plots().values());
+    }
+
+    public int anzahlPlots() {
+        return bestand.plots().size();
+    }
+
+    public int anzahlZellen() {
+        return bestand.zellen().size();
+    }
+
+    public synchronized ClaimErgebnis claim(PlotId id, UUID besitzer, int limit) throws IOException {
+        Objects.requireNonNull(id, "Plot-ID");
+        Objects.requireNonNull(besitzer, "Besitzer");
+        if (limit < 1) {
+            throw new IllegalArgumentException("Das Claim-Limit muss mindestens 1 sein.");
+        }
+        var aktuell = bestand;
+        if (aktuell.zellen().containsKey(id)) {
             return ClaimErgebnis.BELEGT;
         }
-        if (vomBesitzer(besitzer).stream().mapToLong(plot -> plot.zellen().size()).sum() >= limit) {
+        if (aktuell.belegteZellen().getOrDefault(besitzer, 0L) >= limit) {
             return ClaimErgebnis.LIMIT;
         }
         Plot plot = Plot.neu(id, besitzer);
@@ -108,8 +127,11 @@ public final class PlotDienst {
                 ? ClaimErgebnis.CLAIMED : ClaimErgebnis.ABGELEHNT;
     }
 
-    public PlotId naechsterFreierPlot() {
-        for (int radius = 0; ; radius++) {
+    public synchronized PlotId naechsterFreierPlot() {
+        var zellen = bestand.zellen();
+        // Claims und Merges geben keine Zellen frei; vollständig belegte Ringe bleiben belegt.
+        for (int radius = suchRadius; ; radius++) {
+            suchRadius = radius;
             for (int x = -radius; x <= radius; x++) {
                 var nord = new PlotId(x, -radius);
                 if (!zellen.containsKey(nord)) {
@@ -133,7 +155,7 @@ public final class PlotDienst {
         }
     }
 
-    public RollenErgebnis rolleAendern(PlotId id, UUID besitzer, UUID ziel, Plot.RollenAktion aktion)
+    public synchronized RollenErgebnis rolleAendern(PlotId id, UUID besitzer, UUID ziel, Plot.RollenAktion aktion)
             throws IOException {
         Plot plot = finden(id).orElse(null);
         if (plot == null || !plot.besitzer().equals(besitzer)) {
@@ -153,7 +175,7 @@ public final class PlotDienst {
         return RollenErgebnis.GEAENDERT;
     }
 
-    public Aenderung profilAendern(PlotId id, UUID besitzer, UnaryOperator<PlotProfil> aenderung) throws IOException {
+    public synchronized Aenderung profilAendern(PlotId id, UUID besitzer, UnaryOperator<PlotProfil> aenderung) throws IOException {
         Plot plot = finden(id).orElse(null);
         if (plot == null || !plot.besitzer().equals(besitzer)) {
             return Aenderung.FREMDER_PLOT;
@@ -165,7 +187,7 @@ public final class PlotDienst {
         return aendern(plot, plot.mitProfil(profil));
     }
 
-    public Aenderung besucherRecht(PlotId id, UUID besitzer, PlotRechte.BesucherRecht recht, boolean erlaubt)
+    public synchronized Aenderung besucherRecht(PlotId id, UUID besitzer, PlotRechte.BesucherRecht recht, boolean erlaubt)
             throws IOException {
         Plot plot = finden(id).orElse(null);
         if (plot == null || !plot.besitzer().equals(besitzer)) {
@@ -174,7 +196,7 @@ public final class PlotDienst {
         return aendern(plot, plot.mitRechten(plot.rechte().mitBesucherRecht(recht, erlaubt)));
     }
 
-    public Aenderung like(PlotId id, UUID spieler, boolean vergeben) throws IOException {
+    public synchronized Aenderung like(PlotId id, UUID spieler, boolean vergeben) throws IOException {
         Plot plot = finden(id).orElse(null);
         if (plot == null || plot.profil().kategorie().isEmpty()) {
             return Aenderung.NICHT_GELISTET;
@@ -188,7 +210,7 @@ public final class PlotDienst {
         return aendern(plot, plot.mitProfil(plot.profil().mitLike(spieler, vergeben)));
     }
 
-    public MergeErgebnis zusammenlegen(PlotId von, PlotId nach, UUID besitzer, Predicate<PlotId> gesperrt,
+    public synchronized MergeErgebnis zusammenlegen(PlotId von, PlotId nach, UUID besitzer, Predicate<PlotId> gesperrt,
                                        boolean bestaetigt) throws IOException {
         Plot ausgang = finden(von).orElse(null);
         Plot ziel = finden(nach).orElse(null);
@@ -207,7 +229,7 @@ public final class PlotDienst {
         if (!bestaetigt) {
             return MergeErgebnis.BESTAETIGEN;
         }
-        var neu = new LinkedHashMap<>(plots);
+        var neu = new LinkedHashMap<>(bestand.plots());
         neu.remove(ziel.id());
         neu.put(ausgang.id(), ausgang.vereinigtMit(ziel));
         speichern(neu);
@@ -223,32 +245,50 @@ public final class PlotDienst {
     }
 
     private void uebernehmen(Plot plot) throws IOException {
-        var neu = new LinkedHashMap<>(plots);
+        var neu = new LinkedHashMap<>(bestand.plots());
         neu.put(plot.id(), plot);
         speichern(neu);
     }
 
     private void speichern(Map<PlotId, Plot> neu) throws IOException {
-        Map<PlotId, PlotId> index = zellenIndex(neu);
+        Bestand index = indexieren(neu);
         speicher.speichern(List.copyOf(neu.values()));
-        plots = neu;
-        zellen = index;
+        bestand = index;
     }
 
-    private static Map<PlotId, PlotId> zellenIndex(Map<PlotId, Plot> plots) throws IOException {
+    private static Bestand indexieren(Map<PlotId, Plot> plots) throws IOException {
         var index = new HashMap<PlotId, PlotId>();
+        var namen = new HashMap<String, PlotId>();
+        var besitzer = new HashMap<UUID, List<Plot>>();
+        var belegt = new HashMap<UUID, Long>();
+        var galerie = new ArrayList<Plot>();
         for (Plot plot : plots.values()) {
+            String name = namenschluessel(plot.profil().name());
+            if (!name.isEmpty() && namen.putIfAbsent(name, plot.id()) != null) {
+                throw new IOException("Doppelter Plotname bei " + plot.id());
+            }
+            besitzer.computeIfAbsent(plot.besitzer(), id -> new ArrayList<>()).add(plot);
+            belegt.merge(plot.besitzer(), (long) plot.zellen().size(), Long::sum);
+            if (plot.profil().kategorie().isPresent()) {
+                galerie.add(plot);
+            }
             for (PlotId zelle : plot.zellen()) {
                 if (index.putIfAbsent(zelle, plot.id()) != null) {
                     throw new IOException("Mehrere Plots beanspruchen die Zelle " + zelle);
                 }
             }
         }
-        return index;
+        besitzer.replaceAll((id, liste) -> List.copyOf(liste));
+        return new Bestand(Collections.unmodifiableMap(new LinkedHashMap<>(plots)), Map.copyOf(index),
+                Map.copyOf(namen), Map.copyOf(besitzer), Map.copyOf(belegt), List.copyOf(galerie));
     }
 
     private static String namenschluessel(String name) {
         return name.strip().toLowerCase(Locale.ROOT);
+    }
+
+    private record Bestand(Map<PlotId, Plot> plots, Map<PlotId, PlotId> zellen, Map<String, PlotId> namen,
+                           Map<UUID, List<Plot>> besitzer, Map<UUID, Long> belegteZellen, List<Plot> galerie) {
     }
 
     public enum ClaimErgebnis {
