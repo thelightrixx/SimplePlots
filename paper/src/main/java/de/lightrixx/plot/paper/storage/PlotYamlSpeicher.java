@@ -26,6 +26,7 @@ public final class PlotYamlSpeicher implements PlotSpeicher {
     private final YamlDatei datei;
     private final YamlDatei journal;
     private final Path grundbestandPfad;
+    private final Path journalPfad;
     private Map<PlotId, Plot> basis = Map.of();
     private Map<PlotId, Plot> zuletzt = Map.of();
     private long basisStand;
@@ -39,7 +40,8 @@ public final class PlotYamlSpeicher implements PlotSpeicher {
         grundbestandPfad = pfad.toAbsolutePath();
         String name = pfad.getFileName().toString();
         String stamm = name.endsWith(".yml") ? name.substring(0, name.length() - 4) : name;
-        journal = new YamlDatei(pfad.resolveSibling(stamm + "-aenderungen.yml"));
+        journalPfad = pfad.resolveSibling(stamm + "-aenderungen.yml").toAbsolutePath();
+        journal = new YamlDatei(journalPfad);
     }
 
     @Override
@@ -91,29 +93,31 @@ public final class PlotYamlSpeicher implements PlotSpeicher {
                     || (bis == von && !leeresStartjournal(delta))) {
                 throw new IOException("Plot-Änderungsjournal und Grundbestand haben unvereinbare Speicherstände.");
             }
-            // Nach einer abgeschlossenen Verdichtung darf das ältere Journal liegen bleiben.
-            if (bis > stand) {
-                var geaendert = delta.getConfigurationSection("plots");
-                if (geaendert == null) {
-                    throw new IOException("Plots fehlen im Änderungsjournal.");
-                }
-                try {
-                    var entfernt = new HashSet<PlotId>();
-                    for (String id : textListe(delta, "entfernt")) {
-                        PlotId plotId = PlotId.lesen(id);
-                        if (!entfernt.add(plotId) || gesamt.remove(plotId) == null) {
-                            throw new IllegalArgumentException("Ungültiger entfernter Plot " + id);
-                        }
+            var geaendert = delta.getConfigurationSection("plots");
+            if (geaendert == null) {
+                throw new IOException("Plots fehlen im Änderungsjournal.");
+            }
+            try {
+                var entfernt = new HashSet<PlotId>();
+                for (String id : textListe(delta, "entfernt")) {
+                    PlotId plotId = PlotId.lesen(id);
+                    if (!entfernt.add(plotId) || (bis > stand && gesamt.remove(plotId) == null)) {
+                        throw new IllegalArgumentException("Ungültiger entfernter Plot " + id);
                     }
-                    for (Plot plot : plotMap(plotsLesen(geaendert, FORMAT)).values()) {
-                        if (entfernt.contains(plot.id())) {
-                            throw new IllegalArgumentException("Plot zugleich geändert und entfernt.");
-                        }
+                }
+                for (Plot plot : plotMap(plotsLesen(geaendert, FORMAT)).values()) {
+                    if (entfernt.contains(plot.id())) {
+                        throw new IllegalArgumentException("Plot zugleich geändert und entfernt.");
+                    }
+                    if (bis > stand) {
                         gesamt.put(plot.id(), plot);
                     }
-                } catch (IllegalArgumentException e) {
-                    throw new IOException("Ungültige Daten im Plot-Änderungsjournal.", e);
                 }
+            } catch (IllegalArgumentException e) {
+                throw new IOException("Ungültige Daten im Plot-Änderungsjournal.", e);
+            }
+            // Nach einer abgeschlossenen Verdichtung darf das ältere Journal liegen bleiben.
+            if (bis > stand) {
                 neuerStand = bis;
             }
         }
@@ -194,6 +198,9 @@ public final class PlotYamlSpeicher implements PlotSpeicher {
         }
         if (aktuellesFormat && !Files.isRegularFile(grundbestandPfad)) {
             throw new IOException("Der Plot-Grundbestand fehlt oder ist keine reguläre Datei: " + grundbestandPfad);
+        }
+        if (aktuellesFormat && !Files.isRegularFile(journalPfad)) {
+            throw new IOException("Das Plot-Änderungsjournal fehlt oder ist keine reguläre Datei: " + journalPfad);
         }
         if (!aktuellesFormat) {
             // Erst den bisherigen Stand unverändert umstellen. Ein Fehler während des

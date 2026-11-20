@@ -59,6 +59,16 @@ class PlotNachrichtenTest {
         assertEquals("Neu: 4;2", klartext(texte.komponente("claim.erfolg", unparsed("id", "4;2"))));
     }
 
+    @Test
+    void laesstEineUngueltigeDateiAuchBeiAnstehenderNamensmigrationUnveraendert() throws IOException {
+        Path pfad = ordner.resolve("messages.yml");
+        String inhalt = "prefix: '<dark_gray>[<green>PlotSystem</green>]</dark_gray> <gray>'\nclaim: false\n";
+        Files.writeString(pfad, inhalt);
+        assertThrows(IOException.class, () -> laden(pfad));
+        assertEquals(inhalt, Files.readString(pfad));
+        assertFalse(Files.exists(ordner.resolve("messages.yml.bak")));
+    }
+
     private PlotNachrichten laden(Path pfad) throws IOException {
         return new PlotNachrichten(pfad, getClass().getResourceAsStream("/config/messages.yml"));
     }

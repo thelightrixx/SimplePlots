@@ -232,9 +232,11 @@ public final class PlotMenue implements Listener {
         if (wettbewerb.filter(wert -> wert.phase() == BauWettbewerb.Phase.BEENDET).isPresent()) {
             wettbewerb.get().ergebnisse().forEach(platz -> stimmen.put(platz.plot(), platz.stimmen()));
         }
-        List<PlotId> eintraege = wettbewerb.stream().flatMap(wert -> wert.beitraege().keySet().stream())
-                .filter(id -> plots.finden(id).filter(plot -> PlotBerechtigungen.darfBetreten(spieler, plot)).isPresent())
-                .sorted(Comparator.<PlotId>comparingInt(id -> stimmen.getOrDefault(id, 0)).reversed().thenComparing(NACH_ID)).toList();
+        List<Plot> eintraege = wettbewerb.stream().flatMap(wert -> wert.beitraege().keySet().stream())
+                .flatMap(id -> plots.finden(id).stream())
+                .filter(plot -> PlotBerechtigungen.darfBetreten(spieler, plot))
+                .sorted(Comparator.<Plot>comparingInt(plot -> stimmen.getOrDefault(plot.id(), 0)).reversed()
+                        .thenComparing(Plot::id, NACH_ID)).toList();
         int seiteAktiv = gueltigeSeite(seite, eintraege.size());
         var menue = seitenAnsicht(spieler, "wettbewerb", eintraege.size(), seiteAktiv,
                 neu -> wettbewerb(spieler, neu), this::oeffnen);
@@ -245,8 +247,8 @@ public final class PlotMenue implements Listener {
                 texte.komponente("menue.thema", unparsed("theme", wert.thema())),
                 List.of(texte.komponente("wettbewerb.phase." + wert.phase().name().toLowerCase(Locale.ROOT))), null));
         for (int i = seiteAktiv * seitengroesse(); i < Math.min(eintraege.size(), (seiteAktiv + 1) * seitengroesse()); i++) {
-            PlotId id = eintraege.get(i);
-            Plot plot = plots.finden(id).orElseThrow();
+            Plot plot = eintraege.get(i);
+            PlotId id = plot.id();
             var zusaetze = stimmen.containsKey(id) ? List.of(texte.komponente("menue.stimmen", unparsed("count", stimmen.get(id).toString())))
                     : List.<Component>of();
             plotKachel(menue, i % seitengroesse(), symbol("beitrag", Material.GOLD_INGOT), plot, zusaetze,

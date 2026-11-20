@@ -67,4 +67,22 @@ class PlotKonfigurationTest {
         assertEquals(3, konfiguration.claimLimit());
         assertTrue(Files.isDirectory(pfad));
     }
+
+    @Test
+    void ueberschreibtBeiAdminAenderungenKeineUngueltigenAnderenEinstellungen() throws IOException {
+        Path pfad = ordner.resolve("config.yml");
+        String original = "raster:\n  plotgroesse: 32\n  wegbreite: 7\nclaims:\n  pro-spieler: 3\n";
+        Files.writeString(pfad, original);
+        var konfiguration = new PlotKonfiguration(pfad);
+        String kaputt = original.replace("plotgroesse: 32", "plotgroesse: falsch");
+        Files.writeString(pfad, kaputt);
+        assertThrows(IOException.class, () -> konfiguration.limitSetzen(5));
+        assertEquals(kaputt, Files.readString(pfad));
+        assertEquals(3, konfiguration.claimLimit());
+        kaputt = original.replace("pro-spieler: 3", "pro-spieler: falsch");
+        Files.writeString(pfad, kaputt);
+        assertThrows(IOException.class, () -> konfiguration.rasterSetzen(new PlotRaster(48, 9)));
+        assertEquals(kaputt, Files.readString(pfad));
+        assertEquals(new PlotRaster(32, 7), konfiguration.raster());
+    }
 }

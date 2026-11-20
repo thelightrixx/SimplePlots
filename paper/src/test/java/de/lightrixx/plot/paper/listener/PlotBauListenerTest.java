@@ -16,16 +16,35 @@ import org.bukkit.Server;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.DoubleChest;
+import org.bukkit.block.Lectern;
+import org.bukkit.damage.DamageSource;
+import org.bukkit.damage.DamageType;
+import org.bukkit.entity.AreaEffectCloud;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Projectile;
+import org.bukkit.entity.ThrownPotion;
+import org.bukkit.entity.Vehicle;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockFromToEvent;
 import org.bukkit.event.block.BlockRedstoneEvent;
+import org.bukkit.event.entity.AreaEffectCloudApplyEvent;
+import org.bukkit.event.entity.EntityCombustByEntityEvent;
+import org.bukkit.event.entity.EntityMountEvent;
+import org.bukkit.event.entity.PlayerLeashEntityEvent;
+import org.bukkit.event.entity.PotionSplashEvent;
 import org.bukkit.event.inventory.InventoryMoveItemEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
+import org.bukkit.event.player.PlayerTakeLecternBookEvent;
+import org.bukkit.event.player.PlayerUnleashEntityEvent;
+import org.bukkit.event.vehicle.VehicleDamageEvent;
 import org.bukkit.inventory.BlockInventoryHolder;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.projectiles.BlockProjectileSource;
+import org.bukkit.util.BoundingBox;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -34,6 +53,8 @@ import java.io.IOException;
 import java.lang.reflect.Proxy;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -66,6 +87,7 @@ class PlotBauListenerTest {
                 });
         Path config = ordner.resolve("config.yml");
         Files.writeString(config, "raster:\n  plotgroesse: 32\n  wegbreite: 7\nclaims:\n  pro-spieler: 3\n");
+        Files.writeString(ordner.resolve("welt.yml"), "format: 2\nplotgroesse: 32\nwegbreite: 7\n");
         plots = new PlotDienst(new PlotYamlSpeicher(ordner.resolve("plots.yml")), PlotKauf.kostenlos());
         plots.claim(id, besitzer, 3);
         plots.claim(new PlotId(1, 0), UUID.randomUUID(), 3);
@@ -212,6 +234,153 @@ class PlotBauListenerTest {
         assertEquals(0, redstone.getNewCurrent());
     }
 
+    @Test
+    void verhindertAutomatischeTransfersUeberEineFremdeDoppelkistenhaelfte() {
+        var mechanik = new PlotMechanikListener(welt, plots, wettbewerbe);
+        var links = mock(BlockInventoryHolder.class);
+        var rechts = mock(BlockInventoryHolder.class);
+        when(links.getBlock()).thenReturn(block(31, 64, 5));
+        when(rechts.getBlock()).thenReturn(block(32, 64, 5));
+        var kiste = mock(DoubleChest.class);
+        when(kiste.getLeftSide(false)).thenReturn(links);
+        when(kiste.getRightSide(false)).thenReturn(rechts);
+        var quelle = mock(Inventory.class);
+        when(quelle.getHolder(false)).thenReturn(kiste);
+        when(quelle.getLocation()).thenReturn(new Location(plotwelt, 31.5, 64, 5));
+        var ziel = mock(Inventory.class);
+        when(ziel.getLocation()).thenReturn(new Location(plotwelt, 30, 64, 5));
+        var event = new InventoryMoveItemEvent(quelle, mock(ItemStack.class), ziel, true);
+        mechanik.transfer(event);
+        assertTrue(event.isCancelled());
+    }
+
+    @Test
+    void verweigertInventarzugriffOhneStandortStattIhnUngeprueftFreizugeben() {
+        var inventar = mock(Inventory.class);
+        when(inventar.getHolder(false)).thenReturn(mock(BlockInventoryHolder.class));
+        var event = mock(InventoryOpenEvent.class);
+        when(event.getPlayer()).thenReturn(spieler(besitzer, GameMode.SURVIVAL, false));
+        when(event.getInventory()).thenReturn(inventar);
+        listener.inventarOeffnen(event);
+        verify(event).setCancelled(true);
+    }
+
+    @Test
+    void prueftDieGesamteEntityFlaecheBeimPlatzieren() {
+        var spieler = spieler(besitzer, GameMode.SURVIVAL, false);
+        var entity = mock(Entity.class);
+        when(entity.getLocation()).thenReturn(new Location(plotwelt, 31, 65, 5));
+        when(entity.getBoundingBox()).thenReturn(new BoundingBox(30, 64, 4, 33, 68, 6));
+        assertFalse(schutz.darfEntityPlatzieren(spieler, entity));
+        when(entity.getBoundingBox()).thenReturn(new BoundingBox(30, 64, 4, 32, 68, 6));
+        assertTrue(schutz.darfEntityPlatzieren(spieler, entity));
+    }
+
+    @Test
+    void sperrtWurftraenkeAufFremdenPlotsUndErlaubtEigeneUndSelbstanwendung() {
+        var spieler = spieler(besitzer, GameMode.SURVIVAL, false);
+        var eigenesTier = mock(LivingEntity.class);
+        var fremdesTier = mock(LivingEntity.class);
+        when(eigenesTier.getLocation()).thenReturn(new Location(plotwelt, 5, 65, 5));
+        when(fremdesTier.getLocation()).thenReturn(new Location(plotwelt, 40, 65, 5));
+        var trank = mock(ThrownPotion.class);
+        when(trank.getShooter()).thenReturn(spieler);
+        var event = mock(PotionSplashEvent.class);
+        when(event.getPotion()).thenReturn(trank);
+        when(event.getAffectedEntities()).thenReturn(List.of(eigenesTier, fremdesTier, spieler));
+        listener.trankWerfen(event);
+        verify(event).setIntensity(fremdesTier, 0);
+        verify(event, never()).setIntensity(eq(eigenesTier), anyDouble());
+        verify(event, never()).setIntensity(eq(spieler), anyDouble());
+    }
+
+    @Test
+    void sperrtVerweiltraenkeAufFremdenPlotsUndWettbewerbsflaechen() throws IOException {
+        var tier = mock(LivingEntity.class);
+        when(tier.getLocation()).thenReturn(new Location(plotwelt, 5, 65, 5));
+        var wolke = mock(AreaEffectCloud.class);
+        when(wolke.getSource()).thenReturn(spieler(besitzer, GameMode.SURVIVAL, false));
+        var event = mock(AreaEffectCloudApplyEvent.class);
+        when(event.getEntity()).thenReturn(wolke);
+        var ziele = new ArrayList<>(List.of(tier));
+        when(event.getAffectedEntities()).thenReturn(ziele);
+        listener.trankWolke(event);
+        assertEquals(List.of(tier), ziele);
+        wettbewerbe.starten("Tiere");
+        wettbewerbe.einreichen(id, besitzer);
+        listener.trankWolke(event);
+        assertTrue(ziele.isEmpty());
+    }
+
+    @Test
+    void begrenztDispenserProjektileUndFeuerAufDenEigenenClaim() {
+        var quelle = mock(BlockProjectileSource.class);
+        when(quelle.getBlock()).thenReturn(block(5, 65, 5));
+        var pfeil = mock(Projectile.class);
+        when(pfeil.getShooter()).thenReturn(quelle);
+        var tier = mock(Entity.class);
+        when(tier.getLocation()).thenReturn(new Location(plotwelt, 40, 65, 5));
+        var event = mock(EntityCombustByEntityEvent.class);
+        when(event.getCombuster()).thenReturn(pfeil);
+        when(event.getEntity()).thenReturn(tier);
+        listener.entityAnzuenden(event);
+        verify(event).setCancelled(true);
+        assertTrue(schutz.darfProjektilNutzen(quelle, new Location(plotwelt, 6, 65, 5)));
+        assertFalse(schutz.darfProjektilNutzen(quelle, tier.getLocation()));
+    }
+
+    @Test
+    void prueftAufsitzenAnleinenUndAbleinenAufFremdenPlots() {
+        var spieler = spieler(UUID.randomUUID(), GameMode.SURVIVAL, false);
+        var tier = mock(Entity.class);
+        when(tier.getLocation()).thenReturn(new Location(plotwelt, 5, 65, 5));
+        var aufsitzen = new EntityMountEvent(spieler, tier);
+        listener.aufsitzen(aufsitzen);
+        assertTrue(aufsitzen.isCancelled());
+        var anleinen = mock(PlayerLeashEntityEvent.class);
+        when(anleinen.getPlayer()).thenReturn(spieler);
+        when(anleinen.getEntity()).thenReturn(tier);
+        listener.anleinen(anleinen);
+        verify(anleinen).setCancelled(true);
+        var ableinen = mock(PlayerUnleashEntityEvent.class);
+        when(ableinen.getPlayer()).thenReturn(spieler);
+        when(ableinen.getEntity()).thenReturn(tier);
+        listener.ableinen(ableinen);
+        verify(ableinen).setCancelled(true);
+    }
+
+    @Test
+    void prueftLesepultBuchentnahmeErneutNachRechteentzug() throws IOException {
+        UUID gast = UUID.randomUUID();
+        var spieler = spieler(gast, GameMode.SURVIVAL, false);
+        var lesepult = mock(Lectern.class);
+        when(lesepult.getLocation()).thenReturn(new Location(plotwelt, 5, 65, 5));
+        var event = mock(PlayerTakeLecternBookEvent.class);
+        when(event.getPlayer()).thenReturn(spieler);
+        when(event.getLectern()).thenReturn(lesepult);
+        plots.rolleAendern(id, besitzer, gast, Plot.RollenAktion.TRUST);
+        listener.lesepultLeeren(event);
+        verify(event, never()).setCancelled(true);
+        plots.rolleAendern(id, besitzer, gast, Plot.RollenAktion.UNTRUST);
+        listener.lesepultLeeren(event);
+        verify(event).setCancelled(true);
+    }
+
+    @Test
+    void verhindertExplosionsschadenAnFahrzeugenAuchOhneAngreifer() {
+        var fahrzeug = mock(Vehicle.class);
+        when(fahrzeug.getLocation()).thenReturn(new Location(plotwelt, 5, 65, 5));
+        for (String ursache : List.of("explosion", "player_explosion", "bad_respawn_point")) {
+            var typ = (DamageType) Proxy.newProxyInstance(DamageType.class.getClassLoader(), new Class<?>[]{DamageType.class},
+                    (proxy, methode, argumente) -> NamespacedKey.minecraft(ursache));
+            var quelle = mock(DamageSource.class);
+            when(quelle.getDamageType()).thenReturn(typ);
+            var event = new VehicleDamageEvent(fahrzeug, quelle, null, 20);
+            listener.fahrzeugAngreifen(event);
+            assertTrue(event.isCancelled(), ursache);
+        }
+    }
+
     private boolean abbauGesperrt(Player spieler, int x, int y, int z) {
         var event = new BlockBreakEvent(block(x, y, z), spieler);
         listener.abbauen(event);
@@ -234,6 +403,8 @@ class PlotBauListenerTest {
                     case "getUniqueId" -> uuid;
                     case "getGameMode" -> modus;
                     case "hasPermission" -> admin && "simpleplots.admin".equals(argumente[0]);
+                    case "equals" -> proxy == argumente[0];
+                    case "hashCode" -> uuid.hashCode();
                     default -> throw new UnsupportedOperationException(methode.getName());
                 });
     }

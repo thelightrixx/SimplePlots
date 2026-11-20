@@ -7,10 +7,14 @@ import org.junit.jupiter.api.io.TempDir;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.AccessDeniedException;
+import java.nio.file.StandardCopyOption;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 class YamlDateiTest {
     @TempDir
@@ -103,5 +107,71 @@ class YamlDateiTest {
         Files.writeString(pfad, text);
         assertThrows(IOException.class, () -> new YamlDatei(pfad).laden());
         assertEquals(text, Files.readString(pfad));
+    }
+
+    @Test
+    void wiederholtKurzzeitigGesperrteAtomareAustauscheOhneDenVorstandZuVerlieren() throws IOException {
+        Path pfad = ordner.resolve("plots.yml");
+        var daten = new YamlConfiguration();
+        daten.set("name", "Vorher");
+        new YamlDatei(pfad).speichern(daten);
+        String vorher = Files.readString(pfad);
+        var versuche = new AtomicInteger();
+        var datei = new YamlDatei(pfad, (quelle, ziel) -> {
+            if (ziel.equals(pfad) && versuche.incrementAndGet() < 3) {
+                throw new AccessDeniedException(ziel.toString());
+            }
+            Files.move(quelle, ziel, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+        });
+        daten.set("name", "Nachher");
+        datei.speichern(daten);
+        assertEquals(3, versuche.get());
+        assertEquals("Nachher", datei.laden().orElseThrow().getString("name"));
+        assertEquals(vorher, Files.readString(ordner.resolve("plots.yml.bak")));
+    }
+
+    @Test
+    void brichtDauerhafteDateisperrenBegrenztAbUndEntferntTemporaereDateien() throws IOException {
+        Path pfad = ordner.resolve("plots.yml");
+        var daten = new YamlConfiguration();
+        daten.set("name", "Behalten");
+        new YamlDatei(pfad).speichern(daten);
+        String vorher = Files.readString(pfad);
+        var versuche = new AtomicInteger();
+        var datei = new YamlDatei(pfad, (quelle, ziel) -> {
+            versuche.incrementAndGet();
+            throw new AccessDeniedException(ziel.toString());
+        });
+        daten.set("name", "Nicht gespeichert");
+        assertThrows(AccessDeniedException.class, () -> datei.speichern(daten));
+        assertEquals(5, versuche.get());
+        assertEquals(vorher, Files.readString(pfad));
+        try (var dateien = Files.list(ordner)) {
+            assertFalse(dateien.anyMatch(dateiPfad -> dateiPfad.toString().endsWith(".tmp")));
+        }
+    }
+
+    @Test
+    void erhaeltUnterbrechungenWaehrendEinerDateisperreUndBeendetDenSchreibversuch() throws IOException {
+        Path pfad = ordner.resolve("plots.yml");
+        var daten = new YamlConfiguration();
+        daten.set("name", "Nicht gespeichert");
+        var versuche = new AtomicInteger();
+        var datei = new YamlDatei(pfad, (quelle, ziel) -> {
+            versuche.incrementAndGet();
+            Thread.currentThread().interrupt();
+            throw new AccessDeniedException(ziel.toString());
+        });
+        try {
+            assertThrows(IOException.class, () -> datei.speichern(daten));
+            assertTrue(Thread.currentThread().isInterrupted());
+            assertEquals(1, versuche.get());
+        } finally {
+            Thread.interrupted();
+        }
+        assertFalse(Files.exists(pfad));
+        try (var dateien = Files.list(ordner)) {
+            assertEquals(0, dateien.count());
+        }
     }
 }

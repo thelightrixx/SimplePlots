@@ -47,10 +47,11 @@ public final class PlotNachrichten {
         boolean prefixAktualisiert = aktualisiereStandardtext(geladen, "prefix",
                 "<dark_gray>[<green>PlotSystem</green>]</dark_gray> <gray>");
         boolean menueAktualisiert = aktualisiereStandardtext(geladen, "menue.titel", "<dark_green>PlotSystem</dark_green>");
+        var geprueft = pruefen(geladen);
         if (prefixAktualisiert || menueAktualisiert) {
             datei.speichern(geladen);
         }
-        texte = pruefen(geladen);
+        texte = geprueft;
     }
 
     private boolean aktualisiereStandardtext(YamlConfiguration geladen, String schluessel, String bisher) {

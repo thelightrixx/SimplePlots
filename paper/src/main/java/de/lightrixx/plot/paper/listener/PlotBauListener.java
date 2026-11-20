@@ -6,8 +6,10 @@ import de.lightrixx.plot.service.PlotDienst;
 import de.lightrixx.plot.service.WettbewerbDienst;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.Tag;
 import org.bukkit.block.DoubleChest;
+import org.bukkit.block.data.type.RespawnAnchor;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
@@ -21,9 +23,14 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockMultiPlaceEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.block.SignChangeEvent;
+import org.bukkit.event.entity.AreaEffectCloudApplyEvent;
+import org.bukkit.event.entity.EntityCombustByEntityEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityMountEvent;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.entity.EntityPlaceEvent;
+import org.bukkit.event.entity.PlayerLeashEntityEvent;
+import org.bukkit.event.entity.PotionSplashEvent;
 import org.bukkit.event.hanging.HangingBreakByEntityEvent;
 import org.bukkit.event.hanging.HangingPlaceEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -35,12 +42,18 @@ import org.bukkit.event.player.PlayerBucketFillEvent;
 import org.bukkit.event.player.PlayerFishEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerTakeLecternBookEvent;
+import org.bukkit.event.player.PlayerUnleashEntityEvent;
 import org.bukkit.event.vehicle.VehicleDamageEvent;
 import org.bukkit.inventory.BlockInventoryHolder;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 
+import java.util.Set;
+
 public final class PlotBauListener implements Listener {
+    private static final Set<NamespacedKey> EXPLOSIONEN = Set.of(NamespacedKey.minecraft("explosion"),
+            NamespacedKey.minecraft("player_explosion"), NamespacedKey.minecraft("bad_respawn_point"));
     private final PlotSchutz schutz;
 
     public PlotBauListener(PlotWelt welt, PlotDienst plots, WettbewerbDienst wettbewerbe) {
@@ -72,6 +85,12 @@ public final class PlotBauListener implements Listener {
         var block = event.getClickedBlock();
         if (block == null || !schutz.inPlotwelt(block)) {
             return;
+        }
+        if (event.getAction() == Action.RIGHT_CLICK_BLOCK && block.getType() == Material.RESPAWN_ANCHOR
+                && block.getBlockData() instanceof RespawnAnchor anker
+                && anker.getCharges() > 0 && !(event.getItem() != null && event.getItem().getType() == Material.GLOWSTONE
+                && anker.getCharges() < anker.getMaximumCharges())) {
+            event.setUseInteractedBlock(Event.Result.DENY);
         }
         if (!schutz.darfBenutzen(event.getPlayer(), block.getLocation())) {
             if (!gastInteraktion(event)) {
@@ -160,6 +179,9 @@ public final class PlotBauListener implements Listener {
             return true;
         }
         Location ort = inventar.getLocation();
+        if (ort == null) {
+            return false;
+        }
         return schutz.darfBenutzen(spieler, ort) || switch (inventar.getType()) {
             case CHEST, BARREL, SHULKER_BOX -> !(holder instanceof Entity) && schutz.darfLagerNutzen(spieler, ort);
             default -> false;
@@ -195,13 +217,42 @@ public final class PlotBauListener implements Listener {
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void aufsitzen(EntityMountEvent event) {
+        if (event.getEntity() instanceof Player spieler
+                && !schutz.darfBenutzen(spieler, event.getMount().getLocation())) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void anleinen(PlayerLeashEntityEvent event) {
+        if (!schutz.darfBenutzen(event.getPlayer(), event.getEntity().getLocation())) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void ableinen(PlayerUnleashEntityEvent event) {
+        if (!schutz.darfBenutzen(event.getPlayer(), event.getEntity().getLocation())) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void lesepultLeeren(PlayerTakeLecternBookEvent event) {
+        if (!schutz.darfBenutzen(event.getPlayer(), event.getLectern().getLocation())) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void ruestungsstaenderBenutzen(PlayerArmorStandManipulateEvent event) {
         entityBenutzen(event);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void entityPlatzieren(EntityPlaceEvent event) {
-        if (!schutz.darfBenutzen(event.getPlayer(), event.getEntity().getLocation())) {
+        if (!schutz.darfEntityPlatzieren(event.getPlayer(), event.getEntity())) {
             event.setCancelled(true);
         }
     }
@@ -209,7 +260,7 @@ public final class PlotBauListener implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void aufhaengen(HangingPlaceEvent event) {
         if (!schutz.darfBenutzen(event.getPlayer(), event.getBlock().getLocation())
-                || !schutz.darfBenutzen(event.getPlayer(), event.getEntity().getLocation())) {
+                || !schutz.darfEntityPlatzieren(event.getPlayer(), event.getEntity())) {
             event.setCancelled(true);
         }
     }
@@ -223,14 +274,45 @@ public final class PlotBauListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void entityAngreifen(EntityDamageByEntityEvent event) {
-        if (angriffGesperrt(event.getDamageSource().getCausingEntity(), event.getEntity().getLocation())) {
+        Entity quelle = event.getDamageSource().getCausingEntity();
+        if (angriffGesperrt(quelle == null ? event.getDamager() : quelle, event.getEntity().getLocation())) {
             event.setCancelled(true);
         }
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void entityAnzuenden(EntityCombustByEntityEvent event) {
+        if (angriffGesperrt(event.getCombuster(), event.getEntity().getLocation())) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void trankWerfen(PotionSplashEvent event) {
+        var quelle = event.getPotion().getShooter();
+        for (var ziel : event.getAffectedEntities()) {
+            if (quelle != ziel && !schutz.darfProjektilNutzen(quelle, ziel.getLocation())) {
+                event.setIntensity(ziel, 0);
+            }
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void trankWolke(AreaEffectCloudApplyEvent event) {
+        var quelle = event.getEntity().getSource();
+        event.getAffectedEntities().removeIf(ziel -> quelle != ziel
+                && !schutz.darfProjektilNutzen(quelle, ziel.getLocation()));
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void fahrzeugAngreifen(VehicleDamageEvent event) {
-        if (angriffGesperrt(event.getAttacker(), event.getVehicle().getLocation())) {
+        Location ort = event.getVehicle().getLocation();
+        if (!schutz.inPlotwelt(ort)) {
+            return;
+        }
+        var quelle = event.getDamageSource();
+        var typ = quelle == null ? null : quelle.getDamageType().getKey();
+        if ((typ != null && EXPLOSIONEN.contains(typ)) || angriffGesperrt(event.getAttacker(), ort)) {
             event.setCancelled(true);
         }
     }
@@ -249,8 +331,8 @@ public final class PlotBauListener implements Listener {
         if (!schutz.inPlotwelt(ziel)) {
             return false;
         }
-        if (quelle instanceof Projectile projektile && projektile.getShooter() instanceof Player spieler) {
-            return !schutz.darfBenutzen(spieler, ziel);
+        if (quelle instanceof Projectile projektil) {
+            return !schutz.darfProjektilNutzen(projektil.getShooter(), ziel);
         }
         return quelle instanceof Player spieler && !schutz.darfBenutzen(spieler, ziel);
     }

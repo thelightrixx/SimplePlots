@@ -152,6 +152,60 @@ class PlotYamlJournalTest {
         assertFalse(Files.exists(pfad));
     }
 
+    @Test
+    void erhaeltEinenFehlendenJournalbestandAuchBeiWeiterenSchreibversuchen() throws IOException {
+        Path pfad = ordner.resolve("plots.yml");
+        var dienst = new PlotDienst(new PlotYamlSpeicher(pfad), PlotKauf.kostenlos());
+        var id = new PlotId(0, 0);
+        dienst.claim(id, besitzer, 1);
+        Path journal = ordner.resolve("plots-aenderungen.yml");
+        Files.delete(journal);
+        UUID gast = UUID.randomUUID();
+        assertThrows(IOException.class, () -> dienst.rolleAendern(id, besitzer, gast, Plot.RollenAktion.TRUST));
+        assertFalse(dienst.finden(id).orElseThrow().darfBauen(gast));
+        assertFalse(Files.exists(journal));
+    }
+
+    @Test
+    void prueftAuchBereitsVerdichteteJournaleAufVollstaendigeDaten() throws IOException {
+        Path pfad = ordner.resolve("plots.yml");
+        var speicher = new PlotYamlSpeicher(pfad);
+        speicher.speichern(daten(2));
+        speicher.speichern(daten(140));
+        Path journal = ordner.resolve("plots-aenderungen.yml");
+        var yaml = new YamlDatei(journal).laden().orElseThrow();
+        yaml.set("plots", null);
+        String text = yaml.saveToString();
+        Files.writeString(journal, text);
+        assertThrows(IOException.class, () -> new PlotYamlSpeicher(pfad).laden());
+        assertEquals(text, Files.readString(journal));
+    }
+
+    @Test
+    void behaeltBeiFehlgeschlagenerVerdichtungDenLetztenBestaetigtenStandUndErlaubtDenNeustart() throws IOException {
+        Path pfad = ordner.resolve("plots.yml");
+        var speicher = new PlotYamlSpeicher(pfad);
+        var original = daten(140);
+        speicher.speichern(original);
+        var geaendert = new ArrayList<>(original);
+        for (int i = 0; i < 127; i++) {
+            geaendert.set(i, geaendert.get(i).mitProfil(geaendert.get(i).profil().mitName("Neu " + i)));
+        }
+        speicher.speichern(geaendert);
+        var bestaetigt = List.copyOf(geaendert);
+        Path backup = ordner.resolve("plots.yml.bak");
+        Files.delete(backup);
+        Files.createDirectory(backup);
+        Files.writeString(backup.resolve("behalten.txt"), "behalten");
+        geaendert.set(127, geaendert.get(127).mitProfil(geaendert.get(127).profil().mitName("Nicht gespeichert")));
+        assertThrows(IOException.class, () -> speicher.speichern(geaendert));
+        assertEquals(bestaetigt, new PlotYamlSpeicher(pfad).laden());
+        Files.delete(backup.resolve("behalten.txt"));
+        Files.delete(backup);
+        speicher.speichern(geaendert);
+        assertEquals(geaendert, new PlotYamlSpeicher(pfad).laden());
+    }
+
     private ArrayList<Plot> daten(int anzahl) {
         var plots = new ArrayList<Plot>();
         for (int i = 0; i < anzahl; i++) {

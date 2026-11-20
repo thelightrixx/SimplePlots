@@ -8,6 +8,9 @@ import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Server;
 import org.bukkit.World;
+import org.bukkit.block.Block;
+import org.bukkit.util.BoundingBox;
+import org.bukkit.util.VoxelShape;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -22,6 +25,7 @@ import java.util.UUID;
 import org.bukkit.plugin.Plugin;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -63,9 +67,51 @@ class PlotWeltTest {
         var plot = Plot.neu(new PlotId(Integer.MAX_VALUE, 0),
                 UUID.randomUUID());
         new PlotYamlSpeicher(ordner.resolve("plots.yml")).speichern(List.of(plot));
+        Files.writeString(ordner.resolve("welt.yml"), "format: 2\nplotgroesse: 32\nwegbreite: 7\n");
         var hauptwelt = welt(NamespacedKey.minecraft("overworld"), 0, 64, 0);
         var fehler = assertThrows(IOException.class, () -> verwaltung(List.of(hauptwelt)));
         assertTrue(fehler.getMessage().contains("Blockrasters"));
+    }
+
+    @Test
+    void lehntClaimsOhneWeltmetadatenAbStattDasRasterNeuFestzulegen() throws IOException {
+        new PlotYamlSpeicher(ordner.resolve("plots.yml")).speichern(List.of(Plot.neu(new PlotId(0, 0), UUID.randomUUID())));
+        var hauptwelt = welt(NamespacedKey.minecraft("overworld"), 0, 64, 0);
+        var fehler = assertThrows(IOException.class, () -> verwaltung(List.of(hauptwelt)));
+        assertTrue(fehler.getMessage().contains("ohne welt.yml"));
+    }
+
+    @Test
+    void erzeugtBeiVorhandenenClaimsKeineErsatzweltFuerFehlendeWeltdateien() throws IOException {
+        new PlotYamlSpeicher(ordner.resolve("plots.yml")).speichern(List.of(Plot.neu(new PlotId(0, 0), UUID.randomUUID())));
+        Files.writeString(ordner.resolve("welt.yml"), "format: 2\nplotgroesse: 32\nwegbreite: 7\n");
+        var hauptwelt = mock(World.class);
+        when(hauptwelt.getKey()).thenReturn(NamespacedKey.minecraft("overworld"));
+        when(hauptwelt.getWorldPath()).thenReturn(ordner.resolve("world/dimensions/minecraft/overworld"));
+        var verwaltung = verwaltung(List.of(hauptwelt));
+        var fehler = assertThrows(IOException.class, verwaltung::ladenOderErstellen);
+        assertTrue(fehler.getMessage().contains("Weltdateien"));
+    }
+
+    @Test
+    void verlangtFuerBesuchspunkteEineTragendeOberseiteUnterDerBlockmitte() {
+        var block = mock(Block.class);
+        var form = mock(VoxelShape.class);
+        when(block.getCollisionShape()).thenReturn(form);
+        when(form.getBoundingBoxes()).thenReturn(List.of(new BoundingBox(0, 0, 0, 1, 1, 1)));
+        assertTrue(PlotWelt.hatStandflaeche(block));
+        when(form.getBoundingBoxes()).thenReturn(List.of(new BoundingBox(0, 0.5, 0, 1, 1, 1)));
+        assertTrue(PlotWelt.hatStandflaeche(block));
+        when(form.getBoundingBoxes()).thenReturn(List.of(new BoundingBox(0, 0, 0, 1, 0.5, 1)));
+        assertFalse(PlotWelt.hatStandflaeche(block));
+        when(form.getBoundingBoxes()).thenReturn(List.of(new BoundingBox(0, 0, 0, 0.125, 1, 1),
+                new BoundingBox(0.875, 0, 0, 1, 1, 1), new BoundingBox(0, 0, 0, 1, 1, 0.125),
+                new BoundingBox(0, 0, 0.875, 1, 1, 1)));
+        assertFalse(PlotWelt.hatStandflaeche(block));
+        when(form.getBoundingBoxes()).thenReturn(List.of(new BoundingBox(0.375, 0, 0.375, 0.625, 1.5, 0.625)));
+        assertFalse(PlotWelt.hatStandflaeche(block));
+        when(form.getBoundingBoxes()).thenReturn(List.of());
+        assertFalse(PlotWelt.hatStandflaeche(block));
     }
 
     private PlotWelt verwaltung(List<World> welten) throws IOException {

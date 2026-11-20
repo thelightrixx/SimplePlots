@@ -6,12 +6,18 @@ import de.lightrixx.plot.model.PlotRaster;
 import de.lightrixx.plot.paper.world.PlotWelt;
 import de.lightrixx.plot.service.PlotDienst;
 import de.lightrixx.plot.service.WettbewerbDienst;
+import io.papermc.paper.event.entity.EntityKnockbackEvent;
+import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.data.Directional;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.FallingBlock;
+import org.bukkit.entity.Hanging;
+import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockBurnEvent;
 import org.bukkit.event.block.BlockDispenseEvent;
 import org.bukkit.event.block.BlockExplodeEvent;
@@ -23,10 +29,17 @@ import org.bukkit.event.block.BlockIgniteEvent;
 import org.bukkit.event.block.BlockPistonExtendEvent;
 import org.bukkit.event.block.BlockPistonRetractEvent;
 import org.bukkit.event.block.BlockSpreadEvent;
+import org.bukkit.event.block.LeavesDecayEvent;
+import org.bukkit.event.block.MoistureChangeEvent;
 import org.bukkit.event.block.SpongeAbsorbEvent;
 import org.bukkit.event.entity.EntityChangeBlockEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
+import org.bukkit.event.entity.EntityInteractEvent;
+import org.bukkit.event.entity.ExplosionPrimeEvent;
+import org.bukkit.event.hanging.HangingBreakEvent;
 import org.bukkit.event.world.PortalCreateEvent;
+import org.bukkit.util.Vector;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -149,6 +162,113 @@ class PlotMechanikListenerTest {
         when(fremdesPortal.getWorld()).thenReturn(mock(World.class));
         listener.portalErzeugen(fremdesPortal);
         verify(fremdesPortal, never()).setCancelled(true);
+    }
+
+    @Test
+    void prueftSpielerAuchBeiIndirektenBlockaenderungen() {
+        var spieler = mock(Player.class);
+        when(spieler.getUniqueId()).thenReturn(UUID.randomUUID());
+        when(spieler.getGameMode()).thenReturn(GameMode.SURVIVAL);
+        var event = mock(EntityChangeBlockEvent.class);
+        doReturn(block(5)).when(event).getBlock();
+        when(event.getEntity()).thenReturn(spieler);
+        listener.entityAendertBlock(event);
+        verify(event).setCancelled(true);
+    }
+
+    @Test
+    void verhindertFallendeBloeckeAusEinemAnderenPlot() {
+        var sand = mock(FallingBlock.class);
+        when(sand.getOrigin()).thenReturn(new Location(plotwelt, 40, 20, 5));
+        var event = mock(EntityChangeBlockEvent.class);
+        doReturn(block(5)).when(event).getBlock();
+        when(event.getEntity()).thenReturn(sand);
+        listener.entityAendertBlock(event);
+        verify(event).setCancelled(true);
+    }
+
+    @Test
+    void erlaubtDasEntstehenUndLandenFallenderBloeckeImEigenenClaim() {
+        var sand = mock(FallingBlock.class);
+        when(sand.getLocation()).thenReturn(new Location(plotwelt, 5, 20, 5));
+        var event = mock(EntityChangeBlockEvent.class);
+        doReturn(block(5)).when(event).getBlock();
+        when(event.getEntity()).thenReturn(sand);
+        listener.entityAendertBlock(event);
+        verify(event, never()).setCancelled(true);
+        when(sand.getOrigin()).thenReturn(new Location(plotwelt, 6, 20, 5));
+        listener.entityAendertBlock(event);
+        verify(event, never()).setCancelled(true);
+    }
+
+    @Test
+    void friertLaubFeuchtigkeitUndEntityInteraktionenAufWettbewerbsplotsEin() {
+        when(wettbewerbe.gesperrt(id)).thenReturn(true);
+        var laub = new LeavesDecayEvent(block(5));
+        listener.laubVergehen(laub);
+        assertTrue(laub.isCancelled());
+        var feuchtigkeit = new MoistureChangeEvent(block(5), mock(BlockState.class));
+        listener.feuchtigkeitAendern(feuchtigkeit);
+        assertTrue(feuchtigkeit.isCancelled());
+        var interaktion = new EntityInteractEvent(mock(Entity.class), block(5));
+        listener.entityInteragiert(interaktion);
+        assertTrue(interaktion.isCancelled());
+    }
+
+    @Test
+    void laesstPassiveVorgaengeAufFreienClaimsWeiterlaufen() {
+        var laub = new LeavesDecayEvent(block(5));
+        listener.laubVergehen(laub);
+        assertFalse(laub.isCancelled());
+        var feuchtigkeit = new MoistureChangeEvent(block(5), mock(BlockState.class));
+        listener.feuchtigkeitAendern(feuchtigkeit);
+        assertFalse(feuchtigkeit.isCancelled());
+        var interaktion = new EntityInteractEvent(mock(Entity.class), block(5));
+        listener.entityInteragiert(interaktion);
+        assertFalse(interaktion.isCancelled());
+    }
+
+    @Test
+    void verhindertExplosionenSchonVorDemSchadenUndSchuetztDekoration() {
+        var entity = mock(Entity.class);
+        when(entity.getLocation()).thenReturn(new Location(plotwelt, 5, 65, 5));
+        var prime = new ExplosionPrimeEvent(entity, 4, false);
+        listener.explosionVorbereiten(prime);
+        assertTrue(prime.isCancelled());
+        for (var ursache : List.of(EntityDamageEvent.DamageCause.BLOCK_EXPLOSION,
+                EntityDamageEvent.DamageCause.ENTITY_EXPLOSION)) {
+            var schaden = mock(EntityDamageEvent.class);
+            when(schaden.getCause()).thenReturn(ursache);
+            when(schaden.getEntity()).thenReturn(entity);
+            listener.explosionsschaden(schaden);
+            verify(schaden).setCancelled(true);
+        }
+        var bild = mock(Hanging.class);
+        when(bild.getLocation()).thenReturn(new Location(plotwelt, 5, 65, 5));
+        var abhaengen = new HangingBreakEvent(bild, HangingBreakEvent.RemoveCause.EXPLOSION);
+        listener.explosionEntferntDekoration(abhaengen);
+        assertTrue(abhaengen.isCancelled());
+        var rueckstoss = new EntityKnockbackEvent(entity, EntityKnockbackEvent.Cause.EXPLOSION, new Vector(1, 1, 1));
+        listener.explosionsRueckstoss(rueckstoss);
+        assertTrue(rueckstoss.isCancelled());
+    }
+
+    @Test
+    void laesstAndereSchadensursachenUndExplosionenInDerHauptweltUnveraendert() {
+        var entity = mock(Entity.class);
+        when(entity.getLocation()).thenReturn(new Location(mock(World.class), 5, 65, 5));
+        var prime = new ExplosionPrimeEvent(entity, 4, false);
+        listener.explosionVorbereiten(prime);
+        assertFalse(prime.isCancelled());
+        var schaden = mock(EntityDamageEvent.class);
+        when(schaden.getEntity()).thenReturn(entity);
+        when(schaden.getCause()).thenReturn(EntityDamageEvent.DamageCause.ENTITY_EXPLOSION);
+        listener.explosionsschaden(schaden);
+        verify(schaden, never()).setCancelled(true);
+        when(entity.getLocation()).thenReturn(new Location(plotwelt, 5, 65, 5));
+        when(schaden.getCause()).thenReturn(EntityDamageEvent.DamageCause.FALL);
+        listener.explosionsschaden(schaden);
+        verify(schaden, never()).setCancelled(true);
     }
 
     private Block block(int x) {

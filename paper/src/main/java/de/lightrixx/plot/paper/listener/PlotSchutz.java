@@ -10,7 +10,14 @@ import de.lightrixx.plot.service.WettbewerbDienst;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
+import org.bukkit.block.DoubleChest;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.BlockInventoryHolder;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.InventoryHolder;
+import org.bukkit.projectiles.BlockProjectileSource;
+import org.bukkit.projectiles.ProjectileSource;
 
 import java.util.Optional;
 
@@ -38,6 +45,9 @@ final class PlotSchutz {
     }
 
     boolean darfBenutzen(Player spieler, Location ort) {
+        if (ort == null) {
+            return false;
+        }
         if (!inPlotwelt(ort)) {
             return true;
         }
@@ -103,5 +113,45 @@ final class PlotSchutz {
 
     boolean selberClaim(Block quelle, Block ziel) {
         return quelle != null && selberClaim(quelle.getLocation(), ziel.getLocation());
+    }
+
+    boolean inventarImClaim(Location quelle, Inventory inventar) {
+        if (inventar.getHolder(false) instanceof DoubleChest kiste) {
+            return kistenhaelfteImClaim(quelle, kiste.getLeftSide(false))
+                    && kistenhaelfteImClaim(quelle, kiste.getRightSide(false));
+        }
+        return selberClaim(quelle, inventar.getLocation());
+    }
+
+    private boolean kistenhaelfteImClaim(Location quelle, InventoryHolder haelfte) {
+        return haelfte instanceof BlockInventoryHolder block && selberClaim(quelle, block.getBlock().getLocation());
+    }
+
+    boolean darfProjektilNutzen(ProjectileSource quelle, Location ziel) {
+        if (!inPlotwelt(ziel)) {
+            return true;
+        }
+        if (quelle instanceof Player spieler) {
+            return darfBenutzen(spieler, ziel);
+        }
+        return quelle instanceof BlockProjectileSource block && selberClaim(block.getBlock().getLocation(), ziel);
+    }
+
+    boolean darfEntityPlatzieren(Player spieler, Entity entity) {
+        Location ort = entity.getLocation();
+        if (!inPlotwelt(ort)) {
+            return true;
+        }
+        var flaeche = entity.getBoundingBox();
+        int maxX = Location.locToBlock(Math.nextDown(flaeche.getMaxX()));
+        int maxZ = Location.locToBlock(Math.nextDown(flaeche.getMaxZ()));
+        for (int x = flaeche.getMin().getBlockX(); x <= maxX; x++) {
+            for (int z = flaeche.getMin().getBlockZ(); z <= maxZ; z++) {
+                if (!darfBenutzen(spieler, new Location(ort.getWorld(), x, ort.getY(), z))) {
+                    return false;
+                }
+            }
+        }
+        return darfBenutzen(spieler, ort);
     }
 }

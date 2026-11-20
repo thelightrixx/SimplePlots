@@ -57,6 +57,9 @@ public final class PlotWelt implements Listener {
         this.metadaten = new YamlDatei(pfad);
         var yaml = metadaten.laden();
         festesRaster = yaml.isPresent() ? Optional.of(rasterLesen(yaml.get())) : Optional.empty();
+        if (festesRaster.isEmpty() && plots.anzahlPlots() > 0) {
+            throw new IOException("Gespeicherte Plots ohne welt.yml gefunden. Weltmetadaten und Plotwelt gemeinsam wiederherstellen.");
+        }
         weltKey = yaml.filter(daten -> daten.getInt("format") == 1).isPresent() ? ALTER_WELT_KEY : WELT_KEY;
         for (Plot plot : plots.alle()) {
             for (PlotId zelle : plot.zellen()) {
@@ -114,6 +117,9 @@ public final class PlotWelt implements Listener {
             yaml.set("wegbreite", aktuell.wegbreite());
             metadaten.speichern(yaml);
             festesRaster = Optional.of(aktuell);
+        } else if (plots.anzahlPlots() > 0 && !Files.isDirectory(weltOrdner(weltKey))) {
+            throw new IOException("Die Weltdateien für gespeicherte Plots fehlen: " + weltOrdner(weltKey)
+                    + ". Plotwelt aus der gemeinsamen Sicherung wiederherstellen.");
         }
 
         World welt;
@@ -169,7 +175,8 @@ public final class PlotWelt implements Listener {
     }
 
     public Optional<PlotId> plotBei(Location ort) {
-        return istPlotWelt(ort.getWorld()) ? plots.plotBei(raster(), ort.getBlockX(), ort.getBlockZ()) : Optional.empty();
+        return ort != null && istPlotWelt(ort.getWorld())
+                ? plots.plotBei(raster(), ort.getBlockX(), ort.getBlockZ()) : Optional.empty();
     }
 
     public Location spawn(World welt) {
@@ -198,13 +205,21 @@ public final class PlotWelt implements Listener {
             return Optional.empty();
         }
         var fuss = welt.getBlockAt(punkt.x(), punkt.y(), punkt.z());
-        Material boden = fuss.getRelative(0, -1, 0).getType();
+        var untergrund = fuss.getRelative(0, -1, 0);
+        Material boden = untergrund.getType();
         if (!fuss.getType().isAir() || !fuss.getRelative(0, 1, 0).getType().isAir() || !boden.isSolid()
                 || boden == Material.MAGMA_BLOCK || boden == Material.CACTUS || Tag.CAMPFIRES.isTagged(boden)
-                || Tag.WALLS.isTagged(boden) || Tag.FENCES.isTagged(boden) || Tag.FENCE_GATES.isTagged(boden)) {
+                || Tag.WALLS.isTagged(boden) || Tag.FENCES.isTagged(boden) || Tag.FENCE_GATES.isTagged(boden)
+                || !hatStandflaeche(untergrund)) {
             return Optional.empty();
         }
         return Optional.of(ziel);
+    }
+
+    static boolean hatStandflaeche(org.bukkit.block.Block untergrund) {
+        return untergrund.getCollisionShape().getBoundingBoxes().stream()
+                .anyMatch(box -> box.getMinX() <= 0.5 && box.getMaxX() >= 0.5 && box.getMinZ() <= 0.5 && box.getMaxZ() >= 0.5
+                        && box.getMaxY() == 1);
     }
 
     public Location mitte(World welt, PlotId id) {
@@ -220,12 +235,14 @@ public final class PlotWelt implements Listener {
             throw new IOException("Vorhandene Welt " + NAME + " ohne registriertes SimplePlots-Raster.");
         }
         for (var key : new NamespacedKey[]{WELT_KEY, ALTER_WELT_KEY}) {
-            Path weltOrdner = spielwelt.getWorldPath().resolve("../..").resolve(key.getNamespace())
-                    .resolve(key.getKey()).normalize();
-            if (server.getWorld(key) != null || Files.exists(weltOrdner)) {
+            if (server.getWorld(key) != null || Files.exists(weltOrdner(key))) {
                 throw new IOException("Vorhandene Welt " + key + " ohne registriertes SimplePlots-Raster.");
             }
         }
+    }
+
+    private Path weltOrdner(NamespacedKey key) {
+        return spielwelt.getWorldPath().resolve("../..").resolve(key.getNamespace()).resolve(key.getKey()).normalize();
     }
 
     private static PlotRaster rasterLesen(YamlConfiguration yaml) throws IOException {

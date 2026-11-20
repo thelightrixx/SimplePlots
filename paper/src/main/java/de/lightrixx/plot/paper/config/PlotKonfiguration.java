@@ -2,6 +2,7 @@ package de.lightrixx.plot.paper.config;
 
 import de.lightrixx.plot.model.PlotRaster;
 import de.lightrixx.plot.paper.storage.YamlDatei;
+import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -17,6 +18,10 @@ public final class PlotKonfiguration {
 
     public Werte vorbereiten() throws IOException {
         var yaml = datei.laden().orElseThrow(() -> new IOException("config.yml fehlt."));
+        return pruefen(yaml);
+    }
+
+    private static Werte pruefen(YamlConfiguration yaml) throws IOException {
         try {
             var raster = new PlotRaster(yaml.getInt("raster.plotgroesse"), yaml.getInt("raster.wegbreite"));
             int claimLimit = yaml.getInt("claims.pro-spieler");
@@ -42,6 +47,7 @@ public final class PlotKonfiguration {
         var yaml = datei.laden().orElseThrow(() -> new IOException("config.yml fehlt."));
         yaml.set("raster.plotgroesse", wert.groesse());
         yaml.set("raster.wegbreite", wert.wegbreite());
+        pruefen(yaml);
         datei.speichern(yaml);
         werte = new Werte(wert, claimLimit());
     }
@@ -52,6 +58,7 @@ public final class PlotKonfiguration {
         }
         var yaml = datei.laden().orElseThrow(() -> new IOException("config.yml fehlt."));
         yaml.set("claims.pro-spieler", wert);
+        pruefen(yaml);
         datei.speichern(yaml);
         werte = new Werte(raster(), wert);
     }

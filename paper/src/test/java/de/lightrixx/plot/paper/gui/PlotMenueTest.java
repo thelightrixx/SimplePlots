@@ -1,5 +1,8 @@
 package de.lightrixx.plot.paper.gui;
 
+import de.lightrixx.plot.model.BauWettbewerb;
+import de.lightrixx.plot.model.Plot;
+import de.lightrixx.plot.model.PlotId;
 import de.lightrixx.plot.paper.command.PlotAuftraege;
 import de.lightrixx.plot.paper.config.PlotMenueKonfiguration;
 import de.lightrixx.plot.paper.config.PlotNachrichten;
@@ -8,6 +11,7 @@ import de.lightrixx.plot.service.PlotDienst;
 import de.lightrixx.plot.service.WettbewerbDienst;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Material;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.Server;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
@@ -24,6 +28,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.ArrayDeque;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -38,6 +43,8 @@ class PlotMenueTest {
     private final InventoryView ansicht = mock(InventoryView.class);
     private final ArrayDeque<Runnable> naechsteTicks = new ArrayDeque<>();
     private PlotMenue menue;
+    private final PlotDienst plots = mock(PlotDienst.class);
+    private final WettbewerbDienst wettbewerbe = mock(WettbewerbDienst.class);
 
     @BeforeEach
     void vorbereiten() {
@@ -67,8 +74,10 @@ class PlotMenueTest {
         when(gui.symbol(anyString(), any(Material.class))).thenAnswer(aufruf -> aufruf.getArgument(1));
         var texte = mock(PlotNachrichten.class);
         when(texte.komponente(anyString())).thenReturn(Component.text("Menü"));
-        menue = new PlotMenue(plugin, mock(PlotDienst.class), mock(PlotWelt.class), texte,
-                mock(WettbewerbDienst.class), gui, mock(PlotAuftraege.class));
+        when(texte.komponente(anyString(), any(net.kyori.adventure.text.minimessage.tag.resolver.TagResolver[].class)))
+                .thenReturn(Component.text("Menü"));
+        menue = new PlotMenue(plugin, plots, mock(PlotWelt.class), texte,
+                wettbewerbe, gui, mock(PlotAuftraege.class));
     }
 
     @Test
@@ -113,6 +122,24 @@ class PlotMenueTest {
             menue.klicken(klick(ClickType.SHIFT_LEFT, 10));
             menue.klicken(klick(ClickType.LEFT, 60));
             assertTrue(naechsteTicks.isEmpty());
+        }
+    }
+
+    @Test
+    void behaeltDenGelesenenBeitragWennWaehrendDesMenueaufbausZusammengelegtWird() {
+        var id = new PlotId(0, 0);
+        UUID besitzer = UUID.randomUUID();
+        var plot = Plot.neu(id, besitzer);
+        when(wettbewerbe.aktuell()).thenReturn(Optional.of(new BauWettbewerb("Hafen", BauWettbewerb.Phase.BEENDET,
+                Map.of(id, besitzer), Map.of())));
+        when(plots.finden(id)).thenReturn(Optional.of(plot), Optional.empty());
+        var offline = mock(OfflinePlayer.class);
+        when(offline.getName()).thenReturn("Besitzer");
+        when(server.getOfflinePlayer(besitzer)).thenReturn(offline);
+        try (var items = mockConstruction(ItemStack.class)) {
+            assertDoesNotThrow(() -> menue.wettbewerb(spieler));
+            verify(plots, times(1)).finden(id);
+            verify(spieler).openInventory(inventar);
         }
     }
 

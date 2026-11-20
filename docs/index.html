@@ -506,7 +506,7 @@ details>div{padding:14px 18px 2px}
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16"/><path d="M4 12h16"/><path d="M4 17h16"/></svg>
   </button>
   <button class="brand" id="brand" aria-label="Zur Startseite der Dokumentation"><svg class="mark" viewBox="0 0 28 28" aria-hidden="true"><rect width="28" height="28" rx="7" fill="#187850"/><path d="M16.6 6.5 11.4 21.5" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/></svg>SimplePlots <small>Dokumentation</small></button>
-  <span class="ver">v0.3.0-alpha</span>
+  <span class="ver">v0.4.0-alpha</span>
   <div class="grow"></div>
   <button class="search-btn" id="searchBtn" aria-label="Dokumentation durchsuchen">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
@@ -558,10 +558,10 @@ details>div{padding:14px 18px 2px}
 <section class="page" data-id="installation" data-group="Start" data-title="Installation">
   <h1>Installation</h1>
   <p class="lead">Installiere SimplePlots auf Paper für Minecraft 26.1.2 mit Java 25.</p>
-    <p>Im <a href="https://github.com/thelightrixx/SimplePlots/releases/tag/v0.3.0-alpha">Release v0.3.0-alpha</a> findest du die <a href="https://github.com/thelightrixx/SimplePlots/releases/download/v0.3.0-alpha/SimplePlots-v0.3.0-alpha.jar">Plugin-JAR</a> und die <a href="https://github.com/thelightrixx/SimplePlots/releases/download/v0.3.0-alpha/SHA256SUMS.txt">SHA-256-Prüfsumme</a>.</p>
+    <p>Im <a href="https://github.com/thelightrixx/SimplePlots/releases/tag/v0.4.0-alpha">Release v0.4.0-alpha</a> findest du die <a href="https://github.com/thelightrixx/SimplePlots/releases/download/v0.4.0-alpha/SimplePlots-v0.4.0-alpha.jar">Plugin-JAR</a> und die <a href="https://github.com/thelightrixx/SimplePlots/releases/download/v0.4.0-alpha/SHA256SUMS.txt">SHA-256-Prüfsumme</a>.</p>
     <h2 data-anchor="neu">Neuen Server einrichten</h2>
     <ol>
-      <li>Lade die JAR aus dem Release herunter oder <a href="#/entwicklung/bauen">baue sie selbst</a>. Prüfe beim Download die SHA-256 und kopiere <code>SimplePlots-v0.3.0-alpha.jar</code> bei gestopptem Server nach <code>plugins/</code>.</li>
+      <li>Lade die JAR aus dem Release herunter oder <a href="#/entwicklung/bauen">baue sie selbst</a>. Prüfe beim Download die SHA-256 und kopiere <code>SimplePlots-v0.4.0-alpha.jar</code> bei gestopptem Server nach <code>plugins/</code>.</li>
       <li>Starte Paper und kontrolliere das Log auf Startfehler.</li>
       <li>Lege ein eigenes Raster fest, bevor ein Spieler die Plotwelt öffnet. Sende etwa <code>plot admin grid 48 7</code> an die Konsole. Standardmäßig sind Plots 32 × 32 Blöcke groß, Wege sieben Blöcke breit und drei Claims pro Spieler erlaubt.</li>
       <li>Erstelle die Plotwelt mit <code>plot admin create</code> in der Konsole oder betrete sie im Spiel mit <code>/plot world</code>. <code>/plot admin info</code> zeigt Raster und Claim-Limit.</li>
@@ -686,7 +686,7 @@ details>div{padding:14px 18px 2px}
     </table></div>
     <h2 data-anchor="plotschutz">Plotschutz</h2>
     <p>Neue Plotflächen haben Gras auf <code>Y=63</code>, drei Erdlagen auf <code>Y=60–62</code> und Stein darunter. Nur am unteren Weltrand auf <code>Y=-64</code> liegt Bedrock. Auf beanspruchten Plots können Besitzer und Spieler mit Baurechten ab <code>Y=-63</code> bauen und abbauen. Das schließt den Grasboden und dessen Bearbeitung mit Hacke oder Schaufel ein. Sichere Besuchspunkte sind auch unterirdisch möglich.</p>
-    <p>Steinziegelstufen markieren die Wegränder. Der Boden öffentlicher Wege und unbeanspruchter Flächen sowie die unterste Bedrockschicht bleiben geschützt. PvP und natürliches Mob-Spawning sind deaktiviert. Flüssigkeiten, Kolben und andere Mechaniken bleiben auch unterirdisch innerhalb der Plotgrenzen.</p>
+    <p>Steinziegelstufen markieren die Wegränder. Der Boden öffentlicher Wege und unbeanspruchter Flächen sowie die unterste Bedrockschicht bleiben geschützt. PvP und natürliches Mob-Spawning sind deaktiviert. Explosionen verursachen in der Plotwelt weder Schäden noch Rückstoß; geladene Respawnanker können dort nicht gezündet werden. Flüssigkeiten, Kolben und andere Mechaniken bleiben auch unterirdisch innerhalb der Plotgrenzen.</p>
     <p>Admins können trotz Plotbann eintreten und die Rollen mit <code>/plot info</code> einsehen. Außerhalb gesperrter Wettbewerbsflächen dürfen sie auf fremden Plots bauen und Container benutzen sowie öffentliche Wege oberhalb des Wegbodens bearbeiten. Wer den Kreativmodus über <code>/plot admin gamemode creative</code> eingeschaltet hat, wechselt beim Verlassen der Plotwelt wieder in Survival.</p>
     <p>LuckPerms ist keine Voraussetzung. Plotbesitz und Plotrollen werden über UUIDs geprüft. Die Befehlsrechte nutzen das normale Paper-Permissionsystem.</p>
 </section>
@@ -764,7 +764,7 @@ symbole:
       <tbody>
         <tr><td>PlotSystem ist noch geladen.</td><td>Paper stoppen und die alte JAR gemäß <a href="#/installation/wechsel">Wechselanleitung</a> entfernen.</td></tr>
         <tr><td>Zwei befüllte Plugin-Datenordner.</td><td>Paper stoppen, beide Bestände sichern und klären, welcher Ordner zur vorhandenen Plotwelt gehört.</td></tr>
-        <tr><td>Vorhandene Plotwelt ohne registriertes Raster.</td><td>Prüfen, ob die passende <code>welt.yml</code> zur gesicherten Welt vorliegt.</td></tr>
+        <tr><td>Vorhandene Plotwelt ohne registriertes Raster oder Claims ohne Weltmetadaten beziehungsweise Weltdateien.</td><td>Die passende <code>welt.yml</code> und die Plotwelt aus der gemeinsamen Sicherung wiederherstellen. Das Plugin erzeugt zu vorhandenen Claims keine leere Ersatzwelt.</td></tr>
         <tr><td>Ungültige Einstellungen in <code>config.yml</code>.</td><td>Einrückung sowie die gültigen Ganzzahlwerte für <a href="#/konfiguration/einstellungen">Raster und Claim-Limit</a> prüfen.</td></tr>
         <tr><td>Plot-Änderungsjournal fehlt oder passt nicht zum Grundbestand.</td><td>Grundbestand und Journal aus einer gemeinsamen Sicherung wiederherstellen. Beide Dateien gehören zum aktuellen Spielstand.</td></tr>
         <tr><td>Doppelte YAML-Schlüssel, verkürzte UUIDs oder doppelte Rollen-/Zelleneinträge.</td><td>Die im Log genannte Datei bei gestopptem Server prüfen. Ungültige Daten werden abgewiesen und bleiben zur Prüfung erhalten.</td></tr>
@@ -775,6 +775,25 @@ symbole:
 <section class="page" data-id="changelog" data-group="Betrieb" data-title="Changelog">
   <h1>Changelog</h1>
   <p class="lead">Die neueste Version steht oben. Einträge nennen den dokumentierten Stand und nötige Schritte für bestehende Installationen.</p>
+    <h2 data-anchor="v0-4-0-alpha">v0.4.0-alpha</h2>
+    <p><time datetime="2026-11-20">20.11.2026</time></p>
+    <p>Bugfix- und Optimierungsupdate ohne neue Funktionen.</p>
+    <ul>
+      <li>Automatische Inventartransfers und Trichter prüfen beide Hälften einer Doppelkiste. Ortsgebundene Inventare ohne verlässlichen Standort geben keine ungeprüften Zugriffe mehr frei.</li>
+      <li>Wurf- und Verweiltränke sowie Dispenser-Projektile beachten die Baurechte und Wettbewerbssperren am Ziel. Feuer durch Projektile erhält dieselbe Prüfung.</li>
+      <li>Aufsitzen, Anleinen und Ableinen prüfen die Rechte am Tier. Die Buchentnahme aus Lesepulten prüft die aktuellen Rechte erneut.</li>
+      <li>Platzierte Entities und große Wanddekorationen prüfen ihre gesamte belegte Fläche. Sie dürfen nicht über den berechtigten Plot hinaus in geschützte Bereiche reichen.</li>
+      <li>Indirekte Blockänderungen durch Spieler berücksichtigen ihre Baurechte. Fallende Blöcke dürfen nur innerhalb ihres Ursprungsclaims landen.</li>
+      <li>Wettbewerbssperren erfassen zusätzlich Laubzerfall, Bodenfeuchtigkeit und Blockinteraktionen durch Entities. Natürliches Wachstum verändert keine öffentlichen Wege oder unbeanspruchten Flächen.</li>
+      <li>Explosionen werden vor der Zündung abgefangen. Eigene Prüfungen verhindern Explosionsschaden an Spielern, Tieren, Fahrzeugen und Wanddekorationen sowie Explosionsrückstoß. Geladene Respawnanker lassen sich in der Plotwelt nicht zur Explosion auslösen; das Aufladen bleibt möglich.</li>
+      <li>Besuchspunkte prüfen die tatsächliche Standfläche. Hohle Blöcke und Untergründe ohne tragende Oberseite werden abgewiesen.</li>
+      <li>Kurzzeitige Dateisperren beim atomaren YAML-Austausch werden begrenzt erneut versucht. Dauerhafte Fehler und Unterbrechungen brechen den Schreibvorgang ab und erhalten den vorherigen Bestand.</li>
+      <li>Ein im Betrieb verlorenes Journal verhindert weitere Schreibzugriffe. Auch bereits verdichtete Journale werden auf vollständige und gültige Daten geprüft.</li>
+      <li>Bestehende Claims ohne Weltmetadaten oder Weltdateien verhindern den Start. Das Plugin erzeugt dafür keine leere Ersatzwelt.</li>
+      <li>Admin-Änderungen an Raster oder Claim-Limit prüfen die übrigen Einstellungen vor dem Schreiben. Die Übernahme alter Standardtexte verändert keine ungültige Nachrichtendatei.</li>
+      <li>Wettbewerbsmenüs verwenden bereits gelesene Beiträge weiter, wenn parallel ein beendeter Wettbewerbsplot zusammengelegt wird. Dadurch entfällt ein möglicher Fehler beim Menüaufbau. Bewegungs- und Teleportereignisse ohne Ziel lösen keinen Fehler im Zutrittslistener aus.</li>
+    </ul>
+    <p><strong>Update-Hinweis.</strong> Paper stoppen, den vollständigen Plugin-Datenordner und die Plotwelt gemeinsam sichern und die bisherige JAR durch <code>SimplePlots-v0.4.0-alpha.jar</code> ersetzen. Es gibt keine neuen Konfigurationsschlüssel und kein neues Speicherformat. Fehlende oder beschädigte Dateien aus einer zusammengehörigen Sicherung wiederherstellen. Paper für Minecraft 26.1.2 und Java 25 bleiben vorausgesetzt. Der manuelle Gameplay-Test mit verbundenen Spielern steht noch aus.</p>
     <h2 data-anchor="v0-3-0-alpha">v0.3.0-alpha</h2>
     <p><time datetime="2026-11-19">19.11.2026</time></p>
     <ul>
@@ -836,10 +855,11 @@ symbole:
       <li>Kernprüfungen: Raster an positiven und negativen Koordinaten, Zahlenüberläufe, Rollen, Claim-Limit, Namensindizes, Zusammenlegen und Wettbewerbsphasen.</li>
       <li>Bestandsprüfungen: 10.000 geladene Plots, unveränderliche Indizes und unveröffentlichte Zwischenstände bei blockierter Speicherung.</li>
       <li>Speicherprüfungen: UTF-8, doppelte Schlüssel, vollständige UUIDs, alte Formate, kleine Deltas, Verdichtung, Neustarts, fehlende oder fremde Journale sowie Fehler beim Sichern und Ersetzen.</li>
-      <li>Plattformprüfungen: Befehlsrechte und Tab-Vorschläge, gemeinsamer Reload, konfigurierbare Menüplätze, verzögerte Menüklicks, Inventarwechsel, Doppelkisten, Mechanikgrenzen und Wettbewerbssperren.</li>
+      <li>Plattformprüfungen: Befehlsrechte und Tab-Vorschläge, gemeinsamer Reload, konfigurierbare Menüplätze, verzögerte Menüklicks, Inventarwechsel, Doppelkisten einschließlich automatischer Transfers, Tränke, Projektile, Entity-Platzierung, Explosionen, Mechanikgrenzen und Wettbewerbssperren.</li>
       <li>Buildprüfungen: konsistente Versionen, Dokumentationsziele, Offline-Dateien, aktuelle JAR-Ressourcen, Bytecode, Lizenz und Ausschluss von Server- und Testbibliotheken.</li>
     </ul>
     <p>JUnit prüft Logik, Dateisystem und ausgewählte Paper-Verträge mit kontrollierten Testobjekten. Eine feste Plotzahl im Test belegt keine maximale Spielerzahl oder Schreibrate. Die <a href="#/entwicklung/laufzeittest">Laufzeitprüfung auf Paper</a> ergänzt diese Tests um Weltgenerierung, registrierte Events, echte Registries und das Zusammenspiel mit anderen Plugins. Spielertests sollten mindestens zwei Accounts mit unterschiedlichen Rechten verwenden.</p>
+    <p>Prüfstand für <code>v0.4.0-alpha</code> am 20.11.2026: 141 JUnit-Tests sowie 44 automatische Prüfungen auf einer isolierten Paper-Instanz für Minecraft 26.1.2, Build 74, einschließlich Neustart. Die Laufzeitprüfung verwendet echte Welt- und Inventarobjekte sowie simulierte Spieler. Ein manueller Gameplay-Test mit verbundenen Minecraft-Clients steht noch aus.</p>
     <h2 data-anchor="abdeckung">Testabdeckung messen</h2>
     <pre data-lang="shell">mvn -Pcoverage -pl paper -am clean verify</pre>
     <p>Die HTML-Berichte liegen anschließend unter <code>common/target/site/jacoco/index.html</code> und <code>paper/target/site/jacoco/index.html</code>. Die CI misst auf Windows und Linux und stellt die Berichte neben den Testergebnissen bereit. Berichte zeigen ausgeführte Codepfade; sie ersetzen weder fachliche Assertions noch den Laufzeittest.</p>
@@ -871,7 +891,8 @@ python scripts/prepare-release.py</pre>
       <li>Startlog auf Fehler prüfen; <code>plot admin info</code> und <code>plot admin create</code> in der Konsole ausführen.</li>
       <li>Mit einem Testspieler <code>/plot world</code>, <code>/plot claim</code>, <code>/plot info</code> und <code>/plot back</code> prüfen. Das Inventar muss beim Weltwechsel erhalten bleiben.</li>
       <li>Mit einem zweiten Spieler Baurechte, Bann, Besucherflags und die Grenze zum öffentlichen Weg prüfen. Für normale Schutzprüfungen ohne Adminrecht testen.</li>
-      <li>Profil, Galerie, Zusammenlegen und Wettbewerbsphasen gemäß <a href="#/befehle">Befehlsreferenz</a> durchspielen.</li>
+      <li>Profil, Galerie, Zusammenlegen und Wettbewerbsphasen gemäß <a href="#/befehle">Befehlsreferenz</a> durchspielen. Große Bilder und Fahrzeuge an Plotgrenzen, Tränke gegen fremde Tiere, Dispenser, Trichter und Lesepultzugriff nach Rechteentzug prüfen.</li>
+      <li>Geladene Respawnanker und Endkristalle dürfen weder Spieler noch Tiere, Fahrzeuge oder Dekorationen durch Explosionen beschädigen. Wettbewerbseinreichungen dürfen sich auch durch Laubzerfall oder Bodenfeuchtigkeit nicht verändern.</li>
       <li><code>plot admin diagnostics</code> ausführen. Eine gültige Konfigurationsänderung neu laden und danach einen absichtlich ungültigen Menüplatz prüfen: Der zweite Reload muss den bisherigen aktiven Stand erhalten. Den Fehler anschließend korrigieren.</li>
       <li>Nach Schreibzugriffen Grundbestand und Journal gemeinsam aufbewahren. Auf einem separaten Testbestand einen Schreibfehler auslösen und prüfen, dass keine neuen Rechte sichtbar werden und keine Erfolgsmeldung erscheint.</li>
       <li>Server mit <code>stop</code> beenden, erneut starten und bestehende Claims, Profile und Wettbewerb prüfen.</li>

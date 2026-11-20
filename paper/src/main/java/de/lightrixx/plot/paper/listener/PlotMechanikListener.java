@@ -3,10 +3,14 @@ package de.lightrixx.plot.paper.listener;
 import de.lightrixx.plot.paper.world.PlotWelt;
 import de.lightrixx.plot.service.PlotDienst;
 import de.lightrixx.plot.service.WettbewerbDienst;
+import io.papermc.paper.event.entity.EntityKnockbackEvent;
+import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.Directional;
+import org.bukkit.entity.FallingBlock;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -24,9 +28,15 @@ import org.bukkit.event.block.BlockPistonRetractEvent;
 import org.bukkit.event.block.BlockRedstoneEvent;
 import org.bukkit.event.block.BlockSpreadEvent;
 import org.bukkit.event.block.EntityBlockFormEvent;
+import org.bukkit.event.block.LeavesDecayEvent;
+import org.bukkit.event.block.MoistureChangeEvent;
 import org.bukkit.event.block.SpongeAbsorbEvent;
 import org.bukkit.event.entity.EntityChangeBlockEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
+import org.bukkit.event.entity.EntityInteractEvent;
+import org.bukkit.event.entity.ExplosionPrimeEvent;
+import org.bukkit.event.hanging.HangingBreakEvent;
 import org.bukkit.event.inventory.InventoryMoveItemEvent;
 import org.bukkit.event.inventory.InventoryPickupItemEvent;
 import org.bukkit.event.world.PortalCreateEvent;
@@ -97,7 +107,9 @@ public final class PlotMechanikListener implements Listener {
     public void transfer(InventoryMoveItemEvent event) {
         var quelle = event.getSource().getLocation();
         var ziel = event.getDestination().getLocation();
-        if ((schutz.inPlotwelt(quelle) || schutz.inPlotwelt(ziel)) && !schutz.selberClaim(quelle, ziel)) {
+        if ((schutz.inPlotwelt(quelle) || schutz.inPlotwelt(ziel))
+                && (!schutz.inventarImClaim(quelle, event.getSource())
+                || !schutz.inventarImClaim(quelle, event.getDestination()))) {
             event.setCancelled(true);
         }
     }
@@ -105,7 +117,8 @@ public final class PlotMechanikListener implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void trichter(InventoryPickupItemEvent event) {
         var item = event.getItem().getLocation();
-        if (schutz.inPlotwelt(item) && !schutz.selberClaim(item, event.getInventory().getLocation())) {
+        if ((schutz.inPlotwelt(item) || schutz.inPlotwelt(event.getInventory().getLocation()))
+                && !schutz.inventarImClaim(item, event.getInventory())) {
             event.setCancelled(true);
         }
     }
@@ -144,7 +157,28 @@ public final class PlotMechanikListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void wachsen(BlockGrowEvent event) {
-        if (schutz.wettbewerbGesperrt(event.getBlock())) {
+        if (schutz.inPlotwelt(event.getBlock()) && !schutz.blockImClaim(event.getBlock())) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void laubVergehen(LeavesDecayEvent event) {
+        if (schutz.inPlotwelt(event.getBlock()) && !schutz.blockImClaim(event.getBlock())) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void feuchtigkeitAendern(MoistureChangeEvent event) {
+        if (schutz.inPlotwelt(event.getBlock()) && !schutz.blockImClaim(event.getBlock())) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void entityInteragiert(EntityInteractEvent event) {
+        if (schutz.inPlotwelt(event.getBlock()) && !schutz.blockImClaim(event.getBlock())) {
             event.setCancelled(true);
         }
     }
@@ -194,7 +228,20 @@ public final class PlotMechanikListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void entityAendertBlock(EntityChangeBlockEvent event) {
-        if (schutz.inPlotwelt(event.getBlock()) && !schutz.blockImClaim(event.getBlock())) {
+        Block block = event.getBlock();
+        if (!schutz.inPlotwelt(block)) {
+            return;
+        }
+        boolean erlaubt = switch (event.getEntity()) {
+            case Player spieler -> schutz.darfBlockAendern(spieler, block.getLocation());
+            case FallingBlock fallend -> {
+                Location ursprung = fallend.getOrigin();
+                yield schutz.selberClaim(ursprung == null ? fallend.getLocation() : ursprung, block.getLocation());
+            }
+            case Projectile projektil -> schutz.darfProjektilNutzen(projektil.getShooter(), block.getLocation());
+            case null, default -> schutz.blockImClaim(block);
+        };
+        if (!erlaubt) {
             event.setCancelled(true);
         }
     }
@@ -202,6 +249,38 @@ public final class PlotMechanikListener implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void explosion(EntityExplodeEvent event) {
         if (schutz.inPlotwelt(event.getLocation())) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void explosionVorbereiten(ExplosionPrimeEvent event) {
+        if (schutz.inPlotwelt(event.getEntity().getLocation())) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void explosionsschaden(EntityDamageEvent event) {
+        if ((event.getCause() == EntityDamageEvent.DamageCause.BLOCK_EXPLOSION
+                || event.getCause() == EntityDamageEvent.DamageCause.ENTITY_EXPLOSION)
+                && schutz.inPlotwelt(event.getEntity().getLocation())) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void explosionsRueckstoss(EntityKnockbackEvent event) {
+        if (event.getCause() == EntityKnockbackEvent.Cause.EXPLOSION
+                && schutz.inPlotwelt(event.getEntity().getLocation())) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void explosionEntferntDekoration(HangingBreakEvent event) {
+        if (event.getCause() == HangingBreakEvent.RemoveCause.EXPLOSION
+                && schutz.inPlotwelt(event.getEntity().getLocation())) {
             event.setCancelled(true);
         }
     }

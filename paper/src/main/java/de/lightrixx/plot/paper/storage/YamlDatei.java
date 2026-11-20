@@ -12,18 +12,27 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.AccessDeniedException;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 import java.util.Optional;
+import java.util.Objects;
 
 public final class YamlDatei {
     private static final int MAX_ZEICHEN = 64 * 1024 * 1024;
+    private static final int ERSETZVERSUCHE = 5;
     private final Path pfad;
+    private final Austausch austausch;
 
     public YamlDatei(Path pfad) {
+        this(pfad, (quelle, ziel) -> Files.move(quelle, ziel, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING));
+    }
+
+    YamlDatei(Path pfad, Austausch austausch) {
         this.pfad = pfad.toAbsolutePath();
+        this.austausch = Objects.requireNonNull(austausch, "Atomarer Dateiaustausch");
     }
 
     public Optional<YamlConfiguration> laden() throws IOException {
@@ -57,7 +66,7 @@ public final class YamlDatei {
         atomarSchreiben(pfad, inhalt);
     }
 
-    private static void atomarSchreiben(Path ziel, byte[] inhalt) throws IOException {
+    private void atomarSchreiben(Path ziel, byte[] inhalt) throws IOException {
         Path temp = Files.createTempFile(ziel.getParent(), ziel.getFileName() + ".", ".tmp");
         try {
             try (var kanal = FileChannel.open(temp, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING)) {
@@ -67,7 +76,7 @@ public final class YamlDatei {
                 }
                 kanal.force(true);
             }
-            Files.move(temp, ziel, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+            ersetzen(temp, ziel);
         } catch (IOException | RuntimeException e) {
             try {
                 Files.deleteIfExists(temp);
@@ -76,5 +85,32 @@ public final class YamlDatei {
             }
             throw e;
         }
+    }
+
+    private void ersetzen(Path quelle, Path ziel) throws IOException {
+        for (int versuch = 1; ; versuch++) {
+            try {
+                austausch.ersetzen(quelle, ziel);
+                return;
+            } catch (AccessDeniedException e) {
+                if (versuch >= ERSETZVERSUCHE) {
+                    throw e;
+                }
+                // Windows kann den atomaren Austausch durch kurzzeitige Dateisperren verhindern.
+                try {
+                    Thread.sleep(20);
+                } catch (InterruptedException unterbrochen) {
+                    Thread.currentThread().interrupt();
+                    var fehler = new IOException("Atomarer Dateiaustausch für " + ziel + " wurde unterbrochen.", unterbrochen);
+                    fehler.addSuppressed(e);
+                    throw fehler;
+                }
+            }
+        }
+    }
+
+    @FunctionalInterface
+    interface Austausch {
+        void ersetzen(Path quelle, Path ziel) throws IOException;
     }
 }

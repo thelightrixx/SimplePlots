@@ -312,6 +312,44 @@ class PlotDienstTest {
         }
     }
 
+    @Test
+    void lehntUeberlappendeZellenUndDoppelteNamenBeimLadenAb() {
+        var nachbar = id.verschoben(1, 0);
+        var erster = Plot.neu(id, besitzer);
+        var zweiter = Plot.neu(nachbar, besitzer);
+        speicher.daten = List.of(erster.vereinigtMit(zweiter), zweiter);
+        assertThrows(IOException.class, () -> new PlotDienst(speicher, PlotKauf.kostenlos()));
+        speicher.daten = List.of(erster.mitProfil(PlotProfil.leer().mitName("Hafen")),
+                zweiter.mitProfil(PlotProfil.leer().mitName("HAFEN")));
+        assertThrows(IOException.class, () -> new PlotDienst(speicher, PlotKauf.kostenlos()));
+        speicher.daten = List.of(erster, erster);
+        assertThrows(IOException.class, () -> new PlotDienst(speicher, PlotKauf.kostenlos()));
+    }
+
+    @Test
+    void prueftAlleZellenEinerZusammenlegungAuchAnNegativenKoordinaten() throws IOException {
+        for (var raster : List.of(new PlotRaster(1, 1), new PlotRaster(32, 7), new PlotRaster(1024, 128))) {
+            var dienst = new PlotDienst(new TestSpeicher(), PlotKauf.kostenlos());
+            var haupt = new PlotId(-1, -1);
+            var zellen = List.of(haupt, new PlotId(0, -1), new PlotId(-1, 0), new PlotId(0, 0));
+            for (var zelle : zellen) {
+                assertEquals(CLAIMED, dienst.claim(zelle, besitzer, 4));
+            }
+            for (var zelle : zellen.subList(1, zellen.size())) {
+                assertEquals(PlotDienst.MergeErgebnis.VEREINIGT,
+                        dienst.zusammenlegen(haupt, zelle, besitzer, ziel -> false, true));
+            }
+            for (int x : new int[]{-raster.rasterweite(), -1, 0, raster.groesse() - 1}) {
+                for (int z : new int[]{-raster.rasterweite(), -1, 0, raster.groesse() - 1}) {
+                    assertEquals(Optional.of(haupt), dienst.plotBei(raster, x, z), x + ";" + z);
+                }
+            }
+            assertTrue(dienst.plotBei(raster, raster.groesse(), 0).isEmpty());
+            assertTrue(dienst.plotBei(raster, 0, raster.groesse()).isEmpty());
+            assertEquals(LIMIT, dienst.claim(new PlotId(1, 0), besitzer, 4));
+        }
+    }
+
     private static final class TestSpeicher implements PlotSpeicher {
         private List<Plot> daten = List.of();
         private boolean schreibfehler;

@@ -114,4 +114,15 @@ class PlotZutrittListenerTest {
         listener.respawn(event);
         verify(event).setRespawnLocation(aufWeg);
     }
+
+    @Test
+    void behandeltBewegungenUndTeleportsOhneZielOhneFehler() {
+        var bewegen = new PlayerMoveEvent(spieler, aufPlot, null);
+        assertDoesNotThrow(() -> listener.bewegen(bewegen));
+        assertDoesNotThrow(() -> listener.bewegungAnzeigen(bewegen));
+        var teleport = new PlayerTeleportEvent(spieler, draussen, null);
+        assertDoesNotThrow(() -> listener.teleportieren(teleport));
+        assertDoesNotThrow(() -> listener.teleportAnzeigen(teleport));
+        verifyNoInteractions(texte);
+    }
 }

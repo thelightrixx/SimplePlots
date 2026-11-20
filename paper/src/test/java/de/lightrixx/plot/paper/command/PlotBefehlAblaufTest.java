@@ -115,7 +115,11 @@ class PlotBefehlAblaufTest {
             antwort.accept(auftrag.ausfuehren());
             return null;
         }).when(auftraege).ausfuehren(any(), anyString(), any(), any());
-        befehl = new PlotBefehl(server, mock(Logger.class), plots, welt, konfiguration, texte, menue,
+        var log = mock(Logger.class);
+        doAnswer(aufruf -> {
+            throw new AssertionError("Unerwarteter Speicherfehler im Befehlsablauf", (Throwable) aufruf.getArgument(3));
+        }).when(log).error(anyString(), any(), any(), any());
+        befehl = new PlotBefehl(server, log, plots, welt, konfiguration, texte, menue,
                 wettbewerbe, auftraege, mock(PlotBetrieb.class));
     }
 

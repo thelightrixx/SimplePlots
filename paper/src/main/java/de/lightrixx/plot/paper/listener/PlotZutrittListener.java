@@ -46,21 +46,21 @@ public final class PlotZutrittListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void bewegen(PlayerMoveEvent event) {
-        if (event.hasChangedBlock() && welt.istPlotWelt(event.getTo().getWorld())) {
+        if (event.getTo() != null && event.hasChangedBlock() && welt.istPlotWelt(event.getTo().getWorld())) {
             zutrittPruefen(event);
         }
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void bewegungAnzeigen(PlayerMoveEvent event) {
-        if (event.hasChangedBlock()) {
+        if (event.getTo() != null && event.hasChangedBlock()) {
             plotWechselAnzeigen(event.getPlayer(), event.getFrom(), event.getTo());
         }
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void teleportieren(PlayerTeleportEvent event) {
-        if (welt.istPlotWelt(event.getTo().getWorld())) {
+        if (event.getTo() != null && welt.istPlotWelt(event.getTo().getWorld())) {
             if (!PlotBerechtigungen.modusErlaubt(event.getPlayer(), event.getPlayer().getGameMode())) {
                 event.setCancelled(true);
                 texte.senden(event.getPlayer(), "zugang.survival");

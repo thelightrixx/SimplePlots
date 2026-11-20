@@ -69,6 +69,39 @@ class WettbewerbDienstTest {
         assertTrue(dienst.aktuell().isEmpty());
     }
 
+    @Test
+    void behaeltPhasenUndStimmenBeiJederFehlgeschlagenenSpeicherung() throws IOException {
+        var dienst = new WettbewerbDienst(wetter, plots());
+        dienst.starten("Hafen");
+        dienst.einreichen(erster, anna);
+        var bauen = dienst.aktuell();
+        wetter.schreibfehler = true;
+        assertThrows(IOException.class, dienst::abstimmungOeffnen);
+        assertEquals(bauen, dienst.aktuell());
+        wetter.schreibfehler = false;
+        dienst.abstimmungOeffnen();
+        var abstimmen = dienst.aktuell();
+        wetter.schreibfehler = true;
+        assertThrows(IOException.class, () -> dienst.abstimmen(erster, gast));
+        assertEquals(abstimmen, dienst.aktuell());
+        assertThrows(IOException.class, dienst::beenden);
+        assertThrows(IOException.class, dienst::abbrechen);
+        assertEquals(abstimmen, dienst.aktuell());
+        assertEquals(abstimmen, new WettbewerbDienst(wetter, plots()).aktuell());
+    }
+
+    @Test
+    void lehntAktiveBeitraegeMitFalschemBesitzerAbUndBewahrtAbgeschlosseneHistorie() throws IOException {
+        wetter.daten = Optional.of(new BauWettbewerb("Hafen", BauWettbewerb.Phase.BAUEN,
+                java.util.Map.of(erster, ben), java.util.Map.of()));
+        assertThrows(IOException.class, () -> new WettbewerbDienst(wetter, plots()));
+        wetter.daten = Optional.of(new BauWettbewerb("Hafen", BauWettbewerb.Phase.BEENDET,
+                java.util.Map.of(erster, ben), java.util.Map.of()));
+        var dienst = new WettbewerbDienst(wetter, plots());
+        assertEquals(wetter.daten, dienst.aktuell());
+        assertFalse(dienst.gesperrt(erster));
+    }
+
     private PlotDienst plots() throws IOException {
         return new PlotDienst(new PlotSpeicher() {
             @Override
