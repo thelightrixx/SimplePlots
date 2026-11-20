@@ -76,7 +76,7 @@ public final class PlotMenue implements Listener {
         if (welt.konfiguration().aktiv("contests.aktiviert")) {
             knopf(menue, slots.get("wettbewerb"), Material.GOLD_INGOT, "wettbewerb", this::wettbewerb);
         }
-        if (spieler.hasPermission(PlotBerechtigungen.FLY)) {
+        if (PlotBerechtigungen.istAdmin(spieler) || spieler.hasPermission(PlotBerechtigungen.FLY)) {
             knopf(menue, slots.get("flug"), Material.FEATHER, "flug", klicker -> befehl(klicker, "fly", true));
         }
         knopf(menue, slots.get("plotwelt"), Material.ENDER_EYE, "plotwelt", klicker -> befehl(klicker, "world", true));

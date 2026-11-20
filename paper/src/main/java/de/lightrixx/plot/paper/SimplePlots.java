@@ -48,10 +48,10 @@ public final class SimplePlots extends JavaPlugin {
             if (uebernehmeDatenordner(datenordner)) {
                 getSLF4JLogger().info("PlotSystem-Datenordner nach {} übernommen.", datenordner);
             }
-            saveDefaultConfig();
             var konfiguration = new PlotKonfiguration(datenordner.resolve("config.yml"));
             var texte = new PlotNachrichten(this);
             var gui = new PlotMenueKonfiguration(this);
+            konfiguration.altbestandArchivieren();
             var plots = new PlotDienst(new PlotYamlSpeicher(datenordner.resolve("plots.yml")), PlotKauf.kostenlos());
             var welt = new PlotWelt(this, konfiguration, plots, datenordner.resolve("welt.yml"));
             var wettbewerbe = new WettbewerbDienst(new WettbewerbYamlSpeicher(datenordner.resolve("wettbewerb.yml")), plots);

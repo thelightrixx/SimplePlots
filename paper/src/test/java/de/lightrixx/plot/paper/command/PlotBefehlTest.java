@@ -8,6 +8,7 @@ import de.lightrixx.plot.paper.world.PlotWelt;
 import de.lightrixx.plot.service.PlotDienst;
 import de.lightrixx.plot.service.WettbewerbDienst;
 import org.bukkit.Server;
+import org.bukkit.GameMode;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.junit.jupiter.api.Test;
@@ -16,6 +17,7 @@ import org.slf4j.Logger;
 import java.io.IOException;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -72,6 +74,32 @@ class PlotBefehlTest {
         assertTrue(befehl.onCommand(sender, null, "plot", new String[]{"admin", "create"}));
         verify(texte).senden(sender, "fehler.verarbeitung");
         verify(texte, never()).senden(sender, "admin.bereit");
+    }
+
+    @Test
+    void bietetAlleAdminModiAnUndSetztSieNurMitAdminrecht() {
+        var spieler = mock(Player.class);
+        var plotwelt = mock(org.bukkit.World.class);
+        var pdc = mock(org.bukkit.persistence.PersistentDataContainer.class);
+        var modus = new AtomicReference<>(GameMode.SURVIVAL);
+        rechte(spieler, PlotBerechtigungen.USE, PlotBerechtigungen.ADMIN);
+        assertTrue(befehl.onTabComplete(spieler, null, "plot", new String[]{""}).contains("fly"));
+        assertEquals(List.of("off", "on"), befehl.onTabComplete(spieler, null, "plot", new String[]{"fly", ""}));
+        when(spieler.getWorld()).thenReturn(plotwelt);
+        when(welt.istPlotWelt(plotwelt)).thenReturn(true);
+        when(spieler.getPersistentDataContainer()).thenReturn(pdc);
+        when(spieler.getGameMode()).thenAnswer(aufruf -> modus.get());
+        doAnswer(aufruf -> { modus.set(aufruf.getArgument(0)); return null; }).when(spieler).setGameMode(any());
+        assertEquals(Set.of("survival", "creative", "adventure", "spectator"),
+                Set.copyOf(befehl.onTabComplete(spieler, null, "plot", new String[]{"admin", "gamemode", ""})));
+        for (GameMode wert : GameMode.values()) {
+            befehl.onCommand(spieler, null, "plot", new String[]{"admin", "gamemode", wert.name().toLowerCase(java.util.Locale.ROOT)});
+            assertEquals(wert, modus.get());
+        }
+        rechte(spieler, PlotBerechtigungen.USE);
+        befehl.onCommand(spieler, null, "plot", new String[]{"admin", "gamemode", "spectator"});
+        verify(texte).senden(spieler, "fehler.kein-recht");
+        verify(spieler, times(GameMode.values().length)).setGameMode(any());
     }
 
     private static void rechte(CommandSender sender, String... rechte) {

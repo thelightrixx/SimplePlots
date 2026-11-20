@@ -3,6 +3,7 @@ wege:
   aktiviert: true
   geschwindigkeit: 0.1
 # Eigene Plots: /plot fly on|off. Höhe über dem Plotboden (Y=63).
+# Admins können damit in der gesamten Plotwelt ohne Höhenlimit fliegen, auch bei deaktiviertem Plot-Fly.
 eigener-plot:
   aktiviert: true
   hoehe: 32

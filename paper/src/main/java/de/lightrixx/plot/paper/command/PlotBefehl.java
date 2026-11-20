@@ -510,7 +510,9 @@ public final class PlotBefehl implements TabExecutor {
         if (args.length != 2) {
             return List.of();
         }
-        if (aktion.equals("fly") && sender.hasPermission(PlotBerechtigungen.FLY)) return passende(List.of("on", "off"), args[1]);
+        if (aktion.equals("fly") && (PlotBerechtigungen.istAdmin(sender) || sender.hasPermission(PlotBerechtigungen.FLY))) {
+            return passende(List.of("on", "off"), args[1]);
+        }
         if (sender instanceof Player spieler && sender.hasPermission(MANAGE)) {
             if (aktion.equals("accept") || aktion.equals("decline")) return passende(uebertragung.vorschlaege(spieler), args[1]);
             if (aktion.equals("transfer")) {
@@ -567,7 +569,7 @@ public final class PlotBefehl implements TabExecutor {
                 befehle.addAll(VERWALTUNG);
                 befehle.addAll(List.of("transfer", "accept", "decline"));
             }
-            if (sender.hasPermission(PlotBerechtigungen.FLY)) befehle.add("fly");
+            if (PlotBerechtigungen.istAdmin(sender) || sender.hasPermission(PlotBerechtigungen.FLY)) befehle.add("fly");
         } else {
             befehle.addAll(List.of("help", "contest"));
         }

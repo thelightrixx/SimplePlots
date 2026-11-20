@@ -40,13 +40,13 @@ public final class PlotNachrichten {
         } catch (InvalidConfigurationException e) {
             throw new IOException("Ungültige Standardnachrichten.", e);
         }
-        if (Files.notExists(pfad)) {
-            datei.speichern(standard);
+        var geladen = datei.laden().orElseGet(YamlConfiguration::new);
+        boolean aktualisiert = aktualisiereStandardtexte(geladen);
+        var alt = PlotKonfiguration.altbestand(pfad, standard, geladen);
+        if (alt.isPresent()) {
+            geladen = alt.get();
+            aktualisiert = aktualisiereStandardtexte(geladen);
         }
-        var geladen = datei.laden().orElseThrow(() -> new IOException(RESSOURCE + " fehlt."));
-        boolean prefixAktualisiert = aktualisiereStandardtext(geladen, "prefix",
-                "<dark_gray>[<green>PlotSystem</green>]</dark_gray> <gray>");
-        boolean menueAktualisiert = aktualisiereStandardtext(geladen, "menue.titel", "<dark_green>PlotSystem</dark_green>");
         var geprueft = pruefen(geladen);
         boolean ergaenzt = false;
         for (String key : standard.getKeys(true)) {
@@ -55,10 +55,20 @@ public final class PlotNachrichten {
                 ergaenzt = true;
             }
         }
-        if (prefixAktualisiert || menueAktualisiert || ergaenzt) {
+        if (Files.notExists(pfad) || alt.isPresent() || aktualisiert || ergaenzt) {
             datei.speichern(geladen);
         }
         texte = geprueft;
+    }
+
+    private boolean aktualisiereStandardtexte(YamlConfiguration geladen) {
+        boolean prefix = aktualisiereStandardtext(geladen, "prefix", "<dark_gray>[<green>PlotSystem</green>]</dark_gray> <gray>");
+        boolean menue = aktualisiereStandardtext(geladen, "menue.titel", "<dark_green>PlotSystem</dark_green>");
+        boolean modus = aktualisiereStandardtext(geladen, "admin.modus-hilfe",
+                "<green>/plot admin gamemode</green> <yellow>creative</yellow> oder <yellow>survival</yellow>");
+        boolean raster = aktualisiereStandardtext(geladen, "admin.reload-raster",
+                "<red>Reload abgelehnt: Das Raster in config.yml weicht von der bestehenden Plotwelt ab. Der bisherige Stand bleibt aktiv.</red>");
+        return prefix || menue || modus || raster;
     }
 
     private boolean aktualisiereStandardtext(YamlConfiguration geladen, String schluessel, String bisher) {

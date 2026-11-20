@@ -20,7 +20,7 @@ permissions:
     description: Rechte und Zutritt auf den eigenen Plots verwalten.
     default: true
   simpleplots.admin:
-    description: Plotwelt administrieren, im Kreativmodus bauen und fremde Plots betreten.
+    description: Plotwelt administrieren, alle Spielmodi nutzen und überall in der Plotwelt fliegen.
     default: op
     children:
       simpleplots.use: true

@@ -18,7 +18,7 @@ import static net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.unpa
 final class PlotAdminBefehl {
     static final List<String> UNTERBEFEHLE = List.of("info", "create", "grid", "limit", "gamemode", "reload", "diagnostics",
             "update", "bypass", "list", "inspect", "visit", "claim", "unclaim", "setowner", "role", "profile", "censor", "uncensor");
-    static final List<String> MODI = List.of("creative", "survival");
+    static final List<String> MODI = List.of("creative", "survival", "adventure", "spectator");
     private final PlotKonfiguration konfiguration;
     private final PlotWelt welt;
     private final PlotNachrichten texte;

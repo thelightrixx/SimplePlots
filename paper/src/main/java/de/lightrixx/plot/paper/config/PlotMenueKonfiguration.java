@@ -48,23 +48,26 @@ public final class PlotMenueKonfiguration {
         } catch (InvalidConfigurationException e) {
             throw new IOException("Ungültige Standardmenüs.", e);
         }
-        if (Files.notExists(pfad)) {
-            datei.speichern(standard);
-        }
-        daten = vorbereiten();
-        var yaml = datei.laden().orElseThrow();
-        boolean ergaenzt = false;
+        var yaml = datei.laden().orElseGet(YamlConfiguration::new);
+        var alt = PlotKonfiguration.altbestand(pfad, standard, yaml);
+        if (alt.isPresent()) yaml = alt.get();
+        boolean ergaenzt = !yaml.contains("hauptmenue.slots.flug", true);
+        daten = pruefen(yaml);
         for (String key : standard.getKeys(true)) {
-            if (!standard.isConfigurationSection(key) && !yaml.contains(key)) {
+            if (!standard.isConfigurationSection(key) && !yaml.contains(key, true)) {
                 yaml.set(key, key.equals("hauptmenue.slots.flug") ? daten.hauptslots().get("flug") : standard.get(key));
                 ergaenzt = true;
             }
         }
-        if (ergaenzt) datei.speichern(yaml);
+        if (Files.notExists(pfad) || alt.isPresent() || ergaenzt) datei.speichern(yaml);
     }
 
     public Daten vorbereiten() throws IOException {
         var yaml = datei.laden().orElseThrow(() -> new IOException(RESSOURCE + " fehlt."));
+        return pruefen(yaml);
+    }
+
+    private Daten pruefen(YamlConfiguration yaml) throws IOException {
         for (String key : standard.getKeys(true)) {
             if (standard.isConfigurationSection(key) && yaml.contains(key) && !yaml.isConfigurationSection(key)) {
                 throw new IOException(RESSOURCE + ": " + key + " muss ein Abschnitt sein.");

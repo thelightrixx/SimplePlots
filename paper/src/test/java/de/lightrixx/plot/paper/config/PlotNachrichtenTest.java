@@ -69,6 +69,49 @@ class PlotNachrichtenTest {
         assertFalse(Files.exists(ordner.resolve("messages.yml.bak")));
     }
 
+    @Test
+    void uebernimmtAlteNachrichtenAuchAnstelleBereitsErzeugterStandarddateien() throws IOException {
+        Path ziel = ordner.resolve("config/messages.yml");
+        laden(ziel);
+        String alt = "prefix: '<gold>Community</gold> '\nclaim:\n  erfolg: 'Alt: <id>'\n";
+        Files.writeString(ordner.resolve("messages.yml"), alt);
+        var texte = laden(ziel);
+        assertEquals("Alt: 0;0", klartext(texte.komponente("claim.erfolg", unparsed("id", "0;0"))));
+        assertEquals(alt, Files.readString(ordner.resolve("messages.yml")));
+        assertTrue(Files.readString(ziel).contains("admin-an"));
+        assertEquals(texte.komponente("claim.erfolg"), laden(ziel).komponente("claim.erfolg"));
+    }
+
+    @Test
+    void behaeltBereitsAngepassteNeueNachrichtenBei() throws IOException {
+        Path ziel = ordner.resolve("config/messages.yml");
+        laden(ziel);
+        Files.writeString(ziel, "claim:\n  erfolg: 'Neu: <id>'\n");
+        Files.writeString(ordner.resolve("messages.yml"), "claim:\n  erfolg: 'Alt: <id>'\n");
+        assertEquals("Neu: 0;0", klartext(laden(ziel).komponente("claim.erfolg", unparsed("id", "0;0"))));
+    }
+
+    @Test
+    void laesstUngueltigeAlttexteUndFehlgeschlageneUebernahmenUnveraendert() throws IOException {
+        Path quelle = ordner.resolve("messages.yml");
+        Path ziel = ordner.resolve("config/messages.yml");
+        String ungueltig = "claim: false\n";
+        Files.writeString(quelle, ungueltig);
+        assertThrows(IOException.class, () -> laden(ziel));
+        assertEquals(ungueltig, Files.readString(quelle));
+        assertFalse(Files.exists(ziel));
+        Files.createDirectories(ziel.getParent());
+        try (var ressource = getClass().getResourceAsStream("/config/messages.yml")) {
+            Files.copy(ressource, ziel);
+        }
+        String vorher = Files.readString(ziel);
+        Files.createDirectory(ziel.resolveSibling("messages.yml.bak"));
+        Files.writeString(quelle, "prefix: 'Eigene Texte'\n");
+        assertThrows(IOException.class, () -> laden(ziel));
+        assertEquals(vorher, Files.readString(ziel));
+        assertEquals("prefix: 'Eigene Texte'\n", Files.readString(quelle));
+    }
+
     private PlotNachrichten laden(Path pfad) throws IOException {
         return new PlotNachrichten(pfad, getClass().getResourceAsStream("/config/messages.yml"));
     }

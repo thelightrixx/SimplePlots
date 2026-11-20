@@ -99,6 +99,28 @@ class PlotZutrittListenerTest {
     }
 
     @Test
+    void laesstAdminsInAllenModiWechselnUndInDiePlotweltTeleportieren() {
+        when(spieler.hasPermission(PlotBerechtigungen.ADMIN)).thenReturn(true);
+        for (GameMode modus : GameMode.values()) {
+            when(spieler.getGameMode()).thenReturn(modus);
+            var teleport = new PlayerTeleportEvent(spieler, draussen, aufWeg);
+            listener.teleportieren(teleport);
+            assertFalse(teleport.isCancelled());
+            var wechsel = new PlayerGameModeChangeEvent(spieler, modus,
+                    PlayerGameModeChangeEvent.Cause.PLUGIN, Component.empty());
+            listener.modusWechseln(wechsel);
+            assertFalse(wechsel.isCancelled());
+        }
+        when(spieler.hasPermission(PlotBerechtigungen.ADMIN)).thenReturn(false);
+        for (GameMode modus : new GameMode[]{GameMode.CREATIVE, GameMode.ADVENTURE, GameMode.SPECTATOR}) {
+            var wechsel = new PlayerGameModeChangeEvent(spieler, modus,
+                    PlayerGameModeChangeEvent.Cause.PLUGIN, Component.empty());
+            listener.modusWechseln(wechsel);
+            assertTrue(wechsel.isCancelled());
+        }
+    }
+
+    @Test
     void respektiertEinAusdruecklichEntzogenesBypassRechtAuchBeiAdmins() {
         when(spieler.hasPermission(PlotBerechtigungen.ADMIN)).thenReturn(true);
         when(spieler.hasPermission("simpleplots.admin.bypass")).thenReturn(false);

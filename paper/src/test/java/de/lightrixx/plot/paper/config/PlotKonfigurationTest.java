@@ -37,8 +37,7 @@ class PlotKonfigurationTest {
     }
 
     @Test
-    void lehntFehlendeUndUngueltigeAltdateienVorDerMigrationAb() throws IOException {
-        assertThrows(IOException.class, this::laden);
+    void lehntUngueltigeAltdateienVorDerMigrationAb() throws IOException {
         for (String zahl : new String[]{"0", "1025", "true", "32.5", "'32'"}) {
             alt(standard().replace("plotgroesse: 32", "plotgroesse: " + zahl));
             assertThrows(IOException.class, this::laden);
@@ -46,6 +45,54 @@ class PlotKonfigurationTest {
         }
         alt(standard().replace("pro-spieler: 3", "pro-spieler: 0"));
         assertThrows(IOException.class, this::laden);
+    }
+
+    @Test
+    void legtBeiNeuinstallationNurDieAufgeteilteKonfigurationAn() throws IOException {
+        var config = laden();
+        assertEquals(new PlotRaster(32, 7), config.raster());
+        assertEquals(3, config.claimLimit());
+        assertFalse(Files.exists(ordner.resolve("config.yml")));
+        assertEquals(config.werte(), laden().werte());
+    }
+
+    @Test
+    void archiviertAlteKonfigurationenUndSicherungenOhneSpielstaendeZuVerschieben() throws IOException {
+        alt(standard());
+        Files.writeString(ordner.resolve("messages.yml"), "eigene Texte");
+        Files.writeString(ordner.resolve("gui.yml"), "eigene Menüs");
+        Files.writeString(ordner.resolve("config.yml.bak"), "Vorgänger");
+        Files.writeString(ordner.resolve("plots.yml"), "Spielstand");
+        Files.writeString(ordner.resolve("welt.yml"), "Weltmetadaten");
+        var config = laden();
+        config.altbestandArchivieren();
+        for (String name : new String[]{"config.yml", "messages.yml", "gui.yml", "config.yml.bak"}) {
+            assertFalse(Files.exists(ordner.resolve(name)));
+            assertTrue(Files.isRegularFile(ordner.resolve("config/altbestand/" + name)));
+        }
+        assertEquals(standard(), Files.readString(ordner.resolve("config/altbestand/config.yml")));
+        assertEquals("Spielstand", Files.readString(ordner.resolve("plots.yml")));
+        assertEquals("Weltmetadaten", Files.readString(ordner.resolve("welt.yml")));
+        assertEquals(config.werte(), laden().werte());
+        assertDoesNotThrow(config::altbestandArchivieren);
+    }
+
+    @Test
+    void behaeltAltdateienBeiArchivierungsfehlernUndSetztNachUnterbrechungFort() throws IOException {
+        alt(standard());
+        Files.writeString(ordner.resolve("messages.yml"), "Eigene Texte");
+        var config = laden();
+        var archiv = Files.createDirectories(ordner.resolve("config/altbestand"));
+        Files.writeString(archiv.resolve("messages.yml"), "Vorhandene Sicherung");
+        assertThrows(IOException.class, config::altbestandArchivieren);
+        assertFalse(Files.exists(ordner.resolve("config.yml")));
+        assertEquals(standard(), Files.readString(archiv.resolve("config.yml")));
+        assertEquals("Eigene Texte", Files.readString(ordner.resolve("messages.yml")));
+        assertEquals("Vorhandene Sicherung", Files.readString(archiv.resolve("messages.yml")));
+        Files.delete(archiv.resolve("messages.yml"));
+        laden().altbestandArchivieren();
+        assertEquals("Eigene Texte", Files.readString(archiv.resolve("messages.yml")));
+        assertFalse(Files.exists(ordner.resolve("messages.yml")));
     }
 
     @Test

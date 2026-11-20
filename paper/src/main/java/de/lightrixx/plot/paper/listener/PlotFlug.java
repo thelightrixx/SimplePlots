@@ -52,7 +52,7 @@ public final class PlotFlug implements Listener {
     }
 
     public void befehl(Player spieler, String[] args) {
-        if (!spieler.hasPermission(PlotBerechtigungen.FLY)) {
+        if (!PlotBerechtigungen.istAdmin(spieler) && !spieler.hasPermission(PlotBerechtigungen.FLY)) {
             texte.senden(spieler, "fehler.kein-recht");
             return;
         }
@@ -61,14 +61,14 @@ public final class PlotFlug implements Listener {
             return;
         }
         boolean aktiv = args.length == 1 ? !eingeschaltet(spieler) : args[1].equalsIgnoreCase("on");
-        if (aktiv && !welt.konfiguration().aktiv("fly.eigener-plot.aktiviert")) {
+        if (aktiv && !PlotBerechtigungen.istAdmin(spieler) && !welt.konfiguration().aktiv("fly.eigener-plot.aktiviert")) {
             texte.senden(spieler, "fehler.deaktiviert");
             return;
         }
         spieler.getPersistentDataContainer().set(EIGEN, PersistentDataType.BOOLEAN, aktiv);
         aktualisieren(spieler);
         if (aktiv && eigenerFlug(spieler, spieler.getLocation()) && verwaltet(spieler)) spieler.setFlying(true);
-        texte.senden(spieler, aktiv ? "flug.an" : "flug.aus");
+        texte.senden(spieler, aktiv ? (PlotBerechtigungen.istAdmin(spieler) ? "flug.admin-an" : "flug.an") : "flug.aus");
     }
 
     private boolean eingeschaltet(Player spieler) {
@@ -76,17 +76,19 @@ public final class PlotFlug implements Listener {
     }
 
     boolean erlaubt(Player spieler, Location ort) {
-        if (spieler.getGameMode() != GameMode.SURVIVAL || spieler.isDead() || spieler.isInsideVehicle()
+        if ((spieler.getGameMode() != GameMode.SURVIVAL
+                && !(spieler.getGameMode() == GameMode.ADVENTURE && PlotBerechtigungen.istAdmin(spieler)))
+                || spieler.isDead() || spieler.isInsideVehicle()
                 || !welt.istPlotWelt(ort.getWorld())) return false;
         return (welt.plotBei(ort).isEmpty() && welt.konfiguration().aktiv("fly.wege.aktiviert")) || eigenerFlug(spieler, ort);
     }
 
     private boolean eigenerFlug(Player spieler, Location ort) {
-        return welt.istPlotWelt(ort.getWorld()) && eingeschaltet(spieler) && spieler.hasPermission(PlotBerechtigungen.FLY)
-                && welt.konfiguration().aktiv("fly.eigener-plot.aktiviert")
+        return welt.istPlotWelt(ort.getWorld()) && eingeschaltet(spieler) && (PlotBerechtigungen.istAdmin(spieler)
+                || (spieler.hasPermission(PlotBerechtigungen.FLY) && welt.konfiguration().aktiv("fly.eigener-plot.aktiviert")
                 && ort.getY() <= PlotGenerator.BODEN_Y + 1 + welt.konfiguration().zahl("fly.eigener-plot.hoehe")
                 && welt.plotBei(ort).flatMap(plots::finden)
-                .filter(plot -> !plot.zensiert() && plot.besitzer().equals(spieler.getUniqueId())).isPresent();
+                .filter(plot -> !plot.zensiert() && plot.besitzer().equals(spieler.getUniqueId())).isPresent()));
     }
 
     public void aktualisieren(Player spieler) {
@@ -127,6 +129,7 @@ public final class PlotFlug implements Listener {
         if (!event.hasChangedPosition() || event.getTo() == null) return;
         Player spieler = event.getPlayer();
         if (verwaltet(spieler) && spieler.isFlying() && welt.istPlotWelt(event.getFrom().getWorld())
+                && spieler.getGameMode() != GameMode.CREATIVE && spieler.getGameMode() != GameMode.SPECTATOR
                 && event.getFrom().getWorld().equals(event.getTo().getWorld()) && !erlaubt(spieler, event.getTo())
                 && !(event instanceof org.bukkit.event.player.PlayerTeleportEvent)) {
             var von = welt.plotBei(event.getFrom());
@@ -152,7 +155,9 @@ public final class PlotFlug implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void starten(PlayerToggleFlightEvent event) {
-        if (verwaltet(event.getPlayer()) && event.isFlying() && !erlaubt(event.getPlayer(), event.getPlayer().getLocation())) {
+        if (verwaltet(event.getPlayer()) && event.isFlying()
+                && event.getPlayer().getGameMode() != GameMode.CREATIVE && event.getPlayer().getGameMode() != GameMode.SPECTATOR
+                && !erlaubt(event.getPlayer(), event.getPlayer().getLocation())) {
             event.setCancelled(true);
             freigeben(event.getPlayer());
         }

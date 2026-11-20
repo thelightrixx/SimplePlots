@@ -73,4 +73,31 @@ class PlotMenueKonfigurationTest {
         assertNotEquals(22, gui.daten().hauptslots().get("flug"));
         assertEquals(gui.daten().hauptslots().get("flug"), laden(pfad).daten().hauptslots().get("flug"));
     }
+
+    @Test
+    void uebernimmtAlteMenuesAuchAnstelleBereitsErzeugterStandarddateien() throws IOException {
+        Path ziel = ordner.resolve("config/gui.yml");
+        laden(ziel);
+        String alt = "hauptmenue:\n  slots:\n    eigene: 22\nsymbole:\n  eigene: DIAMOND\n";
+        Files.writeString(ordner.resolve("gui.yml"), alt);
+        var gui = laden(ziel);
+        assertEquals(22, gui.daten().hauptslots().get("eigene"));
+        assertNotEquals(22, gui.daten().hauptslots().get("flug"));
+        assertEquals(Material.DIAMOND, gui.symbol("eigene", Material.STONE));
+        assertEquals(alt, Files.readString(ordner.resolve("gui.yml")));
+        assertTrue(Files.readString(ziel).contains("navigation:"));
+        assertEquals(gui.daten(), laden(ziel).daten());
+    }
+
+    @Test
+    void behaeltAngepassteNeueMenuesBeiUndLehntUngueltigeAltmenuesAb() throws IOException {
+        Path ziel = ordner.resolve("config/gui.yml");
+        Files.writeString(ordner.resolve("gui.yml"), "hauptmenue:\n  slots:\n    eigene: 27\n");
+        assertThrows(IOException.class, () -> laden(ziel));
+        assertFalse(Files.exists(ziel));
+        Files.createDirectories(ziel.getParent());
+        Files.writeString(ziel, "hauptmenue:\n  slots:\n    eigene: 0\n");
+        assertEquals(0, laden(ziel).daten().hauptslots().get("eigene"));
+        assertTrue(Files.readString(ordner.resolve("gui.yml")).contains("eigene: 27"));
+    }
 }

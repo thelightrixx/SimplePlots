@@ -16,6 +16,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 public final class PlotKonfiguration {
     private static final List<String> DATEIEN = List.of("general", "world", "protection", "fly", "contests", "updates");
@@ -50,8 +51,8 @@ public final class PlotKonfiguration {
         var dateien = new LinkedHashMap<String, YamlConfiguration>();
         YamlConfiguration alt = null;
         if (Files.notExists(pfad("general")) || Files.notExists(pfad("world"))) {
-            alt = new YamlDatei(bisher).laden().orElseThrow(() -> new IOException("config.yml fehlt."));
-            rasterUndLimit(alt);
+            alt = new YamlDatei(bisher).laden().orElse(null);
+            if (alt != null) rasterUndLimit(alt);
         }
         for (String name : DATEIEN) {
             var geladen = new YamlDatei(pfad(name)).laden().orElseGet(YamlConfiguration::new);
@@ -83,6 +84,34 @@ public final class PlotKonfiguration {
     }
 
     private Path pfad(String name) { return ordner.resolve(name + ".yml"); }
+
+    static Optional<YamlConfiguration> altbestand(Path ziel, YamlConfiguration standard, YamlConfiguration aktuell) throws IOException {
+        Path config = ziel.toAbsolutePath().getParent();
+        if (!config.getFileName().toString().equals("config")) return Optional.empty();
+        for (String key : aktuell.getKeys(true)) {
+            if (aktuell.isConfigurationSection(key)) {
+                if (!standard.isConfigurationSection(key)) return Optional.empty();
+            } else if (!Objects.equals(aktuell.get(key), standard.get(key))) {
+                return Optional.empty();
+            }
+        }
+        return new YamlDatei(config.getParent().resolve(ziel.getFileName())).laden();
+    }
+
+    public void altbestandArchivieren() throws IOException {
+        for (String name : List.of("config.yml", "messages.yml", "gui.yml")) {
+            for (String endung : List.of("", ".bak")) {
+                Path quelle = ordner.getParent().resolve(name + endung);
+                if (Files.notExists(quelle)) continue;
+                Path ziel = ordner.resolve("altbestand").resolve(name + endung);
+                Files.createDirectories(ziel.getParent());
+                if (Files.exists(ziel)) {
+                    throw new IOException("Altbestand bereits vorhanden: " + ziel + ". Dateien bei gestopptem Server prüfen; " + quelle + " bleibt erhalten.");
+                }
+                Files.move(quelle, ziel);
+            }
+        }
+    }
 
     public Werte vorbereiten() throws IOException {
         var geladen = new LinkedHashMap<String, YamlConfiguration>();

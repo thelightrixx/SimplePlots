@@ -15,7 +15,7 @@ public final class PlotBerechtigungen {
     public static final String RELOAD = "simpleplots.admin.reload";
     public static final String DIAGNOSE = "simpleplots.admin.diagnostics";
     public static final String FLY = "simpleplots.fly";
-    private static final NamespacedKey PLOT_KREATIV = new NamespacedKey("simpleplots", "plot-kreativ");
+    private static final NamespacedKey PLOT_MODUS = new NamespacedKey("simpleplots", "plot-kreativ");
     private static final NamespacedKey BYPASS_AUS = new NamespacedKey("simpleplots", "bypass-aus");
 
     private PlotBerechtigungen() {
@@ -43,7 +43,7 @@ public final class PlotBerechtigungen {
     }
 
     public static boolean modusErlaubt(Permissible spieler, GameMode modus) {
-        return modus == GameMode.SURVIVAL || (modus == GameMode.CREATIVE && istAdmin(spieler));
+        return modus != null && (modus == GameMode.SURVIVAL || istAdmin(spieler));
     }
 
     public static boolean adminModusSetzen(Player spieler, GameMode modus) {
@@ -53,10 +53,10 @@ public final class PlotBerechtigungen {
             return false;
         }
         var daten = spieler.getPersistentDataContainer();
-        if (modus != GameMode.CREATIVE) {
-            daten.remove(PLOT_KREATIV);
-        } else if (vorher != GameMode.CREATIVE) {
-            daten.set(PLOT_KREATIV, PersistentDataType.BOOLEAN, true);
+        if (modus == GameMode.SURVIVAL) {
+            daten.remove(PLOT_MODUS);
+        } else if (vorher != modus) {
+            daten.set(PLOT_MODUS, PersistentDataType.BOOLEAN, true);
         }
         return true;
     }
@@ -64,12 +64,12 @@ public final class PlotBerechtigungen {
     public static void modusAmOrtPruefen(Player spieler, boolean inPlotwelt) {
         var daten = spieler.getPersistentDataContainer();
         GameMode modus = spieler.getGameMode();
-        boolean plotKreativ = daten.has(PLOT_KREATIV, PersistentDataType.BOOLEAN);
-        if (inPlotwelt ? !modusErlaubt(spieler, modus) : plotKreativ && modus == GameMode.CREATIVE) {
+        boolean plotModus = daten.has(PLOT_MODUS, PersistentDataType.BOOLEAN);
+        if (inPlotwelt ? !modusErlaubt(spieler, modus) : plotModus && modus != GameMode.SURVIVAL) {
             spieler.setGameMode(GameMode.SURVIVAL);
         }
-        if (plotKreativ && spieler.getGameMode() != GameMode.CREATIVE) {
-            daten.remove(PLOT_KREATIV);
+        if (plotModus && spieler.getGameMode() == GameMode.SURVIVAL) {
+            daten.remove(PLOT_MODUS);
         }
     }
 }

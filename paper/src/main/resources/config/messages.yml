@@ -82,6 +82,7 @@ zugang:
 flug:
   hilfe: '<green>/plot fly [on|off]</green> schaltet Fly auf deinen eigenen Plots. Auf öffentlichen Wegen startest du unabhängig davon per Doppelsprung.'
   an: 'Fly auf eigenen Plots eingeschaltet. Die Höhenbegrenzung aus fly.yml gilt; fremde Plots sind ausgenommen.'
+  admin-an: 'Admin-Fly in der gesamten Plotwelt ohne Höhenlimit eingeschaltet.'
   aus: 'Fly auf eigenen Plots ausgeschaltet. Wege-Fly bleibt auf öffentlichen Wegen verfügbar.'
   grenze: 'Du hast den erlaubten Flugbereich verlassen und wurdest sicher auf dem Weg abgesetzt.'
 
@@ -148,12 +149,12 @@ admin:
   raster-ungueltig: 'Wähle eine Plotgröße von 1 bis <max_size> und eine Wegbreite von 1 bis <max_road> Blöcken.'
   limit-ungueltig: 'Das Claim-Limit muss eine positive Ganzzahl sein.'
   limit-gesetzt: 'Das Limit beträgt jetzt <yellow><limit></yellow> Plots je Spieler.'
-  modus-hilfe: '<green>/plot admin gamemode</green> <yellow>creative</yellow> oder <yellow>survival</yellow>'
+  modus-hilfe: '<green>/plot admin gamemode</green> <yellow>creative|survival|adventure|spectator</yellow>'
   modus-gesetzt: 'Dein Spielmodus in der Plotwelt ist jetzt <yellow><mode></yellow>.'
   modus-fehlgeschlagen: '<red>Der Spielmodus konnte nicht geändert werden.</red>'
   reload-laeuft: 'Ein Reload läuft bereits. Warte auf dessen Abschluss.'
   reload-erfolg: 'Einstellungen, Nachrichten und Menüs wurden neu geladen. Offene Plotmenüs wurden geschlossen.'
-  reload-raster: '<red>Reload abgelehnt: Das Raster in config.yml weicht von der bestehenden Plotwelt ab. Der bisherige Stand bleibt aktiv.</red>'
+  reload-raster: '<red>Reload abgelehnt: Das Raster in config/world.yml weicht von der bestehenden Plotwelt ab. Der bisherige Stand bleibt aktiv.</red>'
   reload-hilfe: '<green>/plot admin reload</green> lädt Einstellungen, Nachrichten und Menüs gemeinsam neu.'
   diagnose-hilfe: '<green>/plot admin diagnostics</green> zeigt Version, Welt und Speicherzustand.'
 

@@ -4,6 +4,7 @@ import de.lightrixx.plot.economy.PlotKauf;
 import de.lightrixx.plot.model.Plot;
 import de.lightrixx.plot.model.PlotId;
 import de.lightrixx.plot.model.PlotRaster;
+import de.lightrixx.plot.paper.PlotBerechtigungen;
 import de.lightrixx.plot.paper.config.PlotKonfiguration;
 import de.lightrixx.plot.paper.config.PlotNachrichten;
 import de.lightrixx.plot.paper.world.PlotWelt;
@@ -16,6 +17,7 @@ import org.bukkit.Server;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerToggleFlightEvent;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitScheduler;
@@ -73,6 +75,7 @@ class PlotFlugTest {
         when(spieler.getWorld()).thenReturn(plotwelt);
         when(spieler.getLocation()).thenAnswer(aufruf -> ort.get());
         when(spieler.hasPermission(anyString())).thenReturn(true);
+        when(spieler.hasPermission(PlotBerechtigungen.ADMIN)).thenReturn(false);
         when(spieler.getAllowFlight()).thenAnswer(aufruf -> darfFliegen.get());
         doAnswer(aufruf -> { darfFliegen.set(aufruf.getArgument(0)); return null; }).when(spieler).setAllowFlight(anyBoolean());
         when(spieler.isFlying()).thenAnswer(aufruf -> fliegt.get());
@@ -87,6 +90,72 @@ class PlotFlugTest {
         doAnswer(aufruf -> { daten.remove(aufruf.getArgument(0)); return null; }).when(pdc).remove(any());
         ort.set(new Location(plotwelt, 5, 64, 35));
         flug = new PlotFlug(plugin, welt, plots, mock(PlotNachrichten.class));
+    }
+
+    @Test
+    void erlaubtAdminFlugUeberFremdenFreienUndZensiertenPlotsOhneHoehenlimit() throws IOException {
+        when(spieler.hasPermission(PlotBerechtigungen.ADMIN)).thenReturn(true);
+        when(spieler.hasPermission(PlotBerechtigungen.FLY)).thenReturn(false);
+        when(config.aktiv(anyString())).thenReturn(false);
+        var fremd = new PlotId(1, 0);
+        plots.claim(fremd, UUID.randomUUID(), 3);
+        plots.zensieren(fremd, true);
+        ort.set(new Location(plotwelt, 44, 310, 5));
+        for (GameMode modus : new GameMode[]{GameMode.SURVIVAL, GameMode.ADVENTURE}) {
+            when(spieler.getGameMode()).thenReturn(modus);
+            flug.befehl(spieler, new String[]{"fly", "on"});
+            assertTrue(darfFliegen.get());
+            assertTrue(fliegt.get());
+            assertTrue(flug.erlaubt(spieler, new Location(plotwelt, 83, 310, 5)));
+            assertTrue(flug.erlaubt(spieler, new Location(plotwelt, 5, 310, 35)));
+            var bewegen = new PlayerMoveEvent(spieler, ort.get(), new Location(plotwelt, 83, 310, 5));
+            flug.bewegen(bewegen);
+            assertEquals(83, bewegen.getTo().getBlockX());
+            assertTrue(fliegt.get());
+            flug.befehl(spieler, new String[]{"fly", "off"});
+            assertFalse(darfFliegen.get());
+        }
+    }
+
+    @Test
+    void beendetAdminFlugNachRechteverlustUndBeimWeltwechsel() {
+        when(spieler.hasPermission(PlotBerechtigungen.ADMIN)).thenReturn(true);
+        ort.set(new Location(plotwelt, 44, 310, 5));
+        flug.befehl(spieler, new String[]{"fly", "on"});
+        when(spieler.hasPermission(PlotBerechtigungen.ADMIN)).thenReturn(false);
+        flug.aktualisieren(spieler);
+        assertFalse(darfFliegen.get());
+        assertFalse(fliegt.get());
+        assertEquals(0.2f, tempo.get());
+        when(spieler.hasPermission(PlotBerechtigungen.ADMIN)).thenReturn(true);
+        flug.aktualisieren(spieler);
+        assertTrue(darfFliegen.get());
+        ort.set(new Location(hauptwelt, 44, 310, 5));
+        flug.aktualisieren(spieler);
+        assertFalse(darfFliegen.get());
+        assertEquals(0.2f, tempo.get());
+    }
+
+    @Test
+    void laesstNatuerlichenFlugBeimWechselInCreativeUndSpectatorUnberuehrt() {
+        when(spieler.hasPermission(PlotBerechtigungen.ADMIN)).thenReturn(true);
+        ort.set(new Location(plotwelt, 44, 310, 5));
+        for (GameMode modus : new GameMode[]{GameMode.CREATIVE, GameMode.SPECTATOR}) {
+            when(spieler.getGameMode()).thenReturn(GameMode.SURVIVAL);
+            darfFliegen.set(false);
+            flug.befehl(spieler, new String[]{"fly", "on"});
+            when(spieler.getGameMode()).thenReturn(modus);
+            var bewegen = new PlayerMoveEvent(spieler, ort.get(), new Location(plotwelt, 83, 310, 5));
+            flug.bewegen(bewegen);
+            assertEquals(83, bewegen.getTo().getBlockX());
+            var starten = new PlayerToggleFlightEvent(spieler, true);
+            flug.starten(starten);
+            assertFalse(starten.isCancelled());
+            flug.aktualisieren(spieler);
+            assertTrue(darfFliegen.get());
+            assertTrue(fliegt.get());
+            assertEquals(0.2f, tempo.get());
+        }
     }
 
     @Test
