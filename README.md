@@ -6,17 +6,24 @@ Version v0.5.1-alpha korrigiert die Adminrechte für alle vier Spielmodi und Flu
 
 ## Dokumentation
 
-Öffne [docs/index.html](docs/index.html) im Browser. Die Dokumentation mit Suche und Changelog funktioniert auch offline.
+Lies das [Online-Handbuch](https://thelightrixx.github.io/SimplePlots/) oder öffne [docs/index.html](docs/index.html) direkt im Browser. Die 28 Themen decken Einrichtung, Spielerabläufe, Verwaltung und Betrieb ab. Inhalte, Suche, Schriften und Rasterrechner funktionieren auch offline; für die Lizenzlinks den gesamten Ordner `docs/` mitnehmen.
 
 | Aufgabe | Einstieg |
 | --- | --- |
 | SimplePlots einrichten oder von PlotSystem wechseln | [Installation](docs/index.html#/installation) |
-| Einen Plot beanspruchen und Baurechte vergeben | [Schnellstart](docs/index.html#/schnellstart) |
-| Syntax, Aliase und Optionen nachschlagen | [Befehlsreferenz](docs/index.html#/befehle) |
-| Rechte und Konfiguration ändern | [Berechtigungen](docs/index.html#/rechte), [Konfiguration](docs/index.html#/konfiguration) |
-| Spielstände sichern oder Fehler beheben | [Betrieb](docs/index.html#/betrieb) |
+| Raster, Plot-IDs und Baugrenzen verstehen | [Plotwelt mit Koordinatenrechner](docs/index.html#/plotwelt) |
+| Einen Plot beanspruchen und Freunde einladen | [Schnellstart](docs/index.html#/schnellstart), [Rollen und Zutritt](docs/index.html#/rollen) |
+| Menüs bedienen oder Bauten veröffentlichen | [Menüs und Rasterkarte](docs/index.html#/menues), [Profile und Galerie](docs/index.html#/galerie) |
+| Flächen verbinden oder den Besitzer wechseln | [Zusammenlegen und Übertragen](docs/index.html#/grundstuecke) |
+| Flugregeln verstehen oder Wettbewerbe veranstalten | [Flug und Spielmodi](docs/index.html#/flug), [Bauwettbewerbe](docs/index.html#/wettbewerbe) |
+| Syntax, Aliase, Rechte und Ausführungsort nachschlagen | [Filterbare Befehlsreferenz](docs/index.html#/befehle) |
+| Rechte oder eine der acht Konfigurationsdateien ändern | [Berechtigungen](docs/index.html#/rechte), [Konfigurationsreferenz](docs/index.html#/konfiguration) |
+| Fremde Claims verwalten oder Inhalte zensieren | [Plotverwaltung und Zensur](docs/index.html#/moderation) |
+| Aktualisieren, sichern oder einen Fehler eingrenzen | [Updates und Sicherungen](docs/index.html#/betrieb), [Fehlerbehebung](docs/index.html#/fehlerbehebung), [FAQ](docs/index.html#/faq) |
 | Speicherung, Threading und Prüfungen nachvollziehen | [Qualität und Architektur](docs/index.html#/qualitaet) |
 | Versionsänderungen nachlesen | [Changelog](docs/index.html#/changelog) |
+
+Mit `Strg+K` (macOS: `⌘+K`) oder `/` durchsuchst du das Handbuch einschließlich Befehlen, Permissions und Konfigurationsschlüsseln. Abschnittslinks an Überschriften führen direkt zur passenden Stelle. Die Druckfunktion des Browsers gibt das vollständige Handbuch aus und erlaubt das Speichern als PDF.
 
 ## Voraussetzungen und Installation
 
@@ -35,7 +42,7 @@ Im [Release v0.5.1-alpha](https://github.com/thelightrixx/SimplePlots/releases/t
 3. Lege vor der ersten Weltgenerierung bei Bedarf das Raster fest, etwa mit `plot admin grid 48 7` in der Konsole.
 4. Erstelle die Welt mit `plot admin create`. Im Spiel öffnet `/plot world` die Plotwelt; `/plot claim` beansprucht den Plot unter dir.
 
-Standardmäßig gelten 32 × 32 Blöcke pro Plot, sieben Blöcke Wegbreite und drei Claims pro Spieler. Das Raster bleibt nach der ersten Generierung fest. `/plot admin info` zeigt die aktiven Werte.
+Standardmäßig gelten 32 × 32 Blöcke pro Rasterzelle, sieben Blöcke Wegbreite und drei belegte Rasterzellen pro Spieler. Zusammengelegte Zellen zählen weiterhin einzeln gegen das Limit. Das Raster bleibt nach der ersten Generierung fest. `/plot admin info` zeigt die aktiven Werte. `/plot auto` sucht und beansprucht direkt eine freie Fläche und bringt dich nach erfolgreicher Speicherung dorthin.
 
 `/plot back` führt aus der Plotwelt zum Spawn der Hauptwelt `minecraft:overworld`. Das Rückkehrziel hängt nicht von der Ladereihenfolge der Welten ab.
 
@@ -47,9 +54,9 @@ Mit `/plot admin diagnostics` prüfst du Version, Welt, Plotbestand und Speicher
 
 Mit `simpleplots.admin` sind in der Plotwelt Survival, Creative, Adventure und Spectator erlaubt, auch über `/plot admin gamemode <survival|creative|adventure|spectator>`. `/plot fly on` erlaubt Admins in Survival und Adventure Flug über der gesamten Plotwelt ohne Höhenlimit; Creative und Spectator behalten ihren normalen Flug. `/plot fly off` beendet Admin-Fly; Wege-Fly bleibt gemäß `config/fly.yml` verfügbar.
 
-Mit `/plot fly on|off` schaltest du Fly auf eigenen Plots; die Standardhöhe liegt bei 32 Blöcken über dem Plotboden. Auf öffentlichen Wegen können alle Spieler ohne Zeit- oder Höhenlimit per Doppelsprung starten. Interne Wege zusammengelegter Plots zählen zur eigenen Plotfläche.
+Mit `/plot fly on|off` schaltest du Fly auf eigenen Plots; die Standardgrenze liegt bei Y=96 (32 Blöcke über Y=64). Auf öffentlichen Wegen können Survival-Spieler ohne Zeit- oder Höhenlimit per Doppelsprung starten. Interne Wege zusammengelegter Plots zählen zur eigenen Plotfläche.
 
-`/plot transfer <Spieler>` bietet den aktuellen Plot einem anwesenden Empfänger an. `/plot accept <X;Z>` nimmt innerhalb von 120 Sekunden an; das Claim-Limit berücksichtigt alle Rasterzellen. Rollen und Likes werden zurückgesetzt.
+`/plot transfer <Spieler>` bietet den aktuellen eigenen Plot einem sichtbaren Online-Spieler an. `/plot accept <X;Z>` nimmt standardmäßig innerhalb von 120 Sekunden an; das Claim-Limit berücksichtigt alle Rasterzellen. Rollen, Banns, Gastfreigaben und Likes werden zurückgesetzt; Bauten und Profil bleiben erhalten.
 
 `/plot admin censor <X;Z>` sichert den Plot und blendet Bauten sowie Entities aus. Der leere Plot bleibt anschließend mit roten Slabs und Eintrittshinweis begehbar, ist aber für alle gesperrt. `off` stellt den Inhalt wieder her. Die Sicherungen unter `zensur/` gehören zum vollständigen Plugin-Datenbestand. Die Arbeit läuft abschnittsweise; währenddessen bleiben Spieler auf den Wegen.
 
