@@ -7,7 +7,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
-public record Plot(PlotId id, UUID besitzer, PlotRechte rechte, PlotProfil profil, Set<PlotId> zellen) {
+public record Plot(PlotId id, UUID besitzer, PlotRechte rechte, PlotProfil profil, Set<PlotId> zellen, boolean zensiert) {
     public Plot {
         Objects.requireNonNull(id, "Plot-ID");
         Objects.requireNonNull(besitzer, "Besitzer");
@@ -22,6 +22,10 @@ public record Plot(PlotId id, UUID besitzer, PlotRechte rechte, PlotProfil profi
         }
     }
 
+    public Plot(PlotId id, UUID besitzer, PlotRechte rechte, PlotProfil profil, Set<PlotId> zellen) {
+        this(id, besitzer, rechte, profil, zellen, false);
+    }
+
     public Plot(PlotId id, UUID besitzer, Set<UUID> trusted, Set<UUID> gebannt) {
         this(id, besitzer, new PlotRechte(trusted, Set.of(), Set.of(), gebannt, Set.of()), PlotProfil.leer(), Set.of(id));
     }
@@ -31,19 +35,19 @@ public record Plot(PlotId id, UUID besitzer, PlotRechte rechte, PlotProfil profi
     }
 
     public boolean darfBauen(UUID spieler) {
-        return besitzer.equals(spieler) || rechte.trusted().contains(spieler);
+        return !zensiert && (besitzer.equals(spieler) || rechte.trusted().contains(spieler));
     }
 
     public boolean darfBauen(UUID spieler, boolean besitzerOnline) {
-        return darfBauen(spieler) || (besitzerOnline && rechte.bauhelfer().contains(spieler));
+        return !zensiert && (darfBauen(spieler) || (besitzerOnline && rechte.bauhelfer().contains(spieler)));
     }
 
     public boolean darfLagerNutzen(UUID spieler, boolean besitzerOnline) {
-        return darfBauen(spieler, besitzerOnline) || rechte.lager().contains(spieler);
+        return !zensiert && (darfBauen(spieler, besitzerOnline) || rechte.lager().contains(spieler));
     }
 
     public boolean darfBetreten(UUID spieler) {
-        return !rechte.gebannt().contains(spieler);
+        return zensiert || !rechte.gebannt().contains(spieler);
     }
 
     public Plot mitRolle(UUID spieler, RollenAktion aktion) {
@@ -55,14 +59,26 @@ public record Plot(PlotId id, UUID besitzer, PlotRechte rechte, PlotProfil profi
     }
 
     public Plot mitRechten(PlotRechte neu) {
-        return new Plot(id, besitzer, neu, profil, zellen);
+        return new Plot(id, besitzer, neu, profil, zellen, zensiert);
     }
 
     public Plot mitProfil(PlotProfil neu) {
-        return new Plot(id, besitzer, rechte, neu, zellen);
+        return new Plot(id, besitzer, rechte, neu, zellen, zensiert);
+    }
+
+    public Plot mitZensur(boolean wert) {
+        return new Plot(id, besitzer, rechte, profil, zellen, wert);
+    }
+
+    public Plot mitBesitzer(UUID neu) {
+        var neuesProfil = new PlotProfil(profil.name(), profil.beschreibung(), profil.kategorie(),
+                profil.gelistetSeit(), profil.besuchspunkt(), Set.of());
+        return new Plot(id, neu, new PlotRechte(Set.of(), Set.of(), Set.of(), Set.of(), Set.of()),
+                neuesProfil, zellen, zensiert);
     }
 
     public Plot vereinigtMit(Plot nachbar) {
+        if (zensiert || nachbar.zensiert()) throw new IllegalArgumentException("Zensierte Plots dürfen nicht zusammengelegt werden.");
         if (!besitzer.equals(nachbar.besitzer())) {
             throw new IllegalArgumentException("Nur Plots desselben Besitzers dürfen zusammengelegt werden.");
         }

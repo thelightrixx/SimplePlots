@@ -36,6 +36,8 @@ class ProjektPruefungenTest(unittest.TestCase):
         self.schreiben("paper/src/main/resources/config.yml", "claims: {}\n")
         self.schreiben("paper/src/main/resources/config/messages.yml", "prefix: 'SimplePlots'\n")
         self.schreiben("paper/src/main/resources/config/gui.yml", "hauptmenue: {}\n")
+        for name in ("general", "world", "protection", "fly", "contests", "updates"):
+            self.schreiben(f"paper/src/main/resources/config/{name}.yml", "einstellungen: {}\n")
         self.klassen = {
             "de/lightrixx/plot/paper/SimplePlots.class": b"\xca\xfe\xba\xbe\x00\x00\x00\x41",
             "de/lightrixx/plot/service/PlotDienst.class": b"\xca\xfe\xba\xbe\x00\x00\x00\x41",
@@ -58,6 +60,8 @@ class ProjektPruefungenTest(unittest.TestCase):
             "config.yml": b"claims: {}\n",
             "config/messages.yml": b"prefix: 'SimplePlots'\n",
             "config/gui.yml": b"hauptmenue: {}\n",
+            **{f"config/{name}.yml": b"einstellungen: {}\n"
+               for name in ("general", "world", "protection", "fly", "contests", "updates")},
             "META-INF/LICENSE": b"MIT License\n",
             **{f"META-INF/maven/de.lightrixx/simpleplots-{modul}/pom.properties": f"version={self.version}\n".encode()
                for modul in ("common", "paper")},
@@ -104,6 +108,8 @@ class ProjektPruefungenTest(unittest.TestCase):
             ({"de/lightrixx/plot/paper/SimplePlots.class": b"\xca\xfe\xba\xbe\x00\x00\x00\x45"}, "Java-21"),
             ({"config/messages.yml": b"alt"}, "Veraltete Ressource"),
             ({"config/gui.yml": b"alt"}, "Veraltete Ressource"),
+            ({"config/fly.yml": b"alt"}, "Veraltete Ressource"),
+            ({"config/updates.yml": None}, "konnte nicht geprüft"),
             ({"org/yaml/snakeyaml/Yaml.class": b"fremd"}, "Server- oder Testbibliothek"),
             ({"META-INF/LICENSE": None}, "konnte nicht geprüft"),
             ({"META-INF/maven/de.lightrixx/simpleplots-common/pom.properties": b"version=alt"}, "Maven-Version"),

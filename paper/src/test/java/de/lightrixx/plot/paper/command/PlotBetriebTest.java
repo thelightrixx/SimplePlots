@@ -45,7 +45,7 @@ class PlotBetriebTest {
     @BeforeEach
     void vorbereiten() throws IOException {
         schreiben(32, 3);
-        konfiguration = new PlotKonfiguration(ordner.resolve("config.yml"));
+        konfiguration = new PlotKonfiguration(ordner.resolve("config.yml"), material -> true);
         texte = new PlotNachrichten(ordner.resolve("messages.yml"), getClass().getResourceAsStream("/config/messages.yml"));
         auftraege = new PlotAuftraege(new SpeicherAuftraege(4), serverthread::add, () -> true, mock(Logger.class), texte);
         when(gui.vorbereiten()).thenReturn(new PlotMenueKonfiguration.Daten(27, 27, 45, Map.of(), Map.of(), Map.of(), Map.of()));
@@ -107,6 +107,11 @@ class PlotBetriebTest {
     }
 
     private void schreiben(int groesse, int limit) throws IOException {
+        if (Files.exists(ordner.resolve("config/general.yml"))) {
+            Files.writeString(ordner.resolve("config/general.yml"), "claims:\n  pro-spieler: " + limit + "\n");
+            Files.writeString(ordner.resolve("config/world.yml"), "raster:\n  plotgroesse: " + groesse + "\n  wegbreite: 7\n");
+            return;
+        }
         Files.writeString(ordner.resolve("config.yml"), "raster:\n  plotgroesse: " + groesse
                 + "\n  wegbreite: 7\nclaims:\n  pro-spieler: " + limit + "\n");
     }

@@ -6,8 +6,10 @@ hilfe:
   rollen: 'Auf deinem Plot kannst du <green>/plot trust</green>, <green>/plot untrust</green>, <green>/plot deny</green>, <green>/plot undeny</green> oder <green>/plot kick</green> mit einem Spielernamen verwenden.'
   galerie: '<green>/plot menu</green> · <green>/plot discover</green> · <green>/plot visit #Plotname</green> · <green>/plot like</green> · <green>/plot contest</green>'
   verwaltung: '<green>/plot profile</green> · <green>/plot sethome</green> · <green>/plot flag</green> · <green>/plot add [Spieler]</green> · <green>/plot storage [Spieler]</green> · <green>/plot merge</green>'
+  neu: '<green>/plot fly [on|off]</green> · <green>/plot transfer [Spieler|cancel]</green> · <green>/plot accept [X;Z]</green> · <green>/plot decline [X;Z]</green>'
 
 fehler:
+  deaktiviert: 'Diese Funktion wurde in der Konfiguration deaktiviert.'
   kein-recht: '<red>Dazu hast du keine Berechtigung.</red>'
   nur-spieler: 'Dieser Befehl steht im Spiel zur Verfügung.'
   verarbeitung: '<red>Der Befehl ist fehlgeschlagen. Details stehen im Serverlog.</red>'
@@ -77,6 +79,66 @@ zugang:
   gekickt: 'Der Besitzer hat dich vom Plot auf den Weg versetzt.'
   survival: 'In der Plotwelt gilt der Überlebensmodus.'
 
+flug:
+  hilfe: '<green>/plot fly [on|off]</green> schaltet Fly auf deinen eigenen Plots. Auf öffentlichen Wegen startest du unabhängig davon per Doppelsprung.'
+  an: 'Fly auf eigenen Plots eingeschaltet. Die Höhenbegrenzung aus fly.yml gilt; fremde Plots sind ausgenommen.'
+  aus: 'Fly auf eigenen Plots ausgeschaltet. Wege-Fly bleibt auf öffentlichen Wegen verfügbar.'
+  grenze: 'Du hast den erlaubten Flugbereich verlassen und wurdest sicher auf dem Weg abgesetzt.'
+
+transfer:
+  hilfe: '<green>/plot transfer [Spieler|cancel]</green> auf deinem Plot; Empfänger: <green>/plot accept [X;Z]</green> oder <green>/plot decline [X;Z]</green>. Rollen und Likes werden beim Wechsel zurückgesetzt.'
+  fehlt: 'Kein gültiges Übertragungsangebot für diesen Plot vorhanden.'
+  abgelehnt: 'Übertragungsangebot abgelehnt.'
+  abgebrochen: 'Übertragungsangebot zurückgezogen.'
+  angeboten: 'Plot <yellow><id></yellow> wurde <yellow><player></yellow> zur Übernahme angeboten.'
+  angebot: '<yellow><owner></yellow> bietet dir Plot <yellow><id></yellow> an. <green>/plot accept <id></green> innerhalb von <yellow><seconds></yellow> Sekunden. Bisherige Rollen und Likes werden zurückgesetzt.'
+  nicht-online: 'Der Empfänger muss online und für dich sichtbar sein.'
+  uebertragen: 'Besitzer von Plot <yellow><id></yellow> geändert. Bisherige Rollen und Likes wurden zurückgesetzt.'
+  fremder-plot: 'Der bisherige Besitzer hat sich geändert oder der Plot existiert nicht mehr.'
+  gesperrt: 'Zensierte Plots und aktive Wettbewerbsbeiträge können nicht übertragen werden.'
+  gleich: 'Dieser Spieler besitzt den Plot bereits.'
+  limit: 'Der Empfänger würde mit den übertragenen Rasterzellen sein Claim-Limit überschreiten.'
+
+zensur:
+  hinweis: '<red>Dieser Plot wurde zensiert. Inhalte sind ausgeblendet; alle Änderungen sind gesperrt.</red>'
+  titel: '<red>Zensierter Plot</red>'
+  untertitel: '<gray>Inhalte ausgeblendet · Änderungen gesperrt</gray>'
+  gesperrt: '<red>Dieser Plot ist gesperrt. Auch Besitzer und Administratoren dürfen ihn nicht verändern.</red>'
+  laeuft: 'Dieser Plot wird gerade gesichert oder wiederhergestellt.'
+  bereits: 'Dieser Plot ist bereits zensiert.'
+  start: 'Plot <yellow><id></yellow> wird abschnittsweise bearbeitet. Währenddessen bitte auf den Wegen bleiben.'
+  fertig: 'Plot <yellow><id></yellow> ist gesichert, ausgeblendet und gesperrt.'
+  wiederhergestellt: 'Plot <yellow><id></yellow> wurde wiederhergestellt und entsperrt.'
+  zu-gross: 'Die Zensurwarteschlange oder Chunk-Grenze aus protection.yml wurde erreicht.'
+  fehler: '<red>Zensurarbeiten unterbrochen. Vorhandene Sperren und Sicherungen bleiben erhalten. Details im Serverlog; nach Beheben der Ursache erneut ausführen.</red>'
+
+moderation:
+  hilfe: '<green>/plot admin inspect|visit [X;Z]</green> · <green>list [Spieler]</green> · <green>claim [X;Z] [Spieler]</green> · <green>setowner [X;Z] [Spieler] confirm</green> · <green>unclaim [X;Z] confirm</green> (Bauten bleiben erhalten) · <green>role [X;Z] [Aktion] [Spieler]</green> · <green>profile [X;Z] [name|description|category] [Wert]</green> · <green>bypass [on|off]</green> · <green>censor [X;Z] [on|off]</green> · <green>update [check|status|apply confirm]</green>'
+  gespeichert: 'Plotverwaltung gespeichert.'
+  eintrag: 'Plot <yellow><id></yellow>'
+  inspect: 'Plot <yellow><id></yellow> · Besitzer <yellow><owner></yellow> · Rasterzellen <yellow><cells></yellow> · Zensiert <yellow><censored></yellow>'
+  bypass-an: 'Admin-Bypass eingeschaltet. Zensur und Wettbewerbssperren bleiben wirksam.'
+  bypass-aus: 'Admin-Bypass ausgeschaltet. Es gelten deine normalen Plotrechte.'
+
+update:
+  zustand:
+    ungeprueft: 'Noch nicht geprüft'
+    prueft: 'Prüfung läuft'
+    verfuegbar: 'Update verfügbar'
+    aktuell: 'Aktuell'
+    laedt: 'Download läuft'
+    vorbereitet: 'Für nächsten Start vorbereitet'
+    fehlgeschlagen: 'Fehlgeschlagen'
+  hilfe: '<green>/plot admin update check</green> · <green>status</green> · <green>apply confirm</green>. Download wird für den nächsten normalen Serverstart vorbereitet.'
+  status: 'Update-Status <yellow><state></yellow> · Installiert <yellow><current></yellow> · Verfügbar <yellow><available></yellow> · Vorbereitet <yellow><staged></yellow>'
+  verfuegbar: 'SimplePlots <yellow><version></yellow> ist verfügbar. <green>/plot admin update apply confirm</green>'
+  aktuell: 'Für den gewählten Update-Kanal ist keine neuere Version verfügbar.'
+  zuerst-pruefen: 'Prüfe zuerst mit <green>/plot admin update check</green> auf Updates.'
+  laden: 'SimplePlots <yellow><version></yellow> wird heruntergeladen und geprüft.'
+  vorbereitet: 'SimplePlots <yellow><version></yellow> liegt geprüft im Paper-Update-Ordner. Paper übernimmt die JAR beim nächsten normalen Serverstart.'
+  laeuft: 'Eine Update-Prüfung oder ein Download läuft bereits.'
+  fehler: '<red>Update fehlgeschlagen. Die laufende JAR wurde nicht verändert. Details stehen im Serverlog.</red>'
+
 admin:
   hilfe: '<green>/plot admin info</green> · <green>/plot admin create</green> · <green>/plot admin grid [Größe] [Wegbreite]</green> · <green>/plot admin limit [Anzahl]</green>'
   info-offen: 'Geplantes Raster <yellow><size> × <size></yellow> mit <yellow><road></yellow> Blöcken Wegbreite. Limit <yellow><limit></yellow> Plots je Spieler.'
@@ -136,6 +198,7 @@ merge:
   info: 'Diese Baufläche umfasst <yellow><count></yellow> Rasterzellen.'
 
 wettbewerb:
+  beitragslimit: 'Dieser Wettbewerb hat seine maximale Beitragszahl erreicht.'
   hilfe: '<green>/plot submit</green> reicht deinen aktuellen Plot ein. <green>/plot withdraw</green> zieht ihn in der Bauphase zurück. <green>/plot contest entries</green> zeigt Beiträge. Stimme während der Abstimmung mit <green>/plot vote</green> auf einem Beitrag ab.'
   admin-hilfe: '<green>/plot contest start [Thema]</green> · <green>/plot contest voting</green> · <green>/plot contest finish</green> · <green>/plot contest cancel</green>'
   status: '<yellow><theme></yellow> · <phase> · Beiträge <yellow><count></yellow>'
@@ -167,6 +230,7 @@ wettbewerb:
     beendet: 'Beendet'
 
 menue:
+  flug: '<green>Eigenes Plot-Fly umschalten</green>'
   titel: '<dark_green>SimplePlots</dark_green>'
   eigene: '<green>Meine Plots</green>'
   galerie: '<green>Plot-Galerie</green>'

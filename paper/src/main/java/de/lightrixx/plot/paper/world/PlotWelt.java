@@ -53,7 +53,7 @@ public final class PlotWelt implements Listener {
         }
         this.konfiguration = konfiguration;
         this.plots = plots;
-        this.wegrand = new PlotWegrand(plots);
+        this.wegrand = new PlotWegrand(plots, konfiguration);
         this.metadaten = new YamlDatei(pfad);
         var yaml = metadaten.laden();
         festesRaster = yaml.isPresent() ? Optional.of(rasterLesen(yaml.get())) : Optional.empty();
@@ -92,6 +92,10 @@ public final class PlotWelt implements Listener {
         return festesRaster.orElseGet(konfiguration::raster);
     }
 
+    public PlotKonfiguration konfiguration() {
+        return konfiguration;
+    }
+
     public void vorhandeneWeltLaden() throws IOException {
         if (rasterFestgelegt()) {
             wegrand.vormerken(plugin, Arrays.asList(ladenOderErstellen().getLoadedChunks()), raster());
@@ -127,7 +131,7 @@ public final class PlotWelt implements Listener {
             welt = WorldCreator.ofKey(weltKey)
                     .environment(World.Environment.NORMAL)
                     .generateStructures(false)
-                    .generator(new PlotGenerator(raster()))
+                    .generator(new PlotGenerator(raster(), konfiguration))
                     .createWorld();
         } catch (RuntimeException e) {
             throw new IOException("Plotwelt " + weltKey + " konnte nicht geladen werden.", e);
@@ -172,6 +176,11 @@ public final class PlotWelt implements Listener {
         var chunks = Arrays.stream(welt.getLoadedChunks()).filter(chunk -> chunk.getX() >= minX && chunk.getX() <= maxX
                 && chunk.getZ() >= minZ && chunk.getZ() <= maxZ).toList();
         wegrand.vormerken(plugin, chunks, raster());
+    }
+
+    public void konfigurationAktualisieren() {
+        World geladen = server.getWorld(weltKey);
+        if (geladen != null) wegrand.vormerken(plugin, Arrays.asList(geladen.getLoadedChunks()), raster());
     }
 
     public Optional<PlotId> plotBei(Location ort) {

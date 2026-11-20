@@ -506,7 +506,7 @@ details>div{padding:14px 18px 2px}
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16"/><path d="M4 12h16"/><path d="M4 17h16"/></svg>
   </button>
   <button class="brand" id="brand" aria-label="Zur Startseite der Dokumentation"><svg class="mark" viewBox="0 0 28 28" aria-hidden="true"><rect width="28" height="28" rx="7" fill="#187850"/><path d="M16.6 6.5 11.4 21.5" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/></svg>SimplePlots <small>Dokumentation</small></button>
-  <span class="ver">v0.4.0-alpha</span>
+  <span class="ver">v0.5.0-alpha</span>
   <div class="grow"></div>
   <button class="search-btn" id="searchBtn" aria-label="Dokumentation durchsuchen">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
@@ -558,10 +558,10 @@ details>div{padding:14px 18px 2px}
 <section class="page" data-id="installation" data-group="Start" data-title="Installation">
   <h1>Installation</h1>
   <p class="lead">Installiere SimplePlots auf Paper für Minecraft 26.1.2 mit Java 25.</p>
-    <p>Im <a href="https://github.com/thelightrixx/SimplePlots/releases/tag/v0.4.0-alpha">Release v0.4.0-alpha</a> findest du die <a href="https://github.com/thelightrixx/SimplePlots/releases/download/v0.4.0-alpha/SimplePlots-v0.4.0-alpha.jar">Plugin-JAR</a> und die <a href="https://github.com/thelightrixx/SimplePlots/releases/download/v0.4.0-alpha/SHA256SUMS.txt">SHA-256-Prüfsumme</a>.</p>
+    <p>Im <a href="https://github.com/thelightrixx/SimplePlots/releases/tag/v0.5.0-alpha">Release v0.5.0-alpha</a> findest du die <a href="https://github.com/thelightrixx/SimplePlots/releases/download/v0.5.0-alpha/SimplePlots-v0.5.0-alpha.jar">Plugin-JAR</a> und die <a href="https://github.com/thelightrixx/SimplePlots/releases/download/v0.5.0-alpha/SHA256SUMS.txt">SHA-256-Prüfsumme</a>.</p>
     <h2 data-anchor="neu">Neuen Server einrichten</h2>
     <ol>
-      <li>Lade die JAR aus dem Release herunter oder <a href="#/entwicklung/bauen">baue sie selbst</a>. Prüfe beim Download die SHA-256 und kopiere <code>SimplePlots-v0.4.0-alpha.jar</code> bei gestopptem Server nach <code>plugins/</code>.</li>
+      <li>Lade die JAR aus dem Release herunter oder <a href="#/entwicklung/bauen">baue sie selbst</a>. Prüfe beim Download die SHA-256 und kopiere <code>SimplePlots-v0.5.0-alpha.jar</code> bei gestopptem Server nach <code>plugins/</code>.</li>
       <li>Starte Paper und kontrolliere das Log auf Startfehler.</li>
       <li>Lege ein eigenes Raster fest, bevor ein Spieler die Plotwelt öffnet. Sende etwa <code>plot admin grid 48 7</code> an die Konsole. Standardmäßig sind Plots 32 × 32 Blöcke groß, Wege sieben Blöcke breit und drei Claims pro Spieler erlaubt.</li>
       <li>Erstelle die Plotwelt mit <code>plot admin create</code> in der Konsole oder betrete sie im Spiel mit <code>/plot world</code>. <code>/plot admin info</code> zeigt Raster und Claim-Limit.</li>
@@ -645,6 +645,16 @@ details>div{padding:14px 18px 2px}
       </tbody>
     </table></div>
     <p>Beim Zusammenlegen bleibt das Profil des Ausgangsplots erhalten. Gemeinsame Gastfreigaben und Rollen gelten für die Gesamtfläche. Ein Bann auf einem der Plots gilt auf der ganzen Fläche. Frühere Raster-IDs bleiben für Besuche gültig. Jede belegte Rasterzelle zählt gegen das Limit.</p>
+    <h2 data-anchor="flug-und-uebertragung">Flug und Besitzerübertragung</h2>
+    <div class="tbl" data-command-index><table>
+      <thead><tr><th scope="col">Befehl</th><th scope="col">Funktion</th></tr></thead>
+      <tbody>
+        <tr><td><code>/plot fly [on|off]</code></td><td>Fly auf eigenen Plots schalten. Ohne Angabe wird umgeschaltet. Standard: bis 32 Blöcke über dem Plotboden, ohne Zeitlimit. Gilt auch auf internen Merge-Wegen; fremde und zensierte Plots sind ausgeschlossen.</td></tr>
+        <tr><td><code>/plot transfer &lt;Spieler|cancel&gt;</code></td><td>Auf dem eigenen Plot ein Angebot an einen sichtbaren Online-Spieler senden oder zurückziehen. Standardgültigkeit: 120 Sekunden.</td></tr>
+        <tr><td><code>/plot accept &lt;X;Z&gt;</code>, <code>/plot decline &lt;X;Z&gt;</code></td><td>Ein Angebot annehmen oder ablehnen. Bei Annahme zählen alle Rasterzellen gegen das Claim-Limit. Bisherige Rollen und Likes werden zurückgesetzt; Profil und Bauten bleiben erhalten. Wettbewerbsbeiträge und zensierte Plots sind gesperrt.</td></tr>
+      </tbody>
+    </table></div>
+    <p>Auf öffentlichen Wegen steht Fly allen Survival-Spielern automatisch per Doppelsprung zur Verfügung, unabhängig von <code>simpleplots.fly</code>. Es hat dort kein Zeit- oder Höhenlimit. <code>/plot fly off</code> schaltet ausschließlich eigenes Plot-Fly ab. Beim Verlassen des erlaubten Flugbereichs erfolgt eine sichere Landung auf dem Weg. Bereits durch andere Plugins erlaubtes Fly wird nicht übernommen.</p>
     <h2 data-anchor="wettbewerbe">Bauwettbewerbe</h2>
     <div class="tbl" data-command-index><table>
       <thead><tr><th scope="col">Befehl</th><th scope="col">Funktion</th></tr></thead>
@@ -665,6 +675,15 @@ details>div{padding:14px 18px 2px}
         <tr><td><code>/plot admin gamemode &lt;creative|survival&gt;</code></td><td>Als Spieler innerhalb der Plotwelt den Spielmodus wechseln.</td></tr>
         <tr><td><code>/plot admin reload</code></td><td>Einstellungen, Nachrichten und Menüs gemeinsam prüfen und neu laden. Spielstände und Welt werden dabei nicht neu geladen.</td></tr>
         <tr><td><code>/plot admin diagnostics</code></td><td>Version, Java, Welt, Plotbestand und Speicherwarteschlange anzeigen. Auch in der Konsole verfügbar.</td></tr>
+        <tr><td><code>/plot admin list &lt;Spieler&gt;</code>, <code>/plot admin inspect &lt;X;Z&gt;</code>, <code>/plot admin visit &lt;X;Z&gt;</code></td><td>Plots eines Besitzers auflisten, Eigentümer und Zensurstatus prüfen oder zum öffentlichen Weg vor dem Plot reisen.</td></tr>
+        <tr><td><code>/plot admin claim &lt;X;Z&gt; &lt;Spieler&gt;</code></td><td>Einen freien Plot unabhängig vom Claim-Limit zuweisen. Erstellt bei Bedarf zuvor die Plotwelt.</td></tr>
+        <tr><td><code>/plot admin setowner &lt;X;Z&gt; &lt;Spieler&gt; confirm</code></td><td>Besitzer direkt ändern, auch mit UUID für Offline-Spieler. Umgeht Annahme und Claim-Limit; Rollen und Likes werden zurückgesetzt. Aktive Wettbewerbsbeiträge und zensierte Plots bleiben gesperrt.</td></tr>
+        <tr><td><code>/plot admin unclaim &lt;X;Z&gt; confirm</code></td><td>Den gesamten Claim einschließlich verbundener Rasterzellen freigeben. Bauten bleiben erhalten; dies ist kein physischer Plot-Reset.</td></tr>
+        <tr><td><code>/plot admin role &lt;X;Z&gt; &lt;Aktion&gt; &lt;Spieler&gt;</code></td><td>Rollen eines fremden Plots ändern: <code>trust</code>, <code>untrust</code>, <code>add</code>, <code>unadd</code>, <code>storage</code>, <code>unstore</code>, <code>deny</code>, <code>undeny</code>.</td></tr>
+        <tr><td><code>/plot admin profile &lt;X;Z&gt; &lt;name|description|category&gt; &lt;Wert&gt;</code></td><td>Ein fremdes Plotprofil bearbeiten. Für Beschreibung und Kategorie gelten <code>-</code> beziehungsweise <code>off</code> wie beim Spielerbefehl.</td></tr>
+        <tr><td><code>/plot admin bypass &lt;on|off&gt;</code></td><td>Eigenen administrativen Zugriff schalten. Der Ausgangswert ist zur bisherigen Funktion kompatibel eingeschaltet; die Wahl bleibt über erneutes Einloggen erhalten.</td></tr>
+        <tr><td><code>/plot admin censor &lt;X;Z&gt; [on|off]</code>, <code>/plot admin uncensor &lt;X;Z&gt;</code></td><td>Inhalte reversibel ausblenden oder wiederherstellen. Ohne Angabe gilt <code>on</code>. Details unter <a href="#/betrieb/zensur">Plotzensur</a>.</td></tr>
+        <tr><td><code>/plot admin update &lt;check|status&gt;</code>, <code>/plot admin update apply confirm</code></td><td>GitHub-Updates prüfen oder eine geprüfte JAR für den nächsten normalen Serverstart vorbereiten.</td></tr>
       </tbody>
     </table></div>
 </section>
@@ -679,31 +698,47 @@ details>div{padding:14px 18px 2px}
         <tr><td><code>simpleplots.use</code></td><td>Alle Spieler</td><td>Basisrecht für <code>/plot</code>.</td></tr>
         <tr><td><code>simpleplots.claim</code></td><td>Alle Spieler</td><td>Plots mit <code>claim</code> oder <code>auto</code> beanspruchen.</td></tr>
         <tr><td><code>simpleplots.manage</code></td><td>Alle Spieler</td><td>Eigene Plots, Profile und Rollen verwalten.</td></tr>
+        <tr><td><code>simpleplots.fly</code></td><td>Alle Spieler</td><td>Eigenes Plot-Fly schalten. Wege-Fly ist unabhängig davon für alle verfügbar.</td></tr>
         <tr><td><code>simpleplots.admin</code></td><td>Operatoren und Konsole</td><td>Raster, Claim-Limit und Wettbewerbe verwalten. Die übrigen SimplePlots-Permissions sind eingeschlossen.</td></tr>
         <tr><td><code>simpleplots.admin.reload</code></td><td>Operatoren und Konsole</td><td>Den Konfigurations-Reload ausführen. Kann mit dem enthaltenen Basisrecht einzeln vergeben werden.</td></tr>
         <tr><td><code>simpleplots.admin.diagnostics</code></td><td>Operatoren und Konsole</td><td>Die Diagnose ausführen. Kann mit dem enthaltenen Basisrecht einzeln vergeben werden.</td></tr>
+        <tr><td><code>simpleplots.admin.list</code>, <code>simpleplots.admin.inspect</code>, <code>simpleplots.admin.visit</code></td><td>Operatoren und Konsole</td><td>Besitzerlisten, Prüfung oder Reise zum Plotweg einzeln freigeben.</td></tr>
+        <tr><td><code>simpleplots.admin.claim</code>, <code>simpleplots.admin.unclaim</code>, <code>simpleplots.admin.setowner</code></td><td>Operatoren und Konsole</td><td>Zuweisung, Freigabe oder direkten Besitzerwechsel erlauben.</td></tr>
+        <tr><td><code>simpleplots.admin.role</code>, <code>simpleplots.admin.profile</code></td><td>Operatoren und Konsole</td><td>Fremde Rollen beziehungsweise Profile verwalten.</td></tr>
+        <tr><td><code>simpleplots.admin.censor</code></td><td>Operatoren und Konsole</td><td>Zensur und Wiederherstellung ausführen.</td></tr>
+        <tr><td><code>simpleplots.admin.bypass</code></td><td>Operatoren</td><td>Eigenen Bypass für Bauen und Zutritt schalten. Zensur und Wettbewerbssperren bleiben wirksam.</td></tr>
+        <tr><td><code>simpleplots.admin.update</code></td><td>Operatoren und Konsole</td><td>Update-Status, Prüfung und bestätigten Download erlauben.</td></tr>
+        <tr><td><code>simpleplots.admin.contest</code></td><td>Operatoren und Konsole</td><td>Wettbewerbe verwalten, ohne alle übrigen Adminrechte zu vergeben.</td></tr>
       </tbody>
     </table></div>
     <h2 data-anchor="plotschutz">Plotschutz</h2>
     <p>Neue Plotflächen haben Gras auf <code>Y=63</code>, drei Erdlagen auf <code>Y=60–62</code> und Stein darunter. Nur am unteren Weltrand auf <code>Y=-64</code> liegt Bedrock. Auf beanspruchten Plots können Besitzer und Spieler mit Baurechten ab <code>Y=-63</code> bauen und abbauen. Das schließt den Grasboden und dessen Bearbeitung mit Hacke oder Schaufel ein. Sichere Besuchspunkte sind auch unterirdisch möglich.</p>
     <p>Steinziegelstufen markieren die Wegränder. Der Boden öffentlicher Wege und unbeanspruchter Flächen sowie die unterste Bedrockschicht bleiben geschützt. PvP und natürliches Mob-Spawning sind deaktiviert. Explosionen verursachen in der Plotwelt weder Schäden noch Rückstoß; geladene Respawnanker können dort nicht gezündet werden. Flüssigkeiten, Kolben und andere Mechaniken bleiben auch unterirdisch innerhalb der Plotgrenzen.</p>
-    <p>Admins können trotz Plotbann eintreten und die Rollen mit <code>/plot info</code> einsehen. Außerhalb gesperrter Wettbewerbsflächen dürfen sie auf fremden Plots bauen und Container benutzen sowie öffentliche Wege oberhalb des Wegbodens bearbeiten. Wer den Kreativmodus über <code>/plot admin gamemode creative</code> eingeschaltet hat, wechselt beim Verlassen der Plotwelt wieder in Survival.</p>
+    <p>Admins mit eingeschaltetem Bypass können trotz Plotbann eintreten und die Rollen mit <code>/plot info</code> einsehen. Außerhalb zensierter Plots und gesperrter Wettbewerbsflächen dürfen sie auf fremden Plots bauen und Container benutzen sowie öffentliche Wege oberhalb des Wegbodens bearbeiten. Wer den Kreativmodus über <code>/plot admin gamemode creative</code> eingeschaltet hat, wechselt beim Verlassen der Plotwelt wieder in Survival.</p>
     <p>LuckPerms ist keine Voraussetzung. Plotbesitz und Plotrollen werden über UUIDs geprüft. Die Befehlsrechte nutzen das normale Paper-Permissionsystem.</p>
 </section>
 
 <section class="page" data-id="konfiguration" data-group="Konfiguration und Rechte" data-title="Dateien und Einstellungen">
   <h1>Konfiguration</h1>
   <p class="lead">SimplePlots legt Einstellungen, Texte und Spielstände unter <code>plugins/SimplePlots/</code> ab.</p>
-    <h2 data-anchor="einstellungen">config.yml</h2>
-    <pre data-lang="yaml">raster:
-  plotgroesse: 32
-  wegbreite: 7
-
-claims:
-  pro-spieler: 3</pre>
-    <p><code>raster.plotgroesse</code> akzeptiert 1 bis 1024 Blöcke, <code>raster.wegbreite</code> 1 bis 128. Beide gelten vor der Weltgenerierung. <code>claims.pro-spieler</code> ist eine positive Ganzzahl und begrenzt künftige Claims. <code>/plot admin limit &lt;Anzahl&gt;</code> ändert das Limit im laufenden Betrieb.</p>
+    <h2 data-anchor="einstellungen">Aufgeteilter Konfigurationsordner</h2>
+    <p>Beim ersten Start von v0.5.0-alpha werden Raster und Claim-Limit aus <code>config.yml</code> in <code>config/world.yml</code> und <code>config/general.yml</code> übernommen. Die Altdatei bleibt erhalten und wird danach nicht mehr gelesen. Bestehende Nachrichten und Menüwerte bleiben erhalten; neue Schlüssel werden beim Start ergänzt. Fehlende Dateien in einer bereits aufgeteilten Konfiguration werden nicht aus alten Werten überschrieben.</p>
+    <div class="tbl"><table>
+      <thead><tr><th scope="col">Datei unter <code>config/</code></th><th scope="col">Einstellungen</th></tr></thead>
+      <tbody>
+        <tr><td><code>general.yml</code></td><td>Claim-Limit, Galerie, Zusammenlegen, Besitzerübertragung und Angebotsdauer; maximale Profiltextlängen und Eintrittstitel einschließlich Anzeigedauer.</td></tr>
+        <tr><td><code>world.yml</code></td><td>Raster, Oberfläche, Weg-, Erd- und Untergrundmaterial, Erdlagen und Randstufen; Chunk-Budget für Randarbeiten.</td></tr>
+        <tr><td><code>protection.yml</code></td><td>Wachstum, Laubverfall und Feuerausbreitung innerhalb von Claims; rote Zensurstufen und maximale Chunkzahl je Zensurauftrag.</td></tr>
+        <tr><td><code>fly.yml</code></td><td>Aktivierung und Geschwindigkeit für Wege und eigene Plots; eigene Flughöhe und Prüfintervall.</td></tr>
+        <tr><td><code>contests.yml</code></td><td>Wettbewerbsfunktionen und maximale Beitragszahl. Das Zurückziehen vorhandener Beiträge bleibt möglich.</td></tr>
+        <tr><td><code>updates.yml</code></td><td>Update-Prüfung beim Start, Prüfintervall in Minuten und Kanal <code>alpha</code> oder <code>stable</code>.</td></tr>
+        <tr><td><code>messages.yml</code>, <code>gui.yml</code></td><td>Nachrichten, Titel, Menüs, Plätze und Materialien.</td></tr>
+      </tbody>
+    </table></div>
+    <p><code>world.yml: raster.plotgroesse</code> akzeptiert 1 bis 1024 Blöcke, <code>raster.wegbreite</code> 1 bis 128. Das Raster bleibt nach der Welterstellung fest. Materialien und Erdlagen wirken bei neuen Chunks. Der Plotboden bleibt auf Y=63 und die unterste Schicht bleibt geschützt. <code>general.yml: claims.pro-spieler</code> begrenzt zukünftige Claims und angenommene Übertragungen; jede Rasterzelle zählt. Profilnamen sind höchstens 32, Beschreibungen höchstens 120 Zeichen lang; kleinere Grenzen sind konfigurierbar.</p>
+    <p>In <code>fly.yml</code> liegt die eigene Standardhöhe bei 32 Blöcken über Y=64. Fluggeschwindigkeit muss größer null und höchstens eins sein. Auf eigenen Flächen und öffentlichen Wegen gibt es kein Zeitlimit; öffentliche Wege haben außerdem kein Höhenlimit. Materialien müssen feste Blöcke ohne Schwerkraft sein; Randmaterialien müssen Stufen sein.</p>
     <h2 data-anchor="nachrichten">config/messages.yml</h2>
-    <p>Texte nutzen MiniMessage. <code>prefix</code> setzt das Präfix und <code>betreten</code> steuert die Anzeige beim Betreten eines Plots. Unter <code>menue</code> stehen die Texte des Inventarmenüs. Behalte die vorhandenen Platzhalter in den bearbeiteten Nachrichten und führe anschließend <code>/plot admin reload</code> aus. Neue Standardschlüssel ergänzen fehlende Texte im Speicher; eigene Texte bleiben erhalten. Falsche YAML-Typen und ungültige MiniMessage-Ausdrücke verhindern den Reload.</p>
+    <p>Texte nutzen MiniMessage. <code>prefix</code> setzt das Präfix und <code>betreten</code> steuert die Anzeige beim Betreten eines Plots. Unter <code>menue</code> stehen die Texte des Inventarmenüs. Behalte die vorhandenen Platzhalter in den bearbeiteten Nachrichten und führe anschließend <code>/plot admin reload</code> aus. Neue Standardschlüssel werden beim Start in der Datei ergänzt; eigene Texte bleiben erhalten. Falsche YAML-Typen und ungültige MiniMessage-Ausdrücke verhindern den Reload.</p>
     <h2 data-anchor="menues">config/gui.yml</h2>
     <p>Die Datei entsteht beim ersten Start. <code>hauptmenue.zeilen</code> und <code>rechte.zeilen</code> erlauben drei bis sechs Zeilen. Die zugehörigen <code>slots</code> beginnen bei null; alle Plätze eines Menüs müssen verschieden und innerhalb des Inventars liegen. Fehlende Einstellungen verwenden die mitgelieferten Standardwerte.</p>
     <pre data-lang="yaml">hauptmenue:
@@ -722,7 +757,7 @@ seiten:
 
 symbole:
   eigene: GRASS_BLOCK</pre>
-    <p><code>seiten.zeilen</code> erlaubt drei bis sechs Zeilen für eigene Plots, Galerie, Mitglieder und Wettbewerb. Die letzte Zeile ist für Navigation reserviert; davor stehen 18 bis 45 Einträge pro Seite. <code>seiten.navigation</code> enthält verschiedene Spalten von null bis acht innerhalb der letzten Zeile. <code>extra</code> zeigt je nach Seite Sortierung oder Wettbewerbsthema. Die Rasterkarte behält ihre feste Anordnung.</p>
+    <p><code>seiten.zeilen</code> erlaubt drei bis sechs Zeilen für eigene Plots, Galerie, Mitglieder und Wettbewerb. Die letzte Zeile ist für Navigation reserviert; davor stehen 18 bis 45 Einträge pro Seite. <code>seiten.navigation</code> enthält verschiedene Spalten von null bis acht innerhalb der letzten Zeile. <code>extra</code> zeigt je nach Seite Sortierung oder Wettbewerbsthema. <code>karte.zeilen</code> erlaubt drei bis sechs Zeilen; <code>karte.spalten</code> eine ungerade Anzahl von eins bis neun. <code>karte.zurueck-slot</code> muss in der letzten Zeile liegen.</p>
     <p>Unter <code>symbole</code> lassen sich die Item-Materialien einschließlich der Kartenfarben und Kategorien ändern. Ungültige Materialien, <code>AIR</code> und reine Blockmaterialien werden abgewiesen. Texte und Titel bleiben in <code>config/messages.yml</code>. Nach erfolgreichem Reload schließen offene Plotmenüs; anschließend erneut öffnen.</p>
     <h2 data-anchor="daten">Spielstände</h2>
     <ul>
@@ -730,6 +765,7 @@ symbole:
       <li><code>plots-aenderungen.yml</code> enthält Änderungen seit dem Grundbestand. Beide Dateien bilden zusammen den aktuellen Spielstand.</li>
       <li><code>welt.yml</code> enthält das aktive Raster und das Weltformat.</li>
       <li><code>wettbewerb.yml</code> enthält den aktuellen oder zuletzt beendeten Wettbewerb.</li>
+      <li><code>zensur/</code> enthält Originalabschnitte und Entity-Sicherungen zensierter Plots. Für Wiederherstellung und vollständige Sicherungen aufbewahren.</li>
     </ul>
     <p>Plotformate 1 und 2 bleiben lesbar. Die erste Änderung stellt den bisherigen Bestand auf Format 3 um und speichert die neue Änderung im Journal. Bei 128 geänderten oder entfernten Plots wird der aktuelle Bestand wieder in <code>plots.yml</code> verdichtet. Bestandskennung und Speicherstände verhindern die Übernahme eines fremden oder unpassenden Journals. Das benötigte Journal darf auch nach einer Verdichtung nicht entfernt werden.</p>
     <p>Spielstände nur bei gestopptem Server bearbeiten und vollständig sichern. Es gibt keinen automatischen Wechsel auf einen leeren Bestand, wenn Dateien ungültig oder unvollständig sind. Ein Downgrade auf ältere Plugin-Versionen benötigt die vollständige Sicherung vor der Formatumstellung.</p>
@@ -744,8 +780,18 @@ symbole:
       <li>Stoppe Paper. Sichere den kompletten Datenordner <code>plugins/SimplePlots/</code>, die Plotwelt und die bisherige Plugin-JAR.</li>
       <li>Ersetze die JAR, starte Paper und prüfe das Log, den Zutritt zur Plotwelt und einen bestehenden Claim.</li>
     </ol>
+    <h2 data-anchor="ingame-updater">Ingame-Updater</h2>
+    <pre data-lang="shell">/plot admin update check
+/plot admin update status
+/plot admin update apply confirm</pre>
+    <p>Die Prüfung liest Releases aus dem SimplePlots-GitHub-Repository. Standard ist <code>alpha</code>, damit Vorabversionen gefunden werden; <code>stable</code> berücksichtigt ausschließlich stabile Releases. Entwürfe, gleiche und ältere Versionen werden übersprungen. Automatische Prüfungen laden nichts herunter und melden neue Versionen im Log.</p>
+    <p>Der bestätigte Download prüft Dateigröße, die veröffentlichte <code>SHA256SUMS.txt</code>, gegebenenfalls den GitHub-Digest und die Plugin-Metadaten. Eine geprüfte JAR wird atomar unter dem Namen der installierten Datei in Papers konfiguriertem Update-Ordner vorbereitet, üblicherweise <code>plugins/update/</code>. Paper übernimmt sie beim nächsten normalen Start. Sichere zuvor Daten und Welt; das Plugin startet den Server nicht selbst neu. Ein deaktivierter Update-Ordner verhindert die Vorbereitung. Fehler stehen im Log.</p>
+    <h2 data-anchor="zensur">Plotzensur</h2>
+    <p><code>/plot admin censor &lt;X;Z&gt;</code> sperrt den gesamten Claim einschließlich interner Merge-Wege und entfernt ihn aus Galerie, Besitzerlisten, Namenssuche, Karte und Wettbewerbsansichten. Der Plotinhalt wird in kleinen Abschnitten unter <code>zensur/</code> gesichert, bevor Weltblöcke ersetzt werden. Die Fläche erscheint danach leer mit roten Stufen am Rand. Sie bleibt begehbar und zeigt einen Hinweis; Änderungen sind für alle Spieler einschließlich Besitzer und Admins gesperrt.</p>
+    <p><code>/plot admin censor &lt;X;Z&gt; off</code> beziehungsweise <code>/plot admin uncensor &lt;X;Z&gt;</code> stellt die gesicherten Blöcke und Entities wieder her und entsperrt erst danach. Während beider Vorgänge bleiben Spieler auf den Wegen. Sicherungen umfassen auch Block-Entity-Daten und Entity-UUIDs; sie werden nach Wiederherstellung erhalten. Der Standard begrenzt einen Auftrag auf 256 Chunks; größere Grenzen sind in <code>protection.yml</code> einstellbar. Mehrere Aufträge werden nacheinander bearbeitet.</p>
+    <p>Unterbrochene Arbeiten setzen beim Neustart fort. Nach einem Speicherfehler bleiben bereits gesetzte Sperren und bestätigte Sicherungen erhalten; Ursache anhand des Logs beheben und den gewünschten Befehl erneut ausführen. Beschädigte oder fehlende Originaldateien werden nicht überschrieben. Für ein Downgrade ist die vollständige Sicherung vor diesem Update nötig: ältere Plugins berücksichtigen die Zensursperren nicht.</p>
     <h2 data-anchor="reload">Einstellungen neu laden</h2>
-    <p><code>/plot admin reload</code> prüft <code>config.yml</code>, <code>config/messages.yml</code> und <code>config/gui.yml</code> außerhalb des Serverthreads und übernimmt sie danach gemeinsam. Schlägt eine Prüfung fehl, bleibt der bisherige aktive Stand erhalten. Ein abweichendes Raster nach der Weltgenerierung verhindert ebenfalls den gesamten Reload. Gleichzeitige Reloads werden abgewiesen; Änderungen am Raster und Limit werden währenddessen abgewiesen und müssen anschließend erneut aufgerufen werden.</p>
+    <p><code>/plot admin reload</code> prüft alle acht YAML-Dateien unter <code>config/</code> außerhalb des Serverthreads und übernimmt sie danach gemeinsam. Schlägt eine Prüfung fehl, bleibt der bisherige aktive Stand erhalten. Ein abweichendes Raster nach der Weltgenerierung verhindert ebenfalls den gesamten Reload. Gleichzeitige Reloads werden abgewiesen; Änderungen am Raster und Limit werden währenddessen abgewiesen und müssen anschließend erneut aufgerufen werden.</p>
     <p>Nach einem erfolgreichen Reload schließen offene Plotmenüs. Der Befehl lädt weder Claims und Wettbewerb noch <code>welt.yml</code> neu. Für Änderungen an Spielständen und Plugin-Updates den Server stoppen und neu starten.</p>
     <h2 data-anchor="diagnose">Diagnose und Schreibfehler</h2>
     <p><code>/plot admin diagnostics</code> zeigt Plugin-, Server- und Java-Version, Weltstatus und Raster, Plot- und Zellenzahl sowie die I/O-Warteschlange. Die Zähler gelten seit dem Pluginstart; erfolgreiche Aufträge umfassen auch Reloads und fachlich unveränderte Ergebnisse. Bei fehlgeschlagenen Aufträgen steht der Kontext im Serverlog.</p>
@@ -754,7 +800,7 @@ symbole:
     <p>YAML-Dateien werden über eine synchronisierte temporäre Datei atomar ersetzt. Vor dem Ersetzen entsteht eine <code>.bak</code>-Datei mit dem bisherigen Dateistand. Scheitert diese Sicherung, wird die Änderung verworfen. Die <code>.bak</code>-Dateien sind einzelne Vorgängerstände und bilden keine gemeinsame Sicherung von Welt und Datenbestand.</p>
     <ol>
       <li>Paper vollständig stoppen und das Ende der Speicheraufträge im Log prüfen. Beim Beenden wartet das Plugin bis zu 15 Sekunden. Meldet es noch ausstehende Aufträge, den Prozess nicht unmittelbar erneut starten und die Dateien prüfen.</li>
-      <li>Die Plotwelt und den gesamten Ordner <code>plugins/SimplePlots/</code> einschließlich Grundbestand, Journal, Weltmetadaten, Wettbewerb und Konfiguration gemeinsam sichern.</li>
+      <li>Die Plotwelt und den gesamten Ordner <code>plugins/SimplePlots/</code> einschließlich Grundbestand, Journal, Weltmetadaten, Wettbewerb, Konfiguration und <code>zensur/</code> gemeinsam sichern.</li>
       <li>Zur Wiederherstellung einen zusammengehörigen vollständigen Sicherungsstand verwenden. Einzelne Grundbestände und Journale verschiedener Sicherungen dürfen nicht vermischt werden.</li>
       <li>Server starten, Diagnose und bestehende Claims prüfen. Beschädigte Dateien werden nicht automatisch durch leere Dateien oder einzelne Vorgängerstände ersetzt.</li>
     </ol>
@@ -765,7 +811,7 @@ symbole:
         <tr><td>PlotSystem ist noch geladen.</td><td>Paper stoppen und die alte JAR gemäß <a href="#/installation/wechsel">Wechselanleitung</a> entfernen.</td></tr>
         <tr><td>Zwei befüllte Plugin-Datenordner.</td><td>Paper stoppen, beide Bestände sichern und klären, welcher Ordner zur vorhandenen Plotwelt gehört.</td></tr>
         <tr><td>Vorhandene Plotwelt ohne registriertes Raster oder Claims ohne Weltmetadaten beziehungsweise Weltdateien.</td><td>Die passende <code>welt.yml</code> und die Plotwelt aus der gemeinsamen Sicherung wiederherstellen. Das Plugin erzeugt zu vorhandenen Claims keine leere Ersatzwelt.</td></tr>
-        <tr><td>Ungültige Einstellungen in <code>config.yml</code>.</td><td>Einrückung sowie die gültigen Ganzzahlwerte für <a href="#/konfiguration/einstellungen">Raster und Claim-Limit</a> prüfen.</td></tr>
+        <tr><td>Ungültige oder fehlende Einstellungen unter <code>config/</code>.</td><td>Einrückung sowie die gültigen Ganzzahlwerte für <a href="#/konfiguration/einstellungen">Raster und Claim-Limit</a> prüfen.</td></tr>
         <tr><td>Plot-Änderungsjournal fehlt oder passt nicht zum Grundbestand.</td><td>Grundbestand und Journal aus einer gemeinsamen Sicherung wiederherstellen. Beide Dateien gehören zum aktuellen Spielstand.</td></tr>
         <tr><td>Doppelte YAML-Schlüssel, verkürzte UUIDs oder doppelte Rollen-/Zelleneinträge.</td><td>Die im Log genannte Datei bei gestopptem Server prüfen. Ungültige Daten werden abgewiesen und bleiben zur Prüfung erhalten.</td></tr>
       </tbody>
@@ -775,6 +821,18 @@ symbole:
 <section class="page" data-id="changelog" data-group="Betrieb" data-title="Changelog">
   <h1>Changelog</h1>
   <p class="lead">Die neueste Version steht oben. Einträge nennen den dokumentierten Stand und nötige Schritte für bestehende Installationen.</p>
+    <h2 data-anchor="v0-5-0-alpha">v0.5.0-alpha</h2>
+    <p><time datetime="2026-11-20">20.11.2026</time></p>
+    <ul>
+      <li>Konfigurationen unter <code>config/</code> aufgeteilt: General, Welt, Schutz, Fly, Wettbewerbe, Updates, Nachrichten und Menüs. Raster und Claim-Limit werden aus der Altdatei übernommen; bestehende Anpassungen bleiben erhalten. Alle Dateien werden gemeinsam validiert und neu geladen.</li>
+      <li>GitHub-Updater mit Status, manueller oder regelmäßiger Prüfung und den Kanälen Alpha und Stable. Bestätigte Downloads prüfen SHA-256, Dateigröße und Plugin-Metadaten und werden für den nächsten Paper-Start vorbereitet.</li>
+      <li>Eigenes Plot-Fly per Befehl und Menü mit konfigurierbarer Höhe und Geschwindigkeit. Auf öffentlichen Wegen steht Fly automatisch per Doppelsprung ohne Zeit- oder Höhenlimit bereit. Interne Merge-Wege folgen der Plotregel; Bereichswechsel werden abgefangen.</li>
+      <li>Besitzerübertragungen mit befristeten Angeboten, Annahme und Ablehnung. Die Übernahme prüft das Zelllimit; Rollen und Likes werden zurückgesetzt. Gesperrte Wettbewerbsbeiträge und zensierte Plots können nicht übertragen werden.</li>
+      <li>Erweiterte Administration mit einzelnen Permissions für Besitzerlisten, Prüfung, Besuche, Zuweisung, Freigabe, direkten Besitzerwechsel, fremde Rollen und Profile, Bypass, Updates und Wettbewerbe.</li>
+      <li>Reversible Plotzensur sichert und verbirgt Bauten und Entities, blendet den Plot aus öffentlichen Ansichten aus und sperrt alle Änderungen auch für Besitzer und Admins. Die leere Fläche bleibt nach Abschluss begehbar, erhält rote Randstufen und einen Eintrittshinweis. Unterbrochene Arbeiten werden fortgesetzt; das Aufheben stellt Originaldaten wieder her.</li>
+      <li>Tests ergänzen Zensursicherung, Schreibfehler, Wiederanlauf, Flächengrenzen, Übertragungen, Fly und Update-Prüfsummen.</li>
+    </ul>
+    <p><strong>Update-Hinweis.</strong> Paper stoppen, Plugin-Datenordner und Plotwelt gemeinsam sichern und die JAR durch <code>SimplePlots-v0.5.0-alpha.jar</code> ersetzen. Beim ersten Start entstehen die zusätzlichen Konfigurationsdateien; danach ausschließlich <code>config/</code> bearbeiten. Den neuen Ordner <code>zensur/</code> in vollständige Sicherungen aufnehmen. Nicht ohne vollständige Rücksicherung auf ältere Plugins wechseln. Paper für Minecraft 26.1.2 und Java 25 bleiben vorausgesetzt. Der manuelle Gameplay-Test mit verbundenen Clients steht noch aus.</p>
     <h2 data-anchor="v0-4-0-alpha">v0.4.0-alpha</h2>
     <p><time datetime="2026-11-20">20.11.2026</time></p>
     <p>Bugfix- und Optimierungsupdate ohne neue Funktionen.</p>
@@ -859,7 +917,7 @@ symbole:
       <li>Buildprüfungen: konsistente Versionen, Dokumentationsziele, Offline-Dateien, aktuelle JAR-Ressourcen, Bytecode, Lizenz und Ausschluss von Server- und Testbibliotheken.</li>
     </ul>
     <p>JUnit prüft Logik, Dateisystem und ausgewählte Paper-Verträge mit kontrollierten Testobjekten. Eine feste Plotzahl im Test belegt keine maximale Spielerzahl oder Schreibrate. Die <a href="#/entwicklung/laufzeittest">Laufzeitprüfung auf Paper</a> ergänzt diese Tests um Weltgenerierung, registrierte Events, echte Registries und das Zusammenspiel mit anderen Plugins. Spielertests sollten mindestens zwei Accounts mit unterschiedlichen Rechten verwenden.</p>
-    <p>Prüfstand für <code>v0.4.0-alpha</code> am 20.11.2026: 141 JUnit-Tests sowie 44 automatische Prüfungen auf einer isolierten Paper-Instanz für Minecraft 26.1.2, Build 74, einschließlich Neustart. Die Laufzeitprüfung verwendet echte Welt- und Inventarobjekte sowie simulierte Spieler. Ein manueller Gameplay-Test mit verbundenen Minecraft-Clients steht noch aus.</p>
+    <p>Prüfstand für <code>v0.5.0-alpha</code> am 20.11.2026: 170 JUnit-Tests sowie 110 erfolgreiche automatische Prüfungen auf einer isolierten Paper-Instanz für Minecraft 26.1.2, Build 74. Sie prüfen auch unterbrochene Zensur und Wiederherstellung, Türen an Abschnittsgrenzen, Doppelkisten über Chunkgrenzen, Schilddaten, Inventare, Entity-UUIDs und Passagierverknüpfungen über mehrere Neustarts. Die Laufzeitprüfung verwendet echte Welt- und Inventarobjekte sowie simulierte Spieler. Ein manueller Gameplay-Test mit verbundenen Minecraft-Clients steht noch aus.</p>
     <h2 data-anchor="abdeckung">Testabdeckung messen</h2>
     <pre data-lang="shell">mvn -Pcoverage -pl paper -am clean verify</pre>
     <p>Die HTML-Berichte liegen anschließend unter <code>common/target/site/jacoco/index.html</code> und <code>paper/target/site/jacoco/index.html</code>. Die CI misst auf Windows und Linux und stellt die Berichte neben den Testergebnissen bereit. Berichte zeigen ausgeführte Codepfade; sie ersetzen weder fachliche Assertions noch den Laufzeittest.</p>

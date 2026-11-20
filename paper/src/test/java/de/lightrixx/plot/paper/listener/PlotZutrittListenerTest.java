@@ -42,6 +42,11 @@ class PlotZutrittListenerTest {
     @BeforeEach
     void vorbereiten() {
         UUID gast = UUID.randomUUID();
+        var config = mock(de.lightrixx.plot.paper.config.PlotKonfiguration.class);
+        when(config.aktiv(anyString())).thenReturn(true);
+        when(config.zahl(anyString())).thenReturn(250);
+        when(welt.konfiguration()).thenReturn(config);
+        when(spieler.getPersistentDataContainer()).thenReturn(mock(org.bukkit.persistence.PersistentDataContainer.class));
         when(spieler.getUniqueId()).thenReturn(gast);
         when(spieler.getGameMode()).thenReturn(GameMode.SURVIVAL);
         when(spieler.getWorld()).thenReturn(plotwelt);
@@ -72,6 +77,7 @@ class PlotZutrittListenerTest {
         listener.bewegen(bewegen);
         assertEquals(aufWeg, bewegen.getTo());
         when(spieler.hasPermission(PlotBerechtigungen.ADMIN)).thenReturn(true);
+        when(spieler.hasPermission("simpleplots.admin.bypass")).thenReturn(true);
         var teleport = new PlayerTeleportEvent(spieler, draussen, aufPlot);
         listener.teleportieren(teleport);
         assertFalse(teleport.isCancelled());
@@ -90,6 +96,15 @@ class PlotZutrittListenerTest {
                 PlayerGameModeChangeEvent.Cause.PLUGIN, Component.empty());
         listener.modusWechseln(modus);
         assertTrue(modus.isCancelled());
+    }
+
+    @Test
+    void respektiertEinAusdruecklichEntzogenesBypassRechtAuchBeiAdmins() {
+        when(spieler.hasPermission(PlotBerechtigungen.ADMIN)).thenReturn(true);
+        when(spieler.hasPermission("simpleplots.admin.bypass")).thenReturn(false);
+        var teleport = new PlayerTeleportEvent(spieler, draussen, aufPlot);
+        listener.teleportieren(teleport);
+        assertTrue(teleport.isCancelled());
     }
 
     @Test

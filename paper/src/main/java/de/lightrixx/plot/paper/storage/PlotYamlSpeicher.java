@@ -167,7 +167,11 @@ public final class PlotYamlSpeicher implements PlotSpeicher {
                 throw new IllegalArgumentException("Doppelte Rasterzelle.");
             }
         }
-        return new Plot(id, besitzer, rechte, profilLesen(plot.getConfigurationSection("profil")), zellen);
+        if (plot.contains("zensiert") && !plot.isBoolean("zensiert")) {
+            throw new IllegalArgumentException("Zensurstatus muss ein Wahrheitswert sein.");
+        }
+        return new Plot(id, besitzer, rechte, profilLesen(plot.getConfigurationSection("profil")), zellen,
+                plot.getBoolean("zensiert", false));
     }
 
     private static PlotProfil profilLesen(ConfigurationSection profil) {
@@ -263,6 +267,7 @@ public final class PlotYamlSpeicher implements PlotSpeicher {
         for (Plot plot : plots) {
             var sektion = wurzel.createSection(plot.id().toString());
             sektion.set("besitzer", plot.besitzer().toString());
+            sektion.set("zensiert", plot.zensiert());
             sektion.set("trusted", sortierteUuids(plot.rechte().trusted()));
             sektion.set("gebannt", sortierteUuids(plot.rechte().gebannt()));
             sektion.set("bauhelfer", sortierteUuids(plot.rechte().bauhelfer()));

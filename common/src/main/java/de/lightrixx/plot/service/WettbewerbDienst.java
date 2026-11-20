@@ -87,11 +87,16 @@ public final class WettbewerbDienst {
     }
 
     public synchronized Ergebnis einreichen(PlotId id, UUID spieler) throws IOException {
+        return einreichen(id, spieler, Integer.MAX_VALUE);
+    }
+
+    public synchronized Ergebnis einreichen(PlotId id, UUID spieler, int limit) throws IOException {
+        if (limit < 1) throw new IllegalArgumentException("Beitragslimit muss positiv sein.");
         var wettbewerb = inPhase(Phase.BAUEN);
         if (wettbewerb.isEmpty()) {
             return Ergebnis.FALSCHE_PHASE;
         }
-        var plot = plots.finden(id).filter(treffer -> treffer.besitzer().equals(spieler));
+        var plot = plots.finden(id).filter(treffer -> !treffer.zensiert() && treffer.besitzer().equals(spieler));
         if (plot.isEmpty()) {
             return Ergebnis.FREMDER_PLOT;
         }
@@ -99,6 +104,7 @@ public final class WettbewerbDienst {
         if (daten.beitraege().containsValue(spieler)) {
             return Ergebnis.BEREITS_EINGEREICHT;
         }
+        if (daten.beitraege().size() >= limit) return Ergebnis.BEITRAGSLIMIT;
         var neu = new HashMap<>(daten.beitraege());
         neu.put(plot.get().id(), spieler);
         speichern(Optional.of(new BauWettbewerb(daten.thema(), daten.phase(), neu, daten.stimmen())));
@@ -125,7 +131,7 @@ public final class WettbewerbDienst {
             return Ergebnis.FALSCHE_PHASE;
         }
         var daten = wettbewerb.get();
-        var plot = plots.finden(id).filter(treffer -> daten.beitraege().containsKey(treffer.id()));
+        var plot = plots.finden(id).filter(treffer -> !treffer.zensiert() && daten.beitraege().containsKey(treffer.id()));
         if (plot.isEmpty()) {
             return Ergebnis.KEIN_BEITRAG;
         }
@@ -156,6 +162,6 @@ public final class WettbewerbDienst {
 
     public enum Ergebnis {
         ERFOLG, BEREITS_AKTIV, FALSCHE_PHASE, KEINE_BEITRAEGE, FREMDER_PLOT, BEREITS_EINGEREICHT,
-        KEIN_BEITRAG, EIGENER_PLOT, GEBANNT, BEREITS_GEWAEHLT
+        KEIN_BEITRAG, EIGENER_PLOT, GEBANNT, BEREITS_GEWAEHLT, BEITRAGSLIMIT
     }
 }

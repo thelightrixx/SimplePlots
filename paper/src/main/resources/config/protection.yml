@@ -1,0 +1,8 @@
+# Zensur gilt ohne Admin-Bypass auch für Besitzer und Administratoren.
+zensur-rand: RED_NETHER_BRICK_SLAB
+# Für größere Flächen diese Grenze bewusst erhöhen. Arbeit in kleinen Abschnitten.
+zensur-maximale-chunks: 256
+# Natürliche Änderungen bleiben auf den jeweiligen Claim beschränkt.
+pflanzenwachstum: true
+laubverfall: true
+feuerausbreitung: true

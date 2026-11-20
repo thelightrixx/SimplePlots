@@ -35,6 +35,10 @@ final class PlotVerwaltungBefehl {
     }
 
     void ausfuehren(Player spieler, PlotId id, String aktion, String[] args) {
+        if (aktion.equals("merge") && !welt.konfiguration().aktiv("general.funktionen.zusammenlegen")) {
+            texte.senden(spieler, "fehler.deaktiviert");
+            return;
+        }
         switch (aktion) {
             case "profile" -> profil(spieler, id, args);
             case "sethome" -> setHome(spieler, id, args);
@@ -57,6 +61,12 @@ final class PlotVerwaltungBefehl {
         }
         String feld = args[1].toLowerCase(Locale.ROOT);
         String wert = String.join(" ", Arrays.copyOfRange(args, 2, args.length));
+        int laenge = wert.codePointCount(0, wert.length());
+        if ((feld.equals("name") && laenge > welt.konfiguration().zahl("general.profil.name-laenge"))
+                || (feld.equals("description") && laenge > welt.konfiguration().zahl("general.profil.beschreibung-laenge"))) {
+            texte.senden(spieler, "profil.ungueltig");
+            return;
+        }
         UnaryOperator<PlotProfil> aenderung;
         try {
             aenderung = switch (feld) {
@@ -161,6 +171,7 @@ final class PlotVerwaltungBefehl {
             case NICHT_GELISTET -> "profil.nicht-gelistet";
             case EIGENER_PLOT -> "profil.eigener-plot";
             case GEBANNT -> "zugang.gebannt";
+            case GESPERRT -> "zensur.gesperrt";
         });
     }
 }

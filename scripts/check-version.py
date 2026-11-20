@@ -83,7 +83,8 @@ def pruefen(jar_pruefen=False, tag=None, projekt=PROJEKT):
                         kopf = jar.read(name)[:8]
                         if kopf[:4] != b"\xca\xfe\xba\xbe" or int.from_bytes(kopf[6:8], "big") != 65:
                             fehler.append(f"{jarname}: Kein Java-21-Bytecode in {name}")
-                for name in ("config.yml", "config/messages.yml", "config/gui.yml"):
+                for name in ("config.yml", "config/messages.yml", "config/gui.yml", "config/general.yml", "config/world.yml",
+                             "config/protection.yml", "config/fly.yml", "config/contests.yml", "config/updates.yml"):
                     if jar.read(name) != (projekt / "paper/src/main/resources" / name).read_bytes():
                         fehler.append(f"{jarname}: Veraltete Ressource {name}")
                 if jar.read("META-INF/LICENSE") != (projekt / "LICENSE").read_bytes():

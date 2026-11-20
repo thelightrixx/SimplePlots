@@ -1,0 +1,18 @@
+# config.yml wird beim ersten Start übernommen und danach als Altbestand erhalten.
+claims:
+  pro-spieler: 3
+funktionen:
+  galerie: true
+  zusammenlegen: true
+  uebertragen: true
+uebertragung:
+  gueltigkeit-sekunden: 120
+# Obergrenzen des Datenmodells: Name 32, Beschreibung 120 Zeichen.
+profil:
+  name-laenge: 32
+  beschreibung-laenge: 120
+betreten:
+  titel: true
+  einblenden-millis: 250
+  anzeigen-millis: 2000
+  ausblenden-millis: 500

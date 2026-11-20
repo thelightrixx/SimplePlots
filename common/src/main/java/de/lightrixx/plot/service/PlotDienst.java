@@ -67,7 +67,7 @@ public final class PlotDienst {
     public Optional<Plot> nachName(String name) {
         String schluessel = namenschluessel(name);
         var aktuell = bestand;
-        return Optional.ofNullable(aktuell.namen().get(schluessel)).map(aktuell.plots()::get);
+        return Optional.ofNullable(aktuell.namen().get(schluessel)).map(aktuell.plots()::get).filter(plot -> !plot.zensiert());
     }
 
     public boolean istWegrand(PlotRaster raster, int x, int z) {
@@ -94,7 +94,7 @@ public final class PlotDienst {
     }
 
     public List<Plot> vomBesitzer(UUID besitzer) {
-        return bestand.besitzer().getOrDefault(besitzer, List.of());
+        return bestand.besitzer().getOrDefault(besitzer, List.of()).stream().filter(plot -> !plot.zensiert()).toList();
     }
 
     public List<Plot> alle() {
@@ -108,6 +108,8 @@ public final class PlotDienst {
     public int anzahlZellen() {
         return bestand.zellen().size();
     }
+
+    public boolean hatZensiertePlots() { return bestand.hatZensiertePlots(); }
 
     public synchronized ClaimErgebnis claim(PlotId id, UUID besitzer, int limit) throws IOException {
         Objects.requireNonNull(id, "Plot-ID");
@@ -164,6 +166,9 @@ public final class PlotDienst {
         if (besitzer.equals(ziel)) {
             return RollenErgebnis.BESITZER;
         }
+        if (plot.zensiert()) {
+            return RollenErgebnis.GESPERRT;
+        }
         if ((aktion == Plot.RollenAktion.ADD || aktion == Plot.RollenAktion.STORAGE) && !plot.darfBetreten(ziel)) {
             return RollenErgebnis.GEBANNT;
         }
@@ -180,8 +185,12 @@ public final class PlotDienst {
         if (plot == null || !plot.besitzer().equals(besitzer)) {
             return Aenderung.FREMDER_PLOT;
         }
+        if (plot.zensiert()) {
+            return Aenderung.GESPERRT;
+        }
         PlotProfil profil = aenderung.apply(plot.profil());
-        if (nachName(profil.name()).filter(anderer -> !anderer.id().equals(plot.id())).isPresent()) {
+        PlotId namensinhaber = bestand.namen().get(namenschluessel(profil.name()));
+        if (namensinhaber != null && !namensinhaber.equals(plot.id())) {
             return Aenderung.NAME_VERGEBEN;
         }
         return aendern(plot, plot.mitProfil(profil));
@@ -193,12 +202,13 @@ public final class PlotDienst {
         if (plot == null || !plot.besitzer().equals(besitzer)) {
             return Aenderung.FREMDER_PLOT;
         }
-        return aendern(plot, plot.mitRechten(plot.rechte().mitBesucherRecht(recht, erlaubt)));
+        return plot.zensiert() ? Aenderung.GESPERRT
+                : aendern(plot, plot.mitRechten(plot.rechte().mitBesucherRecht(recht, erlaubt)));
     }
 
     public synchronized Aenderung like(PlotId id, UUID spieler, boolean vergeben) throws IOException {
         Plot plot = finden(id).orElse(null);
-        if (plot == null || plot.profil().kategorie().isEmpty()) {
+        if (plot == null || plot.zensiert() || plot.profil().kategorie().isEmpty()) {
             return Aenderung.NICHT_GELISTET;
         }
         if (plot.besitzer().equals(spieler)) {
@@ -220,7 +230,7 @@ public final class PlotDienst {
         if (ausgang.id().equals(ziel.id())) {
             return MergeErgebnis.GLEICH;
         }
-        if (gesperrt.test(ausgang.id()) || gesperrt.test(ziel.id())) {
+        if (ausgang.zensiert() || ziel.zensiert() || gesperrt.test(ausgang.id()) || gesperrt.test(ziel.id())) {
             return MergeErgebnis.GESPERRT;
         }
         if (ausgang.zellen().stream().flatMap(zelle -> zelle.nachbarn().stream()).noneMatch(ziel.zellen()::contains)) {
@@ -241,6 +251,49 @@ public final class PlotDienst {
             return Aenderung.UNVERAENDERT;
         }
         uebernehmen(neu);
+        return Aenderung.GEAENDERT;
+    }
+
+    public synchronized Aenderung zensieren(PlotId id, boolean wert) throws IOException {
+        Plot plot = finden(id).orElse(null);
+        return plot == null ? Aenderung.FREMDER_PLOT : aendern(plot, plot.mitZensur(wert));
+    }
+
+    public synchronized Uebertragung uebertragen(PlotId id, UUID bisher, UUID ziel, int limit,
+                                               Predicate<PlotId> gesperrt) throws IOException {
+        Objects.requireNonNull(ziel, "Neuer Besitzer");
+        if (limit < 1) {
+            throw new IllegalArgumentException("Das Claim-Limit muss mindestens 1 sein.");
+        }
+        Plot plot = finden(id).orElse(null);
+        if (plot == null || !plot.besitzer().equals(bisher)) {
+            return Uebertragung.FREMDER_PLOT;
+        }
+        if (plot.zensiert() || gesperrt.test(plot.id())) {
+            return Uebertragung.GESPERRT;
+        }
+        if (bisher.equals(ziel)) {
+            return Uebertragung.GLEICH;
+        }
+        if (bestand.belegteZellen().getOrDefault(ziel, 0L) + plot.zellen().size() > limit) {
+            return Uebertragung.LIMIT;
+        }
+        uebernehmen(plot.mitBesitzer(ziel));
+        return Uebertragung.UEBERTRAGEN;
+    }
+
+    public synchronized Aenderung freigeben(PlotId id, Predicate<PlotId> gesperrt) throws IOException {
+        Plot plot = finden(id).orElse(null);
+        if (plot == null) {
+            return Aenderung.FREMDER_PLOT;
+        }
+        if (plot.zensiert() || gesperrt.test(plot.id())) {
+            return Aenderung.GESPERRT;
+        }
+        var neu = new LinkedHashMap<>(bestand.plots());
+        neu.remove(plot.id());
+        speichern(neu);
+        suchRadius = 0;
         return Aenderung.GEAENDERT;
     }
 
@@ -269,7 +322,7 @@ public final class PlotDienst {
             }
             besitzer.computeIfAbsent(plot.besitzer(), id -> new ArrayList<>()).add(plot);
             belegt.merge(plot.besitzer(), (long) plot.zellen().size(), Long::sum);
-            if (plot.profil().kategorie().isPresent()) {
+            if (!plot.zensiert() && plot.profil().kategorie().isPresent()) {
                 galerie.add(plot);
             }
             for (PlotId zelle : plot.zellen()) {
@@ -280,7 +333,8 @@ public final class PlotDienst {
         }
         besitzer.replaceAll((id, liste) -> List.copyOf(liste));
         return new Bestand(Collections.unmodifiableMap(new LinkedHashMap<>(plots)), Map.copyOf(index),
-                Map.copyOf(namen), Map.copyOf(besitzer), Map.copyOf(belegt), List.copyOf(galerie));
+                Map.copyOf(namen), Map.copyOf(besitzer), Map.copyOf(belegt), List.copyOf(galerie),
+                plots.values().stream().anyMatch(Plot::zensiert));
     }
 
     private static String namenschluessel(String name) {
@@ -288,7 +342,7 @@ public final class PlotDienst {
     }
 
     private record Bestand(Map<PlotId, Plot> plots, Map<PlotId, PlotId> zellen, Map<String, PlotId> namen,
-                           Map<UUID, List<Plot>> besitzer, Map<UUID, Long> belegteZellen, List<Plot> galerie) {
+                           Map<UUID, List<Plot>> besitzer, Map<UUID, Long> belegteZellen, List<Plot> galerie, boolean hatZensiertePlots) {
     }
 
     public enum ClaimErgebnis {
@@ -296,11 +350,15 @@ public final class PlotDienst {
     }
 
     public enum RollenErgebnis {
-        GEAENDERT, UNVERAENDERT, FREMDER_PLOT, BESITZER, GEBANNT
+        GEAENDERT, UNVERAENDERT, FREMDER_PLOT, BESITZER, GEBANNT, GESPERRT
     }
 
     public enum Aenderung {
-        GEAENDERT, UNVERAENDERT, FREMDER_PLOT, NAME_VERGEBEN, NICHT_GELISTET, EIGENER_PLOT, GEBANNT
+        GEAENDERT, UNVERAENDERT, FREMDER_PLOT, NAME_VERGEBEN, NICHT_GELISTET, EIGENER_PLOT, GEBANNT, GESPERRT
+    }
+
+    public enum Uebertragung {
+        UEBERTRAGEN, FREMDER_PLOT, GESPERRT, GLEICH, LIMIT
     }
 
     public enum MergeErgebnis {

@@ -22,7 +22,7 @@ class PlotNachrichtenTest {
         var texte = laden(pfad);
         assertEquals("Dein Plot: 0;0", klartext(texte.komponente("claim.erfolg", unparsed("id", "0;0"))));
         assertTrue(klartext(texte.komponente("admin.reload-erfolg")).contains("neu geladen"));
-        assertFalse(Files.readString(pfad).contains("reload-erfolg"));
+        assertTrue(Files.readString(pfad).contains("reload-erfolg"));
     }
 
     @Test

@@ -1,0 +1,12 @@
+# Das Raster bleibt nach der Welterstellung fest. Materialien gelten für neue Chunks.
+raster:
+  plotgroesse: 32
+  wegbreite: 7
+material:
+  oberflaeche: GRASS_BLOCK
+  weg: STONE_BRICKS
+  untergrund: STONE
+  erde: DIRT
+  rand: STONE_BRICK_SLAB
+erdschichten: 3
+rand-chunks-pro-tick: 8

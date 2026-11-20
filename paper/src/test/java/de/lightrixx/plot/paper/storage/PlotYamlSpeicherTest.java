@@ -56,6 +56,21 @@ class PlotYamlSpeicherTest {
     }
 
     @Test
+    void erhaeltDieZensurImJournalUndLehntFalscheDatentypenAb() throws IOException {
+        Path pfad = ordner.resolve("plots.yml");
+        var speicher = new PlotYamlSpeicher(pfad);
+        speicher.laden();
+        Plot plot = Plot.neu(new PlotId(0, 0), UUID.randomUUID()).mitZensur(true);
+        speicher.speichern(List.of(plot));
+        assertEquals(List.of(plot), new PlotYamlSpeicher(pfad).laden());
+        Path journal = ordner.resolve("plots-aenderungen.yml");
+        String original = Files.readString(journal);
+        assertTrue(original.contains("zensiert: true"));
+        Files.writeString(journal, original.replace("zensiert: true", "zensiert: 'true'"));
+        assertThrows(IOException.class, () -> new PlotYamlSpeicher(pfad).laden());
+    }
+
+    @Test
     void lehntVerkuerzteUndDoppelteUuidsAb() throws IOException {
         Path pfad = ordner.resolve("plots.yml");
         UUID besitzer = UUID.randomUUID();

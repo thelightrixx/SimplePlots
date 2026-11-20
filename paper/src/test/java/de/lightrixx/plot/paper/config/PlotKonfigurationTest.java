@@ -1,6 +1,7 @@
 package de.lightrixx.plot.paper.config;
 
 import de.lightrixx.plot.model.PlotRaster;
+import org.bukkit.Material;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -8,81 +9,113 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 class PlotKonfigurationTest {
-    @TempDir
-    Path ordner;
+    @TempDir Path ordner;
+
+    private PlotKonfiguration laden() throws IOException {
+        return new PlotKonfiguration(ordner.resolve("config.yml"), material -> material != Material.AIR && material != Material.WATER && material != Material.SAND);
+    }
+
+    private void alt(String inhalt) throws IOException { Files.writeString(ordner.resolve("config.yml"), inhalt); }
+    private String standard() { return "raster:\n  plotgroesse: 32\n  wegbreite: 7\nclaims:\n  pro-spieler: 3\n"; }
 
     @Test
-    void laedtDieMitgelieferteKonfiguration() throws IOException {
-        Path pfad = ordner.resolve("config.yml");
-        try (var standard = getClass().getResourceAsStream("/config.yml")) {
-            Files.copy(standard, pfad);
+    void migriertBestehendeWerteUndLaesstDenAltbestandUnveraendert() throws IOException {
+        String bisher = standard().replace("32", "48").replace("3\n", "5\n") + "zusatz: behalten\n";
+        alt(bisher);
+        var config = laden();
+        assertEquals(new PlotRaster(48, 7), config.raster());
+        assertEquals(5, config.claimLimit());
+        assertEquals(bisher, Files.readString(ordner.resolve("config.yml")));
+        for (String name : new String[]{"general", "world", "protection", "fly", "contests", "updates"}) {
+            assertTrue(Files.isRegularFile(ordner.resolve("config/" + name + ".yml")));
         }
-        var konfiguration = new PlotKonfiguration(pfad);
-        assertEquals(new PlotRaster(32, 7), konfiguration.raster());
-        assertEquals(3, konfiguration.claimLimit());
+        alt("ungueltig: [\n");
+        assertEquals(5, laden().claimLimit());
     }
 
     @Test
-    void lehntFehlendeOderUngueltigeKonfigurationAb() throws IOException {
-        Path pfad = ordner.resolve("config.yml");
-        assertThrows(IOException.class, () -> new PlotKonfiguration(pfad));
-        for (String raster : new String[]{"0", "1025", "true", "32.5", "'32'"}) {
-            Files.writeString(pfad, "raster:\n  plotgroesse: " + raster + "\n  wegbreite: 7\nclaims:\n  pro-spieler: 3\n");
-            assertThrows(IOException.class, () -> new PlotKonfiguration(pfad), raster);
+    void lehntFehlendeUndUngueltigeAltdateienVorDerMigrationAb() throws IOException {
+        assertThrows(IOException.class, this::laden);
+        for (String zahl : new String[]{"0", "1025", "true", "32.5", "'32'"}) {
+            alt(standard().replace("plotgroesse: 32", "plotgroesse: " + zahl));
+            assertThrows(IOException.class, this::laden);
+            assertFalse(Files.exists(ordner.resolve("config/general.yml")));
         }
-        Files.writeString(pfad, "raster:\n  plotgroesse: 32\n  wegbreite: 7\nclaims:\n  pro-spieler: 0\n");
-        assertThrows(IOException.class, () -> new PlotKonfiguration(pfad));
+        alt(standard().replace("pro-spieler: 3", "pro-spieler: 0"));
+        assertThrows(IOException.class, this::laden);
     }
 
     @Test
-    void speichertAenderungenUndErhaeltWeitereEinstellungen() throws IOException {
-        Path pfad = ordner.resolve("config.yml");
-        Files.writeString(pfad, "raster:\n  plotgroesse: 32\n  wegbreite: 7\nclaims:\n  pro-spieler: 3\nzusatz: behalten\n");
-        var konfiguration = new PlotKonfiguration(pfad);
-        konfiguration.rasterSetzen(new PlotRaster(48, 9));
-        konfiguration.limitSetzen(5);
-        var neustart = new PlotKonfiguration(pfad);
-        assertEquals(new PlotRaster(48, 9), neustart.raster());
-        assertEquals(5, neustart.claimLimit());
-        assertTrue(Files.readString(pfad).contains("zusatz: behalten"));
-        assertThrows(IllegalArgumentException.class, () -> konfiguration.limitSetzen(0));
-        assertEquals(5, konfiguration.claimLimit());
+    void speichertAdminAenderungenInDenNeuenDateienUndErhaeltZusatzwerte() throws IOException {
+        alt(standard());
+        var config = laden();
+        Files.writeString(ordner.resolve("config/general.yml"), Files.readString(ordner.resolve("config/general.yml")) + "zusatz: behalten\n");
+        config.rasterSetzen(new PlotRaster(48, 9));
+        config.limitSetzen(5);
+        var neu = laden();
+        assertEquals(new PlotRaster(48, 9), neu.raster());
+        assertEquals(5, neu.claimLimit());
+        assertTrue(Files.readString(ordner.resolve("config/general.yml")).contains("zusatz: behalten"));
+        assertThrows(IllegalArgumentException.class, () -> config.limitSetzen(0));
     }
 
     @Test
-    void behaeltDenZustandWennDieKonfigurationsdateiNichtMehrLesbarIst() throws IOException {
-        Path pfad = ordner.resolve("config.yml");
-        Files.writeString(pfad, "raster:\n  plotgroesse: 32\n  wegbreite: 7\nclaims:\n  pro-spieler: 3\n");
-        var konfiguration = new PlotKonfiguration(pfad);
-        Files.delete(pfad);
-        Files.createDirectory(pfad);
-        assertThrows(IOException.class, () -> konfiguration.rasterSetzen(new PlotRaster(48, 9)));
-        assertThrows(IOException.class, () -> konfiguration.limitSetzen(5));
-        assertEquals(new PlotRaster(32, 7), konfiguration.raster());
-        assertEquals(3, konfiguration.claimLimit());
-        assertTrue(Files.isDirectory(pfad));
+    void behaeltAuchEinBisherGueltigesGrossesClaimLimitBei() throws IOException {
+        alt(standard().replace("pro-spieler: 3", "pro-spieler: 2147483647"));
+        assertEquals(Integer.MAX_VALUE, laden().claimLimit());
     }
 
     @Test
-    void ueberschreibtBeiAdminAenderungenKeineUngueltigenAnderenEinstellungen() throws IOException {
-        Path pfad = ordner.resolve("config.yml");
-        String original = "raster:\n  plotgroesse: 32\n  wegbreite: 7\nclaims:\n  pro-spieler: 3\n";
-        Files.writeString(pfad, original);
-        var konfiguration = new PlotKonfiguration(pfad);
-        String kaputt = original.replace("plotgroesse: 32", "plotgroesse: falsch");
-        Files.writeString(pfad, kaputt);
-        assertThrows(IOException.class, () -> konfiguration.limitSetzen(5));
-        assertEquals(kaputt, Files.readString(pfad));
-        assertEquals(3, konfiguration.claimLimit());
-        kaputt = original.replace("pro-spieler: 3", "pro-spieler: falsch");
-        Files.writeString(pfad, kaputt);
-        assertThrows(IOException.class, () -> konfiguration.rasterSetzen(new PlotRaster(48, 9)));
-        assertEquals(kaputt, Files.readString(pfad));
-        assertEquals(new PlotRaster(32, 7), konfiguration.raster());
+    void uebernimmtReloadErstNachGemeinsamerPruefung() throws IOException {
+        alt(standard());
+        var config = laden();
+        var general = ordner.resolve("config/general.yml");
+        Files.writeString(general, Files.readString(general).replace("pro-spieler: 3", "pro-spieler: 8"));
+        Files.writeString(ordner.resolve("config/fly.yml"), "eigener-plot:\n  geschwindigkeit: 2.0\n");
+        assertThrows(IOException.class, config::vorbereiten);
+        assertEquals(3, config.claimLimit());
+        assertThrows(IOException.class, () -> config.limitSetzen(10));
+        assertTrue(Files.readString(general).contains("pro-spieler: 8"));
+        Files.writeString(ordner.resolve("config/fly.yml"), "wege:\n  aktiviert: false\n");
+        var neu = config.vorbereiten();
+        assertEquals(3, config.claimLimit());
+        config.uebernehmen(neu);
+        assertEquals(8, config.claimLimit());
+        assertFalse(config.aktiv("fly.wege.aktiviert"));
+        assertThrows(UnsupportedOperationException.class, () -> neu.optionen().clear());
+    }
+
+    @Test
+    void lehntUngleicheTypenUndUngeeigneteMaterialienAb() throws IOException {
+        alt(standard());
+        var config = laden();
+        var fly = ordner.resolve("config/fly.yml");
+        for (String wert : new String[]{"'true'", "[]", "1"}) {
+            Files.writeString(fly, "wege:\n  aktiviert: " + wert + "\n");
+            assertThrows(IOException.class, config::vorbereiten);
+        }
+        Files.writeString(fly, "eigener-plot:\n  geschwindigkeit: .nan\n");
+        assertThrows(IOException.class, config::vorbereiten);
+        Files.writeString(fly, "wege:\n  aktiviert: true\n");
+        for (String wert : new String[]{"AIR", "WATER", "SAND", "FEHLT"}) {
+            Files.writeString(ordner.resolve("config/world.yml"), "material:\n  oberflaeche: " + wert + "\n");
+            assertThrows(IOException.class, config::vorbereiten);
+        }
+    }
+
+    @Test
+    void ersetztKeineVerschwundeneOderUnlesbareNeueKonfigurationDurchAlteWerte() throws IOException {
+        alt(standard());
+        var config = laden();
+        var general = ordner.resolve("config/general.yml");
+        Files.delete(general);
+        assertThrows(IOException.class, this::laden);
+        assertThrows(IOException.class, config::vorbereiten);
+        Files.createDirectory(general);
+        assertThrows(IOException.class, () -> config.limitSetzen(5));
+        assertEquals(3, config.claimLimit());
     }
 }

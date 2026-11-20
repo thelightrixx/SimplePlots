@@ -61,6 +61,9 @@ class PlotMechanikListenerTest {
 
     @BeforeEach
     void vorbereiten() {
+        var config = mock(de.lightrixx.plot.paper.config.PlotKonfiguration.class);
+        when(config.aktiv(anyString())).thenReturn(true);
+        when(welt.konfiguration()).thenReturn(config);
         when(plotwelt.getMinHeight()).thenReturn(-64);
         when(welt.istPlotWelt(any())).thenAnswer(aufruf -> aufruf.getArgument(0) == plotwelt);
         var raster = new PlotRaster(32, 7);
@@ -83,6 +86,27 @@ class PlotMechanikListenerTest {
         var zurueck = new BlockPistonRetractEvent(block(30), List.of(block(32)), BlockFace.WEST);
         listener.kolbenEinfahren(zurueck);
         assertTrue(zurueck.isCancelled());
+    }
+
+    @Test
+    void deaktiviertNatuerlicheFeuerentstehungUndErlaubtBerechtigtenSpielernDasEntzuenden() {
+        when(welt.konfiguration().aktiv("protection.feuerausbreitung")).thenReturn(false);
+        Block ziel = block(5);
+        Block quelle = block(6);
+        UUID besitzer = plots.finden(id).orElseThrow().besitzer();
+        var natuerlich = mock(BlockIgniteEvent.class);
+        when(natuerlich.getBlock()).thenReturn(ziel);
+        when(natuerlich.getIgnitingBlock()).thenReturn(quelle);
+        listener.entzuenden(natuerlich);
+        verify(natuerlich).setCancelled(true);
+        var spieler = mock(Player.class);
+        when(spieler.getUniqueId()).thenReturn(besitzer);
+        when(spieler.getGameMode()).thenReturn(GameMode.SURVIVAL);
+        var manuell = mock(BlockIgniteEvent.class);
+        when(manuell.getBlock()).thenReturn(ziel);
+        when(manuell.getPlayer()).thenReturn(spieler);
+        listener.entzuenden(manuell);
+        verify(manuell, never()).setCancelled(true);
     }
 
     @Test

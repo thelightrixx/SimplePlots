@@ -6,7 +6,7 @@
 
     <groupId>de.lightrixx</groupId>
     <artifactId>simpleplots-parent</artifactId>
-    <version>v0.4.0-alpha</version>
+    <version>v0.5.0-alpha</version>
     <packaging>pom</packaging>
     <name>SimplePlots (Parent)</name>
     <description>Survival-Plotwelt mit Claims, Baurechten, Galerie und Bauwettbewerben.</description>

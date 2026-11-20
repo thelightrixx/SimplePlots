@@ -48,7 +48,14 @@ public final class PlotNachrichten {
                 "<dark_gray>[<green>PlotSystem</green>]</dark_gray> <gray>");
         boolean menueAktualisiert = aktualisiereStandardtext(geladen, "menue.titel", "<dark_green>PlotSystem</dark_green>");
         var geprueft = pruefen(geladen);
-        if (prefixAktualisiert || menueAktualisiert) {
+        boolean ergaenzt = false;
+        for (String key : standard.getKeys(true)) {
+            if (!standard.isConfigurationSection(key) && !geladen.contains(key)) {
+                geladen.set(key, standard.get(key));
+                ergaenzt = true;
+            }
+        }
+        if (prefixAktualisiert || menueAktualisiert || ergaenzt) {
             datei.speichern(geladen);
         }
         texte = geprueft;

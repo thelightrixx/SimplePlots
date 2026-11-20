@@ -69,9 +69,16 @@ public final class PlotMenue implements Listener {
         var menue = new Ansicht(spieler, konfiguration.daten().hauptgroesse(), texte.komponente("menue.titel"));
         var slots = konfiguration.daten().hauptslots();
         knopf(menue, slots.get("eigene"), Material.GRASS_BLOCK, "eigene", klicker -> eigene(klicker, 0));
-        knopf(menue, slots.get("galerie"), Material.SPYGLASS, "galerie", klicker -> galerie(klicker, Optional.empty(), Sortierung.NEW));
+        if (welt.konfiguration().aktiv("general.funktionen.galerie")) {
+            knopf(menue, slots.get("galerie"), Material.SPYGLASS, "galerie", klicker -> galerie(klicker, Optional.empty(), Sortierung.NEW));
+        }
         knopf(menue, slots.get("karte"), Material.FILLED_MAP, "karte", this::karte);
-        knopf(menue, slots.get("wettbewerb"), Material.GOLD_INGOT, "wettbewerb", this::wettbewerb);
+        if (welt.konfiguration().aktiv("contests.aktiviert")) {
+            knopf(menue, slots.get("wettbewerb"), Material.GOLD_INGOT, "wettbewerb", this::wettbewerb);
+        }
+        if (spieler.hasPermission(PlotBerechtigungen.FLY)) {
+            knopf(menue, slots.get("flug"), Material.FEATHER, "flug", klicker -> befehl(klicker, "fly", true));
+        }
         knopf(menue, slots.get("plotwelt"), Material.ENDER_EYE, "plotwelt", klicker -> befehl(klicker, "world", true));
         knopf(menue, slots.get("hauptwelt"), Material.OAK_DOOR, "hauptwelt", klicker -> befehl(klicker, "back", true));
         if (spieler.hasPermission(PlotBerechtigungen.CLAIM)) {
@@ -104,6 +111,7 @@ public final class PlotMenue implements Listener {
     }
 
     private void galerie(Player spieler, Optional<Kategorie> kategorie, Sortierung sortierung, int seite) {
+        if (!welt.konfiguration().aktiv("general.funktionen.galerie")) { texte.senden(spieler, "fehler.deaktiviert"); return; }
         Comparator<Plot> neueste = Comparator.<Plot>comparingLong(plot -> plot.profil().gelistetSeit()).reversed()
                 .thenComparing(Plot::id, NACH_ID);
         var komparator = sortierung == Sortierung.POPULAR
@@ -134,13 +142,18 @@ public final class PlotMenue implements Listener {
     private void karte(Player spieler) {
         var ort = spieler.getLocation();
         PlotId mitte = welt.istPlotWelt(ort.getWorld()) ? welt.raster().zelleBei(ort.getBlockX(), ort.getBlockZ()) : new PlotId(0, 0);
-        var menue = new Ansicht(spieler, 54, texte.komponente("menue.karte"));
-        for (int z = -2; z <= 2; z++) {
-            for (int x = -3; x <= 3; x++) {
+        var daten = konfiguration.daten();
+        int hoehe = daten.kartenzeilen() - 1, breite = daten.kartenbreite();
+        var menue = new Ansicht(spieler, daten.kartenzeilen() * 9, texte.komponente("menue.karte"));
+        for (int z = -hoehe / 2; z < hoehe - hoehe / 2; z++) {
+            for (int x = -breite / 2; x <= breite / 2; x++) {
                 PlotId zelle = mitte.verschoben(x, z);
-                int slot = (z + 2) * 9 + x + 4;
+                int slot = (z + hoehe / 2) * 9 + x + breite / 2 + (9 - breite) / 2;
                 Plot plot = plots.finden(zelle).orElse(null);
                 boolean istMitte = zelle.equals(mitte);
+                if (plot != null && plot.zensiert()) {
+                    continue;
+                }
                 if (plot == null) {
                     eintrag(menue, slot, istMitte ? symbol("karte-mitte", Material.COMPASS) : symbol("karte-frei", Material.GRAY_STAINED_GLASS_PANE),
                             texte.komponente("menue.karte-frei", unparsed("id", zelle.toString())), List.of(), null);
@@ -154,7 +167,7 @@ public final class PlotMenue implements Listener {
                 }
             }
         }
-        knopf(menue, 49, Material.OAK_DOOR, "zurueck", this::oeffnen);
+        knopf(menue, daten.kartenZurueck(), Material.OAK_DOOR, "zurueck", this::oeffnen);
         spieler.openInventory(menue.inventar);
     }
 
@@ -227,6 +240,7 @@ public final class PlotMenue implements Listener {
     }
 
     private void wettbewerb(Player spieler, int seite) {
+        if (!welt.konfiguration().aktiv("contests.aktiviert")) { texte.senden(spieler, "fehler.deaktiviert"); return; }
         var wettbewerb = wettbewerbe.aktuell();
         Map<PlotId, Integer> stimmen = new HashMap<>();
         if (wettbewerb.filter(wert -> wert.phase() == BauWettbewerb.Phase.BEENDET).isPresent()) {
@@ -234,7 +248,7 @@ public final class PlotMenue implements Listener {
         }
         List<Plot> eintraege = wettbewerb.stream().flatMap(wert -> wert.beitraege().keySet().stream())
                 .flatMap(id -> plots.finden(id).stream())
-                .filter(plot -> PlotBerechtigungen.darfBetreten(spieler, plot))
+                .filter(plot -> !plot.zensiert() && PlotBerechtigungen.darfBetreten(spieler, plot))
                 .sorted(Comparator.<Plot>comparingInt(plot -> stimmen.getOrDefault(plot.id(), 0)).reversed()
                         .thenComparing(Plot::id, NACH_ID)).toList();
         int seiteAktiv = gueltigeSeite(seite, eintraege.size());
@@ -287,7 +301,8 @@ public final class PlotMenue implements Listener {
     }
 
     private Optional<Plot> eigenerPlotAmOrt(Player spieler) {
-        return welt.plotBei(spieler.getLocation()).flatMap(plots::finden).filter(plot -> plot.besitzer().equals(spieler.getUniqueId()));
+        return welt.plotBei(spieler.getLocation()).flatMap(plots::finden)
+                .filter(plot -> !plot.zensiert() && plot.besitzer().equals(spieler.getUniqueId()));
     }
 
     private Optional<Plot> verwalteterPlot(Player spieler, PlotId id) {

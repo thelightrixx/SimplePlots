@@ -172,9 +172,18 @@ public final class PlotZutrittListener implements Listener {
     private void plotAnzeigen(Player spieler, PlotId id) {
         var plot = plots.finden(id).orElse(null);
         var plotId = unparsed("id", id.toString());
+        if (plot != null && plot.zensiert()) {
+            texte.senden(spieler, "zensur.hinweis");
+            spieler.showTitle(Title.title(texte.komponente("zensur.titel"), texte.komponente("zensur.untertitel"), TITELZEITEN));
+            return;
+        }
+        var config = welt.konfiguration();
+        if (!config.aktiv("general.betreten.titel")) return;
+        var zeiten = Title.Times.times(Duration.ofMillis(config.zahl("general.betreten.einblenden-millis")),
+                Duration.ofMillis(config.zahl("general.betreten.anzeigen-millis")), Duration.ofMillis(config.zahl("general.betreten.ausblenden-millis")));
         if (plot == null) {
             spieler.showTitle(Title.title(texte.komponente("betreten.frei-titel", plotId),
-                    texte.komponente("betreten.frei-untertitel", plotId), TITELZEITEN));
+                    texte.komponente("betreten.frei-untertitel", plotId), zeiten));
             return;
         }
         if (!PlotBerechtigungen.darfBetreten(spieler, plot)) {
@@ -189,7 +198,7 @@ public final class PlotZutrittListener implements Listener {
         };
         String titel = profil.name().isEmpty() ? "betreten.titel-ohne-name" : "betreten.titel";
         String untertitel = profil.beschreibung().isEmpty() ? "betreten.untertitel-ohne-beschreibung" : "betreten.untertitel";
-        spieler.showTitle(Title.title(texte.komponente(titel, platzhalter), texte.komponente(untertitel, platzhalter), TITELZEITEN));
+        spieler.showTitle(Title.title(texte.komponente(titel, platzhalter), texte.komponente(untertitel, platzhalter), zeiten));
     }
 
     private void aufWegSetzen(Player spieler, Location ort, PlotId id) {

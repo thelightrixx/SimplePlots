@@ -93,7 +93,7 @@ class PlotBauListenerTest {
         plots.claim(new PlotId(1, 0), UUID.randomUUID(), 3);
         var plugin = mock(Plugin.class);
         when(plugin.getServer()).thenReturn(server);
-        welt = new PlotWelt(plugin, new PlotKonfiguration(config), plots, ordner.resolve("welt.yml"));
+        welt = new PlotWelt(plugin, new PlotKonfiguration(config, material -> true), plots, ordner.resolve("welt.yml"));
         wettbewerbe = new WettbewerbDienst(new WettbewerbYamlSpeicher(ordner.resolve("wettbewerb.yml")), plots);
         listener = new PlotBauListener(welt, plots, wettbewerbe);
         schutz = new PlotSchutz(welt, plots, wettbewerbe);
@@ -402,7 +402,8 @@ class PlotBauListenerTest {
                 (proxy, methode, argumente) -> switch (methode.getName()) {
                     case "getUniqueId" -> uuid;
                     case "getGameMode" -> modus;
-                    case "hasPermission" -> admin && "simpleplots.admin".equals(argumente[0]);
+                    case "getPersistentDataContainer" -> mock(org.bukkit.persistence.PersistentDataContainer.class);
+                    case "hasPermission" -> admin && java.util.Set.of("simpleplots.admin", "simpleplots.admin.bypass").contains(argumente[0]);
                     case "equals" -> proxy == argumente[0];
                     case "hashCode" -> uuid.hashCode();
                     default -> throw new UnsupportedOperationException(methode.getName());

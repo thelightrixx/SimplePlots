@@ -126,8 +126,8 @@ public final class PlotMechanikListener implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void strukturWachsen(StructureGrowEvent event) {
         var quelle = event.getLocation();
-        if (schutz.inPlotwelt(quelle) && event.getBlocks().stream()
-                .anyMatch(block -> !schutz.selberClaim(quelle, block.getLocation()))) {
+        if (schutz.inPlotwelt(quelle) && ((!welt.konfiguration().aktiv("protection.pflanzenwachstum") && !event.isFromBonemeal())
+                || event.getBlocks().stream().anyMatch(block -> !schutz.selberClaim(quelle, block.getLocation())))) {
             event.setCancelled(true);
         }
     }
@@ -143,7 +143,8 @@ public final class PlotMechanikListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void ausbreiten(BlockSpreadEvent event) {
-        if (schutz.inPlotwelt(event.getBlock()) && !schutz.selberClaim(event.getSource(), event.getBlock())) {
+        if (schutz.inPlotwelt(event.getBlock()) && (!schutz.selberClaim(event.getSource(), event.getBlock())
+                || (event.getSource().getType() == org.bukkit.Material.FIRE && !welt.konfiguration().aktiv("protection.feuerausbreitung")))) {
             event.setCancelled(true);
         }
     }
@@ -157,14 +158,16 @@ public final class PlotMechanikListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void wachsen(BlockGrowEvent event) {
-        if (schutz.inPlotwelt(event.getBlock()) && !schutz.blockImClaim(event.getBlock())) {
+        if (schutz.inPlotwelt(event.getBlock()) && (!schutz.blockImClaim(event.getBlock())
+                || !welt.konfiguration().aktiv("protection.pflanzenwachstum"))) {
             event.setCancelled(true);
         }
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void laubVergehen(LeavesDecayEvent event) {
-        if (schutz.inPlotwelt(event.getBlock()) && !schutz.blockImClaim(event.getBlock())) {
+        if (schutz.inPlotwelt(event.getBlock()) && (!schutz.blockImClaim(event.getBlock())
+                || !welt.konfiguration().aktiv("protection.laubverfall"))) {
             event.setCancelled(true);
         }
     }
@@ -212,6 +215,10 @@ public final class PlotMechanikListener implements Listener {
         if (!schutz.inPlotwelt(ziel)) {
             return;
         }
+        if (event.getPlayer() == null && !welt.konfiguration().aktiv("protection.feuerausbreitung")) {
+            event.setCancelled(true);
+            return;
+        }
         boolean erlaubt = event.getPlayer() != null ? schutz.darfBlockAendern(event.getPlayer(), ziel.getLocation())
                 : schutz.selberClaim(event.getIgnitingBlock(), ziel);
         if (!erlaubt) {
@@ -221,7 +228,8 @@ public final class PlotMechanikListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void brennen(BlockBurnEvent event) {
-        if (schutz.inPlotwelt(event.getBlock()) && !schutz.selberClaim(event.getIgnitingBlock(), event.getBlock())) {
+        if (schutz.inPlotwelt(event.getBlock()) && (!schutz.selberClaim(event.getIgnitingBlock(), event.getBlock())
+                || !welt.konfiguration().aktiv("protection.feuerausbreitung"))) {
             event.setCancelled(true);
         }
     }

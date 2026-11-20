@@ -1,6 +1,7 @@
 package de.lightrixx.plot.paper.world;
 
 import de.lightrixx.plot.model.PlotRaster;
+import de.lightrixx.plot.paper.config.PlotKonfiguration;
 import org.bukkit.HeightMap;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -17,23 +18,39 @@ public final class PlotGenerator extends ChunkGenerator {
     public static final int BODEN_Y = 63;
     private static final int ERDSCHICHTEN = 3;
     private final PlotRaster raster;
+    private final PlotKonfiguration konfiguration;
 
     public PlotGenerator(PlotRaster raster) {
+        this(raster, null);
+    }
+
+    public PlotGenerator(PlotRaster raster, PlotKonfiguration konfiguration) {
         this.raster = raster;
+        this.konfiguration = konfiguration;
     }
 
     @Override
     public void generateNoise(WorldInfo welt, Random random, int chunkX, int chunkZ, ChunkData daten) {
         int minimum = daten.getMinHeight();
+        var werte = konfiguration == null ? null : konfiguration.werte();
+        int schichten = werte == null ? ERDSCHICHTEN : werte.zahl("world.erdschichten");
+        Material untergrund = material(werte, "untergrund", Material.STONE);
+        Material erde = material(werte, "erde", Material.DIRT);
+        Material wegMaterial = material(werte, "weg", Material.STONE_BRICKS);
+        Material oberflaeche = material(werte, "oberflaeche", Material.GRASS_BLOCK);
         daten.setRegion(0, minimum, 0, 16, minimum + 1, 16, Material.BEDROCK);
-        daten.setRegion(0, minimum + 1, 0, 16, BODEN_Y - ERDSCHICHTEN, 16, Material.STONE);
-        daten.setRegion(0, BODEN_Y - ERDSCHICHTEN, 0, 16, BODEN_Y, 16, Material.DIRT);
+        daten.setRegion(0, minimum + 1, 0, 16, BODEN_Y - schichten, 16, untergrund);
+        daten.setRegion(0, BODEN_Y - schichten, 0, 16, BODEN_Y, 16, erde);
         for (int x = 0; x < 16; x++) {
             for (int z = 0; z < 16; z++) {
                 boolean weg = raster.istWeg(chunkX * 16 + x, chunkZ * 16 + z);
-                daten.setBlock(x, BODEN_Y, z, weg ? Material.STONE_BRICKS : Material.GRASS_BLOCK);
+                daten.setBlock(x, BODEN_Y, z, weg ? wegMaterial : oberflaeche);
             }
         }
+    }
+
+    private static Material material(PlotKonfiguration.Werte werte, String key, Material normal) {
+        return werte == null ? normal : Material.matchMaterial((String) werte.optionen().get("world.material." + key));
     }
 
     @Override

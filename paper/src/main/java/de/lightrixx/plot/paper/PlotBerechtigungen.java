@@ -14,7 +14,9 @@ public final class PlotBerechtigungen {
     public static final String ADMIN = "simpleplots.admin";
     public static final String RELOAD = "simpleplots.admin.reload";
     public static final String DIAGNOSE = "simpleplots.admin.diagnostics";
+    public static final String FLY = "simpleplots.fly";
     private static final NamespacedKey PLOT_KREATIV = new NamespacedKey("simpleplots", "plot-kreativ");
+    private static final NamespacedKey BYPASS_AUS = new NamespacedKey("simpleplots", "bypass-aus");
 
     private PlotBerechtigungen() {
     }
@@ -24,7 +26,20 @@ public final class PlotBerechtigungen {
     }
 
     public static boolean darfBetreten(Player spieler, Plot plot) {
-        return istAdmin(spieler) || plot.darfBetreten(spieler.getUniqueId());
+        return bypassAktiv(spieler) || plot.darfBetreten(spieler.getUniqueId());
+    }
+
+    public static boolean bypassAktiv(Player spieler) {
+        return spieler != null && spieler.hasPermission("simpleplots.admin.bypass")
+                && !spieler.getPersistentDataContainer().has(BYPASS_AUS);
+    }
+
+    public static void bypassSetzen(Player spieler, boolean wert) {
+        if (wert) {
+            spieler.getPersistentDataContainer().remove(BYPASS_AUS);
+        } else {
+            spieler.getPersistentDataContainer().set(BYPASS_AUS, PersistentDataType.BOOLEAN, true);
+        }
     }
 
     public static boolean modusErlaubt(Permissible spieler, GameMode modus) {

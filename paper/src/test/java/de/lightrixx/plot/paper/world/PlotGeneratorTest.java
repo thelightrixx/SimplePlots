@@ -1,11 +1,16 @@
 package de.lightrixx.plot.paper.world;
 
 import de.lightrixx.plot.model.PlotRaster;
+import de.lightrixx.plot.paper.config.PlotKonfiguration;
 import org.bukkit.Material;
 import org.bukkit.generator.ChunkGenerator.ChunkData;
 import org.bukkit.generator.WorldInfo;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.List;
@@ -14,6 +19,28 @@ import java.util.Random;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class PlotGeneratorTest {
+    @Test
+    void verwendetDieKonfiguriertenMaterialienUndErdlagen(@TempDir Path ordner) throws IOException {
+        Path alt = ordner.resolve("config.yml");
+        Files.writeString(alt, "raster:\n  plotgroesse: 32\n  wegbreite: 7\nclaims:\n  pro-spieler: 3\n");
+        var config = new PlotKonfiguration(alt, material -> true);
+        Path world = ordner.resolve("config/world.yml");
+        Files.writeString(world, Files.readString(world).replace("GRASS_BLOCK", "MOSS_BLOCK").replace("STONE_BRICKS", "POLISHED_ANDESITE")
+                .replace("untergrund: STONE", "untergrund: DIORITE").replace("erde: DIRT", "erde: COARSE_DIRT").replace("erdschichten: 3", "erdschichten: 5"));
+        config.uebernehmen(config.vorbereiten());
+        var boden = new TestChunk(-64);
+        var generator = new PlotGenerator(config.raster(), config);
+        generator.generateNoise(welt(-64), new Random(0), 0, 0, boden.api());
+        assertEquals(Material.BEDROCK, boden.material(5, -64, 5));
+        assertEquals(Material.DIORITE, boden.material(5, 57, 5));
+        assertEquals(Material.COARSE_DIRT, boden.material(5, 58, 5));
+        assertEquals(Material.COARSE_DIRT, boden.material(5, 62, 5));
+        assertEquals(Material.MOSS_BLOCK, boden.material(5, 63, 5));
+        var weg = new TestChunk(-64);
+        generator.generateNoise(welt(-64), new Random(0), 2, 0, weg.api());
+        assertEquals(Material.POLISHED_ANDESITE, weg.material(0, 63, 5));
+    }
+
     @Test
     void erzeugtErdeUndSteinMitGenauEinerBedrockschichtAmWeltboden() {
         for (int minimum : new int[]{-64, 0}) {

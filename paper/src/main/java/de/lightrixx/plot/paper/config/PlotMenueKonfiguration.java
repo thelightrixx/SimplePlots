@@ -20,7 +20,7 @@ import java.util.function.Predicate;
 
 public final class PlotMenueKonfiguration {
     private static final String RESSOURCE = "config/gui.yml";
-    private static final List<String> HAUPT = List.of("eigene", "galerie", "karte", "wettbewerb", "plotwelt", "hauptwelt", "claim", "rechte");
+    private static final List<String> HAUPT = List.of("eigene", "galerie", "karte", "wettbewerb", "plotwelt", "hauptwelt", "claim", "rechte", "flug");
     private static final List<String> RECHTE = List.of("trusted", "bauhelfer", "lager", "doors", "switches", "zurueck");
     private static final List<String> NAVIGATION = List.of("vorherige", "filter", "zurueck", "extra", "naechste");
     private final YamlDatei datei;
@@ -52,6 +52,15 @@ public final class PlotMenueKonfiguration {
             datei.speichern(standard);
         }
         daten = vorbereiten();
+        var yaml = datei.laden().orElseThrow();
+        boolean ergaenzt = false;
+        for (String key : standard.getKeys(true)) {
+            if (!standard.isConfigurationSection(key) && !yaml.contains(key)) {
+                yaml.set(key, key.equals("hauptmenue.slots.flug") ? daten.hauptslots().get("flug") : standard.get(key));
+                ergaenzt = true;
+            }
+        }
+        if (ergaenzt) datei.speichern(yaml);
     }
 
     public Daten vorbereiten() throws IOException {
@@ -63,8 +72,25 @@ public final class PlotMenueKonfiguration {
         }
         yaml.setDefaults(standard);
         int hauptzeilen = zeilen(yaml, "hauptmenue.zeilen");
+        if (!yaml.contains("hauptmenue.slots.flug", true)) {
+            var belegt = new HashSet<Integer>();
+            for (String key : HAUPT) if (!key.equals("flug")) belegt.add(yaml.getInt("hauptmenue.slots." + key));
+            int flug = standard.getInt("hauptmenue.slots.flug");
+            if (belegt.contains(flug)) {
+                flug = java.util.stream.IntStream.range(0, hauptzeilen * 9).filter(slot -> !belegt.contains(slot)).findFirst()
+                        .orElseThrow(() -> new IOException("Kein freier Platz für den Flugknopf."));
+            }
+            yaml.set("hauptmenue.slots.flug", flug);
+        }
         int rechtezeilen = zeilen(yaml, "rechte.zeilen");
         int seitenzeilen = zeilen(yaml, "seiten.zeilen");
+        int kartenzeilen = zeilen(yaml, "karte.zeilen");
+        int kartenbreite = yaml.getInt("karte.spalten");
+        int kartenZurueck = yaml.getInt("karte.zurueck-slot");
+        if (!yaml.isInt("karte.spalten") || kartenbreite < 1 || kartenbreite > 9 || kartenbreite % 2 == 0
+                || !yaml.isInt("karte.zurueck-slot") || kartenZurueck < (kartenzeilen - 1) * 9 || kartenZurueck >= kartenzeilen * 9) {
+            throw new IOException("Ungültige Kartengröße oder Zurück-Position in gui.yml.");
+        }
         var symbole = new HashMap<String, Material>();
         for (String key : standard.getConfigurationSection("symbole").getKeys(true)) {
             String pfad = "symbole." + key;
@@ -80,7 +106,7 @@ public final class PlotMenueKonfiguration {
         return new Daten(hauptzeilen * 9, rechtezeilen * 9, (seitenzeilen - 1) * 9,
                 slots(yaml, "hauptmenue.slots", HAUPT, hauptzeilen * 9),
                 slots(yaml, "rechte.slots", RECHTE, rechtezeilen * 9),
-                slots(yaml, "seiten.navigation", NAVIGATION, 9), Map.copyOf(symbole));
+                slots(yaml, "seiten.navigation", NAVIGATION, 9), Map.copyOf(symbole), kartenzeilen, kartenbreite, kartenZurueck);
     }
 
     public void uebernehmen(Daten neu) {
@@ -118,7 +144,12 @@ public final class PlotMenueKonfiguration {
     }
 
     public record Daten(int hauptgroesse, int rechtegroesse, int seitengroesse, Map<String, Integer> hauptslots,
-                        Map<String, Integer> rechteslots, Map<String, Integer> navigation, Map<String, Material> symbole) {
+                        Map<String, Integer> rechteslots, Map<String, Integer> navigation, Map<String, Material> symbole,
+                        int kartenzeilen, int kartenbreite, int kartenZurueck) {
+        public Daten(int hauptgroesse, int rechtegroesse, int seitengroesse, Map<String, Integer> hauptslots,
+                     Map<String, Integer> rechteslots, Map<String, Integer> navigation, Map<String, Material> symbole) {
+            this(hauptgroesse, rechtegroesse, seitengroesse, hauptslots, rechteslots, navigation, symbole, 6, 7, 49);
+        }
         public Daten {
             hauptslots = Map.copyOf(hauptslots);
             rechteslots = Map.copyOf(rechteslots);

@@ -11,6 +11,13 @@ hauptmenue:
     hauptwelt: 20
     claim: 24
     rechte: 26
+    flug: 22
+
+# Die letzte Kartenzeile bleibt für den Zurück-Knopf frei. Spaltenzahl: ungerade, 1 bis 9.
+karte:
+  zeilen: 6
+  spalten: 7
+  zurueck-slot: 49
 
 rechte:
   zeilen: 3
@@ -43,6 +50,7 @@ symbole:
   hauptwelt: OAK_DOOR
   claim: COMPASS
   rechte: TRIPWIRE_HOOK
+  flug: FEATHER
   zurueck: OAK_DOOR
   vorherige: ARROW
   naechste: ARROW

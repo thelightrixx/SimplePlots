@@ -60,10 +60,15 @@ class PlotBefehlAblaufTest {
     void vorbereiten() throws Exception {
         Path config = ordner.resolve("config.yml");
         Files.writeString(config, "raster:\n  plotgroesse: 32\n  wegbreite: 7\nclaims:\n  pro-spieler: 3\n");
-        var konfiguration = new PlotKonfiguration(config);
+        var konfiguration = new PlotKonfiguration(config, material -> true);
         plots = new PlotDienst(new PlotYamlSpeicher(ordner.resolve("plots.yml")), PlotKauf.kostenlos());
         wettbewerbe = new WettbewerbDienst(new WettbewerbYamlSpeicher(ordner.resolve("wettbewerb.yml")), plots);
         var server = mock(Server.class);
+        when(besitzer.getServer()).thenReturn(server);
+        when(gast.getServer()).thenReturn(server);
+        when(konsole.getServer()).thenReturn(server);
+        when(besitzer.canSee(gast)).thenReturn(true);
+        when(server.getPlayer(besitzerId)).thenReturn(besitzer);
         when(server.getPlayer(gastId)).thenReturn(gast);
         when(server.getPlayerExact("Gast")).thenReturn(gast);
         when(server.getOfflinePlayer(any(UUID.class))).thenAnswer(aufruf -> {
@@ -85,6 +90,7 @@ class PlotBefehlAblaufTest {
             return true;
         });
         when(gast.getUniqueId()).thenReturn(gastId);
+        when(gast.getPersistentDataContainer()).thenReturn(mock(org.bukkit.persistence.PersistentDataContainer.class));
         when(gast.getName()).thenReturn("Gast");
         when(gast.getWorld()).thenReturn(plotwelt);
         when(gast.getLocation()).thenReturn(new Location(plotwelt, 5, 65, 5));
@@ -99,6 +105,7 @@ class PlotBefehlAblaufTest {
             return ort != null && ort.getWorld() == plotwelt
                     ? plots.plotBei(konfiguration.raster(), ort.getBlockX(), ort.getBlockZ()) : Optional.empty();
         });
+        when(welt.konfiguration()).thenReturn(konfiguration);
         when(welt.raster()).thenAnswer(aufruf -> konfiguration.raster());
         when(welt.ladenOderErstellen()).thenReturn(plotwelt);
         when(welt.besuchspunkt(any(), any(), any())).thenAnswer(aufruf -> Optional.of(new Location(plotwelt, 5, 65, 5)));
@@ -121,6 +128,8 @@ class PlotBefehlAblaufTest {
         }).when(log).error(anyString(), any(), any(), any());
         befehl = new PlotBefehl(server, log, plots, welt, konfiguration, texte, menue,
                 wettbewerbe, auftraege, mock(PlotBetrieb.class));
+        befehl.funktionen(mock(de.lightrixx.plot.paper.listener.PlotFlug.class),
+                mock(de.lightrixx.plot.paper.update.PlotUpdater.class), mock(de.lightrixx.plot.paper.world.PlotZensur.class));
     }
 
     @Test
@@ -230,8 +239,66 @@ class PlotBefehlAblaufTest {
         verify(texte, atLeastOnce()).senden(gast, "zugang.gebannt");
         verify(gast, never()).teleport(any(Location.class));
         when(gast.hasPermission(PlotBerechtigungen.ADMIN)).thenReturn(true);
+        when(gast.hasPermission("simpleplots.admin.bypass")).thenReturn(true);
         ausfuehren(gast, "visit", "0;0");
         verify(gast).teleport(any(Location.class));
+    }
+
+    @Test
+    void uebertraegtErstNachEinemPassendenAngebotUndSetztRollenUndLikesZurueck() {
+        when(gast.hasPermission(anyString())).thenAnswer(aufruf -> Set.of(PlotBerechtigungen.USE,
+                PlotBerechtigungen.CLAIM, PlotBerechtigungen.MANAGE).contains(aufruf.getArgument(0)));
+        ausfuehren(besitzer, "claim");
+        ausfuehren(besitzer, "trust", "Gast");
+        ausfuehren(besitzer, "profile", "name", "Hafen");
+        ausfuehren(besitzer, "profile", "category", "build");
+        ausfuehren(gast, "like");
+        ausfuehren(gast, "accept", "0;0");
+        assertEquals(besitzerId, plots.finden(id).orElseThrow().besitzer());
+        ausfuehren(besitzer, "transfer", "Gast");
+        assertEquals(besitzerId, plots.finden(id).orElseThrow().besitzer());
+        assertTrue(befehl.onTabComplete(gast, null, "plot", new String[]{"accept", ""}).contains("0;0"));
+        ausfuehren(gast, "accept", "0;0");
+        var plot = plots.finden(id).orElseThrow();
+        assertEquals(gastId, plot.besitzer());
+        assertTrue(plot.rechte().trusted().isEmpty());
+        assertTrue(plot.profil().likes().isEmpty());
+        assertEquals("Hafen", plot.profil().name());
+        verify(menue).schliessen();
+    }
+
+    @Test
+    void erlaubtAdminBesitzerwechselUndVerhindertFreigabeZensierterPlots() throws IOException {
+        ausfuehren(besitzer, "claim");
+        ausfuehren(konsole, "admin", "setowner", "0;0", gastId.toString());
+        assertEquals(besitzerId, plots.finden(id).orElseThrow().besitzer());
+        ausfuehren(konsole, "admin", "setowner", "0;0", gastId.toString(), "confirm");
+        assertEquals(gastId, plots.finden(id).orElseThrow().besitzer());
+        plots.zensieren(id, true);
+        ausfuehren(konsole, "admin", "unclaim", "0;0", "confirm");
+        assertTrue(plots.finden(id).isPresent());
+        plots.zensieren(id, false);
+        ausfuehren(konsole, "admin", "unclaim", "0;0", "confirm");
+        assertTrue(plots.finden(id).isEmpty());
+    }
+
+    @Test
+    void zaehltZensierteWettbewerbsbeitraegeNichtInDerOeffentlichenAnzeige() throws IOException {
+        when(texte.komponente(anyString())).thenReturn(net.kyori.adventure.text.Component.empty());
+        var anzeige = new AtomicReference<String>();
+        doAnswer(aufruf -> {
+            var resolver = java.util.Arrays.copyOfRange(aufruf.getArguments(), 2, aufruf.getArguments().length,
+                    net.kyori.adventure.text.minimessage.tag.resolver.TagResolver[].class);
+            anzeige.set(net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(
+                    net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize("<count>", resolver)));
+            return null;
+        }).when(texte).senden(eq(besitzer), eq("wettbewerb.status"), any(net.kyori.adventure.text.minimessage.tag.resolver.TagResolver[].class));
+        ausfuehren(besitzer, "claim");
+        ausfuehren(konsole, "contest", "start", "Hafen");
+        ausfuehren(besitzer, "submit");
+        plots.zensieren(id, true);
+        ausfuehren(besitzer, "contest", "status");
+        assertEquals("0", anzeige.get());
     }
 
     private void ausfuehren(CommandSender sender, String... args) {

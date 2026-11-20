@@ -3,7 +3,7 @@ version: ${project.version}
 main: de.lightrixx.plot.paper.SimplePlots
 api-version: '26.1'
 folia-supported: false
-description: Survival-Plotwelt mit Claims und Baurechten.
+description: Plotwelt mit Claims, Rollen, Flugregeln und Moderation.
 commands:
   plot:
     description: Betritt die Plotwelt oder verwalte deine Plots.
@@ -26,6 +26,19 @@ permissions:
       simpleplots.use: true
       simpleplots.claim: true
       simpleplots.manage: true
+      simpleplots.fly: true
+      simpleplots.admin.update: true
+      simpleplots.admin.bypass: true
+      simpleplots.admin.list: true
+      simpleplots.admin.inspect: true
+      simpleplots.admin.visit: true
+      simpleplots.admin.claim: true
+      simpleplots.admin.unclaim: true
+      simpleplots.admin.setowner: true
+      simpleplots.admin.role: true
+      simpleplots.admin.profile: true
+      simpleplots.admin.censor: true
+      simpleplots.admin.contest: true
       simpleplots.admin.reload: true
       simpleplots.admin.diagnostics: true
   simpleplots.admin.reload:
@@ -33,6 +46,45 @@ permissions:
     default: op
     children:
       simpleplots.use: true
+  simpleplots.fly:
+    description: Fly auf eigenen Plots innerhalb der konfigurierten Höhe einschalten.
+    default: true
+  simpleplots.admin.update:
+    description: GitHub-Updates prüfen und für den nächsten Start vorbereiten.
+    default: op
+  simpleplots.admin.bypass:
+    description: Admin-Bypass für Baurechte und Banns schalten.
+    default: op
+  simpleplots.admin.list:
+    description: Plots eines Besitzers auflisten.
+    default: op
+  simpleplots.admin.inspect:
+    description: Besitzer, Rasterzellen und Zensurstatus prüfen.
+    default: op
+  simpleplots.admin.visit:
+    description: Zum öffentlichen Weg vor einem Plot reisen.
+    default: op
+  simpleplots.admin.claim:
+    description: Freie Plots unabhängig vom Claim-Limit zuweisen.
+    default: op
+  simpleplots.admin.unclaim:
+    description: Claims ohne Löschung der Bauten freigeben.
+    default: op
+  simpleplots.admin.setowner:
+    description: Besitzer nach expliziter Bestätigung direkt ändern.
+    default: op
+  simpleplots.admin.role:
+    description: Rollen und Banns fremder Plots verwalten.
+    default: op
+  simpleplots.admin.profile:
+    description: Profile fremder Plots bearbeiten.
+    default: op
+  simpleplots.admin.censor:
+    description: Inhalte von Plots reversibel ausblenden und sperren.
+    default: op
+  simpleplots.admin.contest:
+    description: Wettbewerbe verwalten.
+    default: op
   simpleplots.admin.diagnostics:
     description: Version, Plotwelt und Speicherwarteschlange prüfen.
     default: op

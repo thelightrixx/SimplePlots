@@ -350,6 +350,84 @@ class PlotDienstTest {
         }
     }
 
+    @Test
+    void sperrtZensiertePlotsUndHaeltNamenSowieClaimLimitReserviert() throws IOException {
+        var dienst = new PlotDienst(speicher, PlotKauf.kostenlos());
+        dienst.claim(id, besitzer, 1);
+        dienst.profilAendern(id, besitzer, profil -> profil.mitName("Museum").mitKategorie(Optional.of(PlotProfil.Kategorie.MUSEUM), 1));
+        dienst.rolleAendern(id, besitzer, gast, DENY);
+        dienst.zensieren(id, true);
+        var zensiert = dienst.finden(id).orElseThrow();
+        assertTrue(zensiert.darfBetreten(gast));
+        assertFalse(zensiert.darfBauen(besitzer, true));
+        assertFalse(zensiert.darfLagerNutzen(besitzer, true));
+        assertTrue(dienst.galerie(plot -> true).isEmpty());
+        assertTrue(dienst.vomBesitzer(besitzer).isEmpty());
+        assertTrue(dienst.nachName("Museum").isEmpty());
+        assertEquals(PlotDienst.RollenErgebnis.GESPERRT, dienst.rolleAendern(id, besitzer, gast, TRUST));
+        assertEquals(PlotDienst.Aenderung.GESPERRT, dienst.profilAendern(id, besitzer, profil -> profil.mitName("Anders")));
+        assertEquals(PlotDienst.Aenderung.GESPERRT, dienst.besucherRecht(id, besitzer, BesucherRecht.DOORS, true));
+        assertEquals(PlotDienst.Aenderung.NICHT_GELISTET, dienst.like(id, gast, true));
+        assertEquals(LIMIT, dienst.claim(new PlotId(1, 0), besitzer, 1));
+        dienst.claim(new PlotId(1, 0), gast, 1);
+        assertEquals(PlotDienst.Aenderung.NAME_VERGEBEN,
+                dienst.profilAendern(new PlotId(1, 0), gast, profil -> profil.mitName("Museum")));
+        var neustart = new PlotDienst(speicher, PlotKauf.kostenlos());
+        assertTrue(neustart.finden(id).orElseThrow().zensiert());
+        neustart.zensieren(id, false);
+        assertEquals(1, neustart.galerie(plot -> true).size());
+        assertFalse(neustart.finden(id).orElseThrow().darfBetreten(gast));
+    }
+
+    @Test
+    void uebertraegtAlleZellenUndEntferntAlteRollenUndLikesErstNachDemSpeichern() throws IOException {
+        var dienst = new PlotDienst(speicher, PlotKauf.kostenlos());
+        dienst.claim(id, besitzer, 2);
+        dienst.claim(id.verschoben(1, 0), besitzer, 2);
+        dienst.zusammenlegen(id, id.verschoben(1, 0), besitzer, ziel -> false, true);
+        dienst.profilAendern(id, besitzer, profil -> profil.mitName("Hafen").mitKategorie(Optional.of(PlotProfil.Kategorie.BUILD), 1));
+        dienst.like(id, gast, true);
+        dienst.rolleAendern(id, besitzer, gast, DENY);
+        Plot vorher = dienst.finden(id).orElseThrow();
+        assertEquals(PlotDienst.Uebertragung.LIMIT, dienst.uebertragen(id, besitzer, gast, 1, ziel -> false));
+        assertEquals(PlotDienst.Uebertragung.GESPERRT, dienst.uebertragen(id, besitzer, gast, 2, ziel -> true));
+        speicher.schreibfehler = true;
+        assertThrows(IOException.class, () -> dienst.uebertragen(id, besitzer, gast, 2, ziel -> false));
+        assertEquals(vorher, dienst.finden(id).orElseThrow());
+        assertEquals(List.of(vorher), dienst.vomBesitzer(besitzer));
+        assertTrue(dienst.vomBesitzer(gast).isEmpty());
+        speicher.schreibfehler = false;
+        assertEquals(PlotDienst.Uebertragung.UEBERTRAGEN, dienst.uebertragen(id, besitzer, gast, 2, ziel -> false));
+        Plot nachher = dienst.finden(id.verschoben(1, 0)).orElseThrow();
+        assertEquals(gast, nachher.besitzer());
+        assertTrue(nachher.rechte().gebannt().isEmpty());
+        assertTrue(nachher.profil().likes().isEmpty());
+        assertEquals("Hafen", nachher.profil().name());
+        assertTrue(dienst.vomBesitzer(besitzer).isEmpty());
+        assertEquals(nachher, dienst.nachName("Hafen").orElseThrow());
+    }
+
+    @Test
+    void behaeltBeiZensurUndFreigabeSchreibfehlernAlleIndizesBeiUndFindetFreigegebeneRingeWieder() throws IOException {
+        var dienst = new PlotDienst(speicher, PlotKauf.kostenlos());
+        dienst.claim(id, besitzer, 10);
+        dienst.naechsterFreierPlot();
+        speicher.schreibfehler = true;
+        assertThrows(IOException.class, () -> dienst.zensieren(id, true));
+        assertFalse(dienst.finden(id).orElseThrow().zensiert());
+        assertThrows(IOException.class, () -> dienst.freigeben(id, ziel -> false));
+        assertEquals(1, dienst.anzahlZellen());
+        speicher.schreibfehler = false;
+        dienst.zensieren(id, true);
+        assertEquals(PlotDienst.Aenderung.GESPERRT, dienst.freigeben(id, ziel -> false));
+        assertEquals(PlotDienst.Uebertragung.GESPERRT, dienst.uebertragen(id, besitzer, gast, 10, ziel -> false));
+        dienst.zensieren(id, false);
+        assertEquals(PlotDienst.Aenderung.GEAENDERT, dienst.freigeben(id, ziel -> false));
+        assertEquals(id, dienst.naechsterFreierPlot());
+        assertTrue(dienst.finden(id).isEmpty());
+        assertTrue(dienst.vomBesitzer(besitzer).isEmpty());
+    }
+
     private static final class TestSpeicher implements PlotSpeicher {
         private List<Plot> daten = List.of();
         private boolean schreibfehler;

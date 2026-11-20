@@ -16,12 +16,14 @@ import java.util.Locale;
 import static net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.unparsed;
 
 final class PlotAdminBefehl {
-    static final List<String> UNTERBEFEHLE = List.of("info", "create", "grid", "limit", "gamemode", "reload", "diagnostics");
+    static final List<String> UNTERBEFEHLE = List.of("info", "create", "grid", "limit", "gamemode", "reload", "diagnostics",
+            "update", "bypass", "list", "inspect", "visit", "claim", "unclaim", "setowner", "role", "profile", "censor", "uncensor");
     static final List<String> MODI = List.of("creative", "survival");
     private final PlotKonfiguration konfiguration;
     private final PlotWelt welt;
     private final PlotNachrichten texte;
     private final PlotBetrieb betrieb;
+    private PlotModerationBefehl moderation;
 
     PlotAdminBefehl(PlotKonfiguration konfiguration, PlotWelt welt, PlotNachrichten texte, PlotBetrieb betrieb) {
         this.konfiguration = konfiguration;
@@ -29,6 +31,8 @@ final class PlotAdminBefehl {
         this.texte = texte;
         this.betrieb = betrieb;
     }
+
+    void moderation(PlotModerationBefehl moderation) { this.moderation = moderation; }
 
     void ausfuehren(CommandSender sender, String[] args) throws IOException {
         String aktion = args.length == 1 ? "info" : args[1].toLowerCase(Locale.ROOT);
@@ -42,6 +46,8 @@ final class PlotAdminBefehl {
             return;
         }
         switch (aktion) {
+            case "update", "bypass", "list", "inspect", "visit", "claim", "unclaim", "setowner", "role", "profile", "censor", "uncensor" ->
+                    moderation.ausfuehren(sender, aktion, args);
             case "info" -> {
                 if (args.length <= 2) {
                     info(sender);
@@ -86,6 +92,8 @@ final class PlotAdminBefehl {
         if (sender.hasPermission(PlotBerechtigungen.DIAGNOSE)) {
             texte.senden(sender, "admin.diagnose-hilfe");
         }
+        if (UNTERBEFEHLE.stream().filter(aktion -> !List.of("info", "create", "grid", "limit", "gamemode", "reload", "diagnostics").contains(aktion))
+                .anyMatch(aktion -> sender.hasPermission(berechtigung(aktion)))) texte.senden(sender, "moderation.hilfe");
     }
 
     static List<String> erlaubteUnterbefehle(CommandSender sender) {
@@ -96,6 +104,9 @@ final class PlotAdminBefehl {
         return switch (aktion) {
             case "reload" -> PlotBerechtigungen.RELOAD;
             case "diagnostics" -> PlotBerechtigungen.DIAGNOSE;
+            case "uncensor" -> "simpleplots.admin.censor";
+            case "update", "bypass", "list", "inspect", "visit", "claim", "unclaim", "setowner", "role", "profile", "censor" ->
+                    "simpleplots.admin." + aktion;
             default -> PlotBerechtigungen.ADMIN;
         };
     }

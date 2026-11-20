@@ -26,6 +26,7 @@ public final class PlotBetrieb {
     private final WettbewerbDienst wettbewerbe;
     private final PlotAuftraege auftraege;
     private boolean reloadLaeuft;
+    private Runnable nachReload = () -> { };
 
     public PlotBetrieb(JavaPlugin plugin, PlotKonfiguration konfiguration, PlotNachrichten texte,
                       PlotMenueKonfiguration gui, PlotMenue menue, PlotWelt welt, PlotDienst plots,
@@ -45,6 +46,8 @@ public final class PlotBetrieb {
         return reloadLaeuft;
     }
 
+    public void nachReload(Runnable auftrag) { nachReload = java.util.Objects.requireNonNull(auftrag); }
+
     public void neuladen(CommandSender sender) {
         if (reloadLaeuft) {
             texte.senden(sender, "admin.reload-laeuft");
@@ -57,7 +60,9 @@ public final class PlotBetrieb {
                 return;
             }
             uebernehmen(konfiguration, texte, gui, neu);
+            welt.konfigurationAktualisieren();
             menue.schliessen();
+            nachReload.run();
             texte.senden(sender, "admin.reload-erfolg");
         }, () -> reloadLaeuft = false);
     }

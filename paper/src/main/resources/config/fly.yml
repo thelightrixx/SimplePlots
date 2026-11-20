@@ -1,0 +1,10 @@
+# Auf öffentlichen Wegen automatisch per Doppelsprung, ohne Höhen- oder Zeitlimit.
+wege:
+  aktiviert: true
+  geschwindigkeit: 0.1
+# Eigene Plots: /plot fly on|off. Höhe über dem Plotboden (Y=63).
+eigener-plot:
+  aktiviert: true
+  hoehe: 32
+  geschwindigkeit: 0.1
+pruefintervall-ticks: 5

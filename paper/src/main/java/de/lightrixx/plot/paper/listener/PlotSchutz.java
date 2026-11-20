@@ -7,7 +7,6 @@ import de.lightrixx.plot.paper.world.PlotGenerator;
 import de.lightrixx.plot.paper.world.PlotWelt;
 import de.lightrixx.plot.service.PlotDienst;
 import de.lightrixx.plot.service.WettbewerbDienst;
-import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.block.DoubleChest;
@@ -51,7 +50,10 @@ final class PlotSchutz {
         if (!inPlotwelt(ort)) {
             return true;
         }
-        if (PlotBerechtigungen.istAdmin(spieler)) {
+        if (beanspruchterPlot(ort).filter(Plot::zensiert).isPresent()) {
+            return false;
+        }
+        if (PlotBerechtigungen.bypassAktiv(spieler)) {
             return !wettbewerbe.hatGesperrtePlots() || welt.plotBei(ort).filter(wettbewerbe::gesperrt).isEmpty();
         }
         return freierPlotFuer(spieler, ort)
@@ -69,10 +71,11 @@ final class PlotSchutz {
     }
 
     private Optional<Plot> freierPlotFuer(Player spieler, Location ort) {
-        if (spieler == null || spieler.getGameMode() != GameMode.SURVIVAL) {
+        if (spieler == null || !PlotBerechtigungen.modusErlaubt(spieler, spieler.getGameMode())) {
             return Optional.empty();
         }
-        return beanspruchterPlot(ort).filter(plot -> !wettbewerbe.gesperrt(plot.id()) && plot.darfBetreten(spieler.getUniqueId()));
+        return beanspruchterPlot(ort).filter(plot -> !plot.zensiert() && !wettbewerbe.gesperrt(plot.id())
+                && plot.darfBetreten(spieler.getUniqueId()));
     }
 
     private static boolean besitzerOnline(Player spieler, Plot plot) {
@@ -93,17 +96,18 @@ final class PlotSchutz {
     boolean blockImClaim(Block block) {
         Location ort = block.getLocation();
         return ueberWeltboden(ort) && beanspruchterPlot(ort)
-                .filter(plot -> !wettbewerbe.gesperrt(plot.id())).isPresent();
+                .filter(plot -> !plot.zensiert() && !wettbewerbe.gesperrt(plot.id())).isPresent();
     }
 
     boolean wettbewerbGesperrt(Block block) {
-        return wettbewerbe.hatGesperrtePlots()
-                && welt.plotBei(block.getLocation()).filter(wettbewerbe::gesperrt).isPresent();
+        return beanspruchterPlot(block.getLocation()).filter(Plot::zensiert).isPresent()
+                || (wettbewerbe.hatGesperrtePlots() && welt.plotBei(block.getLocation()).filter(wettbewerbe::gesperrt).isPresent());
     }
 
     boolean selberClaim(Location quelle, Location ziel) {
         return ueberWeltboden(quelle) && ueberWeltboden(ziel) && beanspruchterPlot(quelle)
-                .filter(plot -> !wettbewerbe.gesperrt(plot.id()) && welt.plotBei(ziel).filter(plot.id()::equals).isPresent())
+                .filter(plot -> !plot.zensiert() && !wettbewerbe.gesperrt(plot.id())
+                        && welt.plotBei(ziel).filter(plot.id()::equals).isPresent())
                 .isPresent();
     }
 

@@ -7,7 +7,10 @@ import de.lightrixx.plot.paper.PlotBerechtigungen;
 import de.lightrixx.plot.paper.config.PlotKonfiguration;
 import de.lightrixx.plot.paper.config.PlotNachrichten;
 import de.lightrixx.plot.paper.gui.PlotMenue;
+import de.lightrixx.plot.paper.listener.PlotFlug;
+import de.lightrixx.plot.paper.update.PlotUpdater;
 import de.lightrixx.plot.paper.world.PlotWelt;
+import de.lightrixx.plot.paper.world.PlotZensur;
 import de.lightrixx.plot.service.PlotDienst;
 import de.lightrixx.plot.service.WettbewerbDienst;
 import org.bukkit.Location;
@@ -54,6 +57,9 @@ public final class PlotBefehl implements TabExecutor {
     private final PlotVerwaltungBefehl verwaltung;
     private final PlotWettbewerbBefehl wettbewerb;
     private final PlotAuftraege auftraege;
+    private final PlotUebertragung uebertragung;
+    private final WettbewerbDienst wettbewerbe;
+    private PlotFlug flug;
 
     public PlotBefehl(Server server, Logger log, PlotDienst plots, PlotWelt welt,
                       PlotKonfiguration konfiguration, PlotNachrichten texte, PlotMenue menue, WettbewerbDienst wettbewerbe,
@@ -65,10 +71,17 @@ public final class PlotBefehl implements TabExecutor {
         this.konfiguration = konfiguration;
         this.texte = texte;
         this.auftraege = auftraege;
+        this.wettbewerbe = wettbewerbe;
         this.admin = new PlotAdminBefehl(konfiguration, welt, texte, betrieb);
         this.menue = menue;
         this.verwaltung = new PlotVerwaltungBefehl(plots, welt, texte, wettbewerbe, auftraege);
-        this.wettbewerb = new PlotWettbewerbBefehl(wettbewerbe, plots, menue, texte, auftraege);
+        this.wettbewerb = new PlotWettbewerbBefehl(wettbewerbe, plots, menue, texte, auftraege, konfiguration);
+        this.uebertragung = new PlotUebertragung(plots, welt, wettbewerbe, auftraege, texte, menue);
+    }
+
+    public void funktionen(PlotFlug flug, PlotUpdater updater, PlotZensur zensur) {
+        this.flug = flug;
+        admin.moderation(new PlotModerationBefehl(plots, welt, wettbewerbe, auftraege, texte, menue, updater, zensur));
     }
 
     @Override
@@ -103,6 +116,8 @@ public final class PlotBefehl implements TabExecutor {
             return;
         }
         switch (aktion) {
+            case "fly" -> flug.befehl(spieler, args);
+            case "transfer", "accept", "decline" -> uebertragung.ausfuehren(spieler, aktion, args);
             case "world" -> {
                 if (plotModus(spieler)) {
                     teleport(spieler, welt.spawn(welt.ladenOderErstellen()), "teleport.welt");
@@ -148,6 +163,10 @@ public final class PlotBefehl implements TabExecutor {
     }
 
     private void entdecken(Player spieler, String[] args) {
+        if (!konfiguration.aktiv("general.funktionen.galerie")) {
+            texte.senden(spieler, "fehler.deaktiviert");
+            return;
+        }
         if (args.length > 3) {
             texte.senden(spieler, "profil.entdecken-hilfe");
             return;
@@ -166,6 +185,7 @@ public final class PlotBefehl implements TabExecutor {
     private void hilfe(CommandSender sender) {
         texte.senden(sender, "hilfe.reise");
         texte.senden(sender, "hilfe.galerie");
+        if (sender instanceof Player) texte.senden(sender, "hilfe.neu");
         if (sender.hasPermission(CLAIM)) {
             texte.senden(sender, "hilfe.claim");
         }
@@ -263,7 +283,8 @@ public final class PlotBefehl implements TabExecutor {
             texte.senden(spieler, "zugang.gebannt");
         } else if (plotModus(spieler)) {
             World zielWelt = welt.ladenOderErstellen();
-            var besuchspunkt = plot.profil().besuchspunkt().flatMap(punkt -> welt.besuchspunkt(zielWelt, plot.id(), punkt));
+            var besuchspunkt = plot.zensiert() ? Optional.<Location>empty()
+                    : plot.profil().besuchspunkt().flatMap(punkt -> welt.besuchspunkt(zielWelt, plot.id(), punkt));
             teleport(spieler, besuchspunkt.orElseGet(() -> welt.wegVor(zielWelt, plot.id())),
                     besuchspunkt.isPresent() ? "teleport.besuchspunkt" : "teleport.vor-plot");
         }
@@ -300,6 +321,10 @@ public final class PlotBefehl implements TabExecutor {
                 return;
             }
             Plot besitz = plot.get();
+            if (besitz.zensiert()) {
+                texte.senden(spieler, "zensur.hinweis");
+                return;
+            }
             texte.senden(spieler, "info.besitzer", unparsed("id", id.toString()),
                     unparsed("owner", nameVon(besitz.besitzer())));
             if (!besitz.profil().name().isEmpty()) {
@@ -336,6 +361,10 @@ public final class PlotBefehl implements TabExecutor {
             texte.senden(spieler, "fehler.nicht-besitzer");
             return;
         }
+        if (plots.finden(id.get()).filter(Plot::zensiert).isPresent()) {
+            texte.senden(spieler, "zensur.gesperrt");
+            return;
+        }
         var ziel = spielerId(args[1]);
         if (ziel.isEmpty()) {
             texte.senden(spieler, "fehler.unbekannter-spieler");
@@ -348,7 +377,7 @@ public final class PlotBefehl implements TabExecutor {
                 texte.senden(spieler, "rollen.selbst");
             } else if (online == null || !welt.plotBei(online.getLocation()).equals(id)) {
                 texte.senden(spieler, "rollen.kick-abwesend");
-            } else if (PlotBerechtigungen.istAdmin(online)) {
+            } else if (PlotBerechtigungen.bypassAktiv(online)) {
                 texte.senden(spieler, "rollen.kick-admin");
             } else if (rausbringen(online, id.get(), "zugang.gekickt")) {
                 texte.senden(spieler, "rollen.kick", unparsed("player", online.getName()));
@@ -366,11 +395,12 @@ public final class PlotBefehl implements TabExecutor {
                 case FREMDER_PLOT -> texte.senden(spieler, "fehler.nicht-besitzer");
                 case BESITZER -> texte.senden(spieler, "rollen.selbst");
                 case GEBANNT -> texte.senden(spieler, "rollen.gebannt");
+                case GESPERRT -> texte.senden(spieler, "zensur.gesperrt");
                 case UNVERAENDERT -> texte.senden(spieler, "rollen.unveraendert");
                 case GEAENDERT -> {
                     texte.senden(spieler, "rollen." + aktion, unparsed("player", nameVon(zielId)));
                     Player anwesend = server.getPlayer(zielId);
-                    if (aenderung == Plot.RollenAktion.DENY && anwesend != null && !PlotBerechtigungen.istAdmin(anwesend)
+                    if (aenderung == Plot.RollenAktion.DENY && anwesend != null && !PlotBerechtigungen.bypassAktiv(anwesend)
                             && welt.plotBei(anwesend.getLocation()).equals(id)
                             && !rausbringen(anwesend, id.get(), "zugang.gebannt")) {
                         texte.senden(spieler, "fehler.teleport");
@@ -444,6 +474,20 @@ public final class PlotBefehl implements TabExecutor {
         if (args.length == 1) {
             return passende(unterbefehle(sender), aktion);
         }
+        if (aktion.equals("admin") && PlotAdminBefehl.erlaubteUnterbefehle(sender).contains(args[1].toLowerCase(Locale.ROOT))) {
+            if (args.length == 3 && args[1].equalsIgnoreCase("update")) return passende(List.of("check", "status", "apply"), args[2]);
+            if (args.length == 3 && args[1].equalsIgnoreCase("bypass")) return passende(List.of("on", "off"), args[2]);
+            if (args.length == 4) {
+                if (args[1].equalsIgnoreCase("censor")) return passende(List.of("on", "off"), args[3]);
+                if (args[1].equalsIgnoreCase("unclaim") || (args[1].equalsIgnoreCase("update") && args[2].equalsIgnoreCase("apply"))) {
+                    return passende(List.of("confirm"), args[3]);
+                }
+                if (args[1].equalsIgnoreCase("role")) return passende(Arrays.stream(Plot.RollenAktion.values())
+                        .map(wert -> wert.name().toLowerCase(Locale.ROOT)).toList(), args[3]);
+                if (args[1].equalsIgnoreCase("profile")) return passende(List.of("name", "description", "category"), args[3]);
+            }
+            if (args.length == 5 && args[1].equalsIgnoreCase("setowner")) return passende(List.of("confirm"), args[4]);
+        }
         if (args.length == 3) {
             if (aktion.equals("admin") && args[1].equalsIgnoreCase("gamemode") && sender.hasPermission(PlotBerechtigungen.ADMIN)) {
                 return passende(PlotAdminBefehl.MODI, args[2]);
@@ -466,12 +510,21 @@ public final class PlotBefehl implements TabExecutor {
         if (args.length != 2) {
             return List.of();
         }
+        if (aktion.equals("fly") && sender.hasPermission(PlotBerechtigungen.FLY)) return passende(List.of("on", "off"), args[1]);
+        if (sender instanceof Player spieler && sender.hasPermission(MANAGE)) {
+            if (aktion.equals("accept") || aktion.equals("decline")) return passende(uebertragung.vorschlaege(spieler), args[1]);
+            if (aktion.equals("transfer")) {
+                var kandidaten = new ArrayList<>(spielerVorschlaege(spieler, aktion));
+                kandidaten.add("cancel");
+                return passende(kandidaten, args[1]);
+            }
+        }
         if (aktion.equals("admin")) {
             return passende(PlotAdminBefehl.erlaubteUnterbefehle(sender), args[1]);
         }
         if (aktion.equals("contest")) {
             var befehle = new ArrayList<>(PlotWettbewerbBefehl.SPIELERBEFEHLE);
-            if (sender.hasPermission(PlotBerechtigungen.ADMIN)) {
+            if (sender.hasPermission("simpleplots.admin.contest")) {
                 befehle.addAll(PlotWettbewerbBefehl.ADMINBEFEHLE);
             }
             return passende(befehle, args[1]);
@@ -512,7 +565,9 @@ public final class PlotBefehl implements TabExecutor {
             if (sender.hasPermission(MANAGE)) {
                 befehle.addAll(ROLLENBEFEHLE);
                 befehle.addAll(VERWALTUNG);
+                befehle.addAll(List.of("transfer", "accept", "decline"));
             }
+            if (sender.hasPermission(PlotBerechtigungen.FLY)) befehle.add("fly");
         } else {
             befehle.addAll(List.of("help", "contest"));
         }
@@ -525,7 +580,7 @@ public final class PlotBefehl implements TabExecutor {
     private List<String> spielerVorschlaege(Player spieler, String aktion) {
         if (List.of("untrust", "undeny", "unban", "unadd", "unstore").contains(aktion)) {
             return welt.plotBei(spieler.getLocation()).flatMap(plots::finden)
-                    .filter(plot -> plot.besitzer().equals(spieler.getUniqueId()))
+                    .filter(plot -> !plot.zensiert() && plot.besitzer().equals(spieler.getUniqueId()))
                     .map(plot -> switch (aktion) {
                         case "untrust" -> plot.rechte().trusted();
                         case "unadd" -> plot.rechte().bauhelfer();

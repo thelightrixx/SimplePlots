@@ -63,4 +63,14 @@ class PlotMenueKonfigurationTest {
         return new PlotMenueKonfiguration(pfad, getClass().getResourceAsStream("/config/gui.yml"),
                 material -> material != Material.AIR && material != Material.WATER);
     }
+
+    @Test
+    void waehltFuerDenNeuenFlugknopfEinenFreienPlatzOhneAlteSlotsZuVerdraengen() throws IOException {
+        Path pfad = ordner.resolve("gui.yml");
+        Files.writeString(pfad, "hauptmenue:\n  slots:\n    eigene: 22\n");
+        var gui = laden(pfad);
+        assertEquals(22, gui.daten().hauptslots().get("eigene"));
+        assertNotEquals(22, gui.daten().hauptslots().get("flug"));
+        assertEquals(gui.daten().hauptslots().get("flug"), laden(pfad).daten().hauptslots().get("flug"));
+    }
 }

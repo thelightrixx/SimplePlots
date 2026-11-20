@@ -1,3 +1,5 @@
+# Altformat: Werte werden beim ersten Start in config/world.yml und config/general.yml übernommen.
+# Danach ausschließlich die Dateien im config/-Ordner bearbeiten. Diese Datei bleibt als Altbestand erhalten.
 # Das Raster gilt für die erste Erstellung der Plotwelt.
 # Im Spiel oder in der Konsole mit /plot admin grid <Plotgröße> <Wegbreite> einstellbar.
 raster:

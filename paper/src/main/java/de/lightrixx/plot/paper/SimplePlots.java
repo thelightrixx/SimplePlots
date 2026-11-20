@@ -11,9 +11,12 @@ import de.lightrixx.plot.paper.gui.PlotMenue;
 import de.lightrixx.plot.paper.listener.PlotBauListener;
 import de.lightrixx.plot.paper.listener.PlotMechanikListener;
 import de.lightrixx.plot.paper.listener.PlotZutrittListener;
+import de.lightrixx.plot.paper.listener.PlotFlug;
+import de.lightrixx.plot.paper.update.PlotUpdater;
 import de.lightrixx.plot.paper.storage.PlotYamlSpeicher;
 import de.lightrixx.plot.paper.storage.WettbewerbYamlSpeicher;
 import de.lightrixx.plot.paper.world.PlotWelt;
+import de.lightrixx.plot.paper.world.PlotZensur;
 import de.lightrixx.plot.service.PlotDienst;
 import de.lightrixx.plot.service.WettbewerbDienst;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -31,6 +34,8 @@ public final class SimplePlots extends JavaPlugin {
     private static final String ALTER_PLUGINNAME = "PlotSystem";
     private PlotAuftraege auftraege;
     private PlotMenue menue;
+    private PlotFlug flug;
+    private PlotUpdater updater;
 
     @Override
     public void onEnable() {
@@ -53,16 +58,25 @@ public final class SimplePlots extends JavaPlugin {
             auftraege = new PlotAuftraege(this, texte);
             menue = new PlotMenue(this, plots, welt, texte, wettbewerbe, gui, auftraege);
             var betrieb = new PlotBetrieb(this, konfiguration, texte, gui, menue, welt, plots, wettbewerbe, auftraege);
+            flug = new PlotFlug(this, welt, plots, texte);
+            updater = new PlotUpdater(this, konfiguration, texte, datenordner.getParent().resolve(getFile().getName()));
+            var zensur = new PlotZensur(this, welt, plots, auftraege, texte, menue::schliessen);
+            betrieb.nachReload(() -> updater.planen(false));
 
             pluginManager.registerEvents(new PlotBauListener(welt, plots, wettbewerbe), this);
             pluginManager.registerEvents(new PlotMechanikListener(welt, plots, wettbewerbe), this);
             pluginManager.registerEvents(new PlotZutrittListener(this, welt, plots, texte), this);
             pluginManager.registerEvents(welt, this);
             pluginManager.registerEvents(menue, this);
+            pluginManager.registerEvents(flug, this);
+            pluginManager.registerEvents(zensur, this);
             welt.vorhandeneWeltLaden();
+            zensur.fortsetzen();
+            updater.planen(true);
 
             var befehl = new PlotBefehl(getServer(), getSLF4JLogger(), plots, welt, konfiguration, texte, menue, wettbewerbe,
                     auftraege, betrieb);
+            befehl.funktionen(flug, updater, zensur);
             var plotBefehl = Objects.requireNonNull(getCommand("plot"), "/plot fehlt in plugin.yml");
             plotBefehl.setExecutor(befehl);
             plotBefehl.setTabCompleter(befehl);
@@ -76,6 +90,8 @@ public final class SimplePlots extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        if (flug != null) flug.beenden();
+        if (updater != null) updater.beenden();
         if (menue != null) {
             menue.schliessen();
         }

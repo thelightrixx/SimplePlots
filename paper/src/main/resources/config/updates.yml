@@ -1,0 +1,6 @@
+# Es werden keine Updates automatisch heruntergeladen oder installiert.
+aktiviert: true
+beim-start-pruefen: true
+intervall-minuten: 60
+# alpha bezieht Vorabversionen ein, stable ausschließlich stabile Releases.
+kanal: alpha

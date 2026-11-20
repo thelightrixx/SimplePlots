@@ -1,8 +1,8 @@
-# SimplePlots v0.4.0-alpha
+# SimplePlots v0.5.0-alpha
 
 SimplePlots ergänzt einen Paper-Server um eine separate Survival-Plotwelt mit Claims, Baurechten, Plotgalerie und Bauwettbewerben. Spieler behalten beim Weltwechsel ihr Inventar.
 
-Version v0.4.0-alpha ist ein Bugfix- und Optimierungsupdate ohne neue Funktionen. Es korrigiert Schutzlücken bei indirekten Aktionen, Explosionen und Inventartransfers und sichert Wiederanlauf, Konfigurationsänderungen und Menüs gegen weitere Fehlerfälle ab.
+Version v0.5.0-alpha ergänzt aufgeteilte Konfigurationen, einen geprüften Ingame-Updater, Besitzerübertragungen, Fly auf eigenen Plots und öffentlichen Wegen sowie erweiterte Administration mit reversibler Plotzensur.
 
 ## Dokumentation
 
@@ -28,9 +28,9 @@ Version v0.4.0-alpha ist ein Bugfix- und Optimierungsupdate ohne neue Funktionen
 
 Folia wird nicht unterstützt. Eine Datenbank und zusätzliche Plugins sind für den aktuellen Funktionsumfang nicht erforderlich. Claims sind derzeit kostenlos.
 
-Im [Release v0.4.0-alpha](https://github.com/thelightrixx/SimplePlots/releases/tag/v0.4.0-alpha) findest du die [Plugin-JAR](https://github.com/thelightrixx/SimplePlots/releases/download/v0.4.0-alpha/SimplePlots-v0.4.0-alpha.jar) und die [SHA-256-Prüfsumme](https://github.com/thelightrixx/SimplePlots/releases/download/v0.4.0-alpha/SHA256SUMS.txt).
+Im [Release v0.5.0-alpha](https://github.com/thelightrixx/SimplePlots/releases/tag/v0.5.0-alpha) findest du die [Plugin-JAR](https://github.com/thelightrixx/SimplePlots/releases/download/v0.5.0-alpha/SimplePlots-v0.5.0-alpha.jar) und die [SHA-256-Prüfsumme](https://github.com/thelightrixx/SimplePlots/releases/download/v0.5.0-alpha/SHA256SUMS.txt).
 
-1. Lade die JAR aus dem Release herunter oder [baue sie selbst](#bauen-und-prüfen). Prüfe beim Download die SHA-256 und kopiere `SimplePlots-v0.4.0-alpha.jar` bei gestopptem Server nach `plugins/`.
+1. Lade die JAR aus dem Release herunter oder [baue sie selbst](#bauen-und-prüfen). Prüfe beim Download die SHA-256 und kopiere `SimplePlots-v0.5.0-alpha.jar` bei gestopptem Server nach `plugins/`.
 2. Starte Paper und prüfe das Log. Die Konfiguration entsteht unter `plugins/SimplePlots/`.
 3. Lege vor der ersten Weltgenerierung bei Bedarf das Raster fest, etwa mit `plot admin grid 48 7` in der Konsole.
 4. Erstelle die Welt mit `plot admin create`. Im Spiel öffnet `/plot world` die Plotwelt; `/plot claim` beansprucht den Plot unter dir.
@@ -43,9 +43,17 @@ Neue Plotflächen bestehen aus Gras auf Y=63, Erde auf Y=60–62 und Stein darun
 
 LuckPerms wird nicht benötigt. Eigentum und Plotrollen werden anhand der Spieler-UUID geprüft; die SimplePlots-Befehlsrechte lassen sich über die normalen Paper-Permissions verwalten.
 
-Mit `/plot admin diagnostics` prüfst du Version, Welt, Plotbestand und Speicherwarteschlange. `/plot admin reload` übernimmt `config.yml`, `config/messages.yml` und `config/gui.yml` gemeinsam, sobald alle Dateien gültig sind. Menüplätze, Seitengröße und Item-Materialien stehen in `config/gui.yml`; Texte bleiben in `config/messages.yml`.
+Mit `/plot admin diagnostics` prüfst du Version, Welt, Plotbestand und Speicherwarteschlange. `/plot admin reload` übernimmt alle acht YAML-Dateien unter `config/` gemeinsam, sobald sie gültig sind. Die frühere `config.yml` wird einmalig übernommen und danach als Altbestand erhalten. Menüplätze, Seitengröße und Item-Materialien stehen in `config/gui.yml`; Texte bleiben in `config/messages.yml`.
 
-Plot- und Wettbewerbsänderungen werden außerhalb des Serverthreads gespeichert. Die Bestätigung und die neuen Rechte erscheinen nach erfolgreicher Speicherung. `plots.yml` und `plots-aenderungen.yml` bilden gemeinsam den Plotbestand und müssen zusammen gesichert werden. Ältere Plotformate werden beim ersten Schreiben übernommen. Ein Downgrade benötigt die vollständige Sicherung vor der Umstellung.
+Mit `/plot fly on|off` schaltest du Fly auf eigenen Plots; die Standardhöhe liegt bei 32 Blöcken über dem Plotboden. Auf öffentlichen Wegen können alle Spieler ohne Zeit- oder Höhenlimit per Doppelsprung starten. Interne Wege zusammengelegter Plots zählen zur eigenen Plotfläche.
+
+`/plot transfer <Spieler>` bietet den aktuellen Plot einem anwesenden Empfänger an. `/plot accept <X;Z>` nimmt innerhalb von 120 Sekunden an; das Claim-Limit berücksichtigt alle Rasterzellen. Rollen und Likes werden zurückgesetzt.
+
+`/plot admin censor <X;Z>` sichert den Plot und blendet Bauten sowie Entities aus. Der leere Plot bleibt anschließend mit roten Slabs und Eintrittshinweis begehbar, ist aber für alle gesperrt. `off` stellt den Inhalt wieder her. Die Sicherungen unter `zensur/` gehören zum vollständigen Plugin-Datenbestand. Die Arbeit läuft abschnittsweise; währenddessen bleiben Spieler auf den Wegen.
+
+`/plot admin update check|status` prüft GitHub-Releases. `apply confirm` lädt eine passende JAR mit SHA-256-Prüfung in Papers Update-Ordner. Paper übernimmt sie beim nächsten normalen Start; das Plugin führt keinen Neustart aus. Der Standardkanal `alpha` bezieht Vorabversionen ein. Erstprüfungen und Intervall lassen sich in `config/updates.yml` ändern.
+
+Plot- und Wettbewerbsänderungen werden außerhalb des Serverthreads gespeichert. Die Bestätigung und die neuen Rechte erscheinen nach erfolgreicher Speicherung. `plots.yml` und `plots-aenderungen.yml` bilden gemeinsam den Plotbestand und müssen zusammen gesichert werden. Ältere Plotformate werden beim ersten Schreiben übernommen. Ein Downgrade benötigt die vollständige Sicherung einschließlich Welt vor dem Update; ältere Plugins verstehen die Zensursperren nicht.
 
 Beim Wechsel von PlotSystem zuerst den Plugin-Datenordner und die Plotwelt gemeinsam sichern und die alte JAR entfernen. Die [Wechselanleitung](docs/index.html#/installation/wechsel) beschreibt die automatische Datenübernahme. Updates und Sicherungen stehen unter [Betrieb](docs/index.html#/betrieb).
 
@@ -61,7 +69,7 @@ Der Aufruf funktioniert unabhängig vom aktuellen Arbeitsverzeichnis. Er prüft 
 
 Der Build prüft Versionen und Doku, führt die Werkzeugtests und `mvn -pl paper -am clean verify` aus und kontrolliert die fertige JAR. Unter `dist/` liegen anschließend:
 
-- `SimplePlots-v0.4.0-alpha.jar` – installierbares Plugin.
+- `SimplePlots-v0.5.0-alpha.jar` – installierbares Plugin.
 - `SHA256SUMS.txt` – SHA-256 der exakt geprüften JAR.
 - `RELEASE_NOTES.md` – Veröffentlichungstext aus dem aktuellen Changelog.
 
@@ -76,7 +84,7 @@ python scripts/check-version.py --jar
 python scripts/prepare-release.py
 ```
 
-Die Maven-Ausgabe bleibt `paper/target/SimplePlots-v0.4.0-alpha.jar`. Für gezielte Kerntests genügt `mvn -pl common -am test`. Der vollständige Build führt alle Tests aus; schnelle Maven-Aufrufe für die Entwicklung sind separat möglich.
+Die Maven-Ausgabe bleibt `paper/target/SimplePlots-v0.5.0-alpha.jar`. Für gezielte Kerntests genügt `mvn -pl common -am test`. Der vollständige Build führt alle Tests aus; schnelle Maven-Aufrufe für die Entwicklung sind separat möglich.
 
 `mvn -Pcoverage -pl paper -am clean verify` erzeugt zusätzlich JaCoCo-Berichte unter `common/target/site/jacoco/` und `paper/target/site/jacoco/`. Die CI führt diese Messung auf Windows und Linux aus und stellt die Berichte als Artefakte bereit. Die [Prüfbereiche und Grenzen](docs/index.html#/qualitaet/pruefungen) sind im Handbuch beschrieben.
 

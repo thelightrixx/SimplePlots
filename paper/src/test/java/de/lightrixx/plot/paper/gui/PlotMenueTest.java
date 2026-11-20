@@ -76,7 +76,11 @@ class PlotMenueTest {
         when(texte.komponente(anyString())).thenReturn(Component.text("Menü"));
         when(texte.komponente(anyString(), any(net.kyori.adventure.text.minimessage.tag.resolver.TagResolver[].class)))
                 .thenReturn(Component.text("Menü"));
-        menue = new PlotMenue(plugin, plots, mock(PlotWelt.class), texte,
+        var welt = mock(PlotWelt.class);
+        var config = mock(de.lightrixx.plot.paper.config.PlotKonfiguration.class);
+        when(config.aktiv(anyString())).thenReturn(true);
+        when(welt.konfiguration()).thenReturn(config);
+        menue = new PlotMenue(plugin, plots, welt, texte,
                 wettbewerbe, gui, mock(PlotAuftraege.class));
     }
 

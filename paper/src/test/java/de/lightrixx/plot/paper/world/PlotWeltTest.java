@@ -126,7 +126,7 @@ class PlotWeltTest {
         var plots = new PlotDienst(new PlotYamlSpeicher(ordner.resolve("plots.yml")), PlotKauf.kostenlos());
         var plugin = mock(Plugin.class);
         when(plugin.getServer()).thenReturn(server);
-        return new PlotWelt(plugin, new PlotKonfiguration(config), plots, ordner.resolve("welt.yml"));
+        return new PlotWelt(plugin, new PlotKonfiguration(config, material -> true), plots, ordner.resolve("welt.yml"));
     }
 
     private static World welt(NamespacedKey key, int x, int y, int z) {
