@@ -4,9 +4,9 @@ SimplePlots ergänzt einen Paper-Server um eine separate Survival-Plotwelt mit C
 
 Version v0.5.1-alpha korrigiert die Adminrechte für alle vier Spielmodi und Flug in der gesamten Plotwelt. Alte Konfigurationsdateien im Plugin-Hauptordner werden nach `config/` übernommen und dort archiviert.
 
-## Dokumentation
+## Handbuch
 
-Lies das [Online-Handbuch](https://thelightrixx.github.io/SimplePlots/) oder öffne [docs/index.html](docs/index.html) direkt im Browser. Die 28 Themen decken Einrichtung, Spielerabläufe, Verwaltung und Betrieb ab. Inhalte, Suche, Schriften und Rasterrechner funktionieren auch offline; für die Lizenzlinks den gesamten Ordner `docs/` mitnehmen.
+Lies das [SimplePlots Handbuch](https://thelightrixx.github.io/SimplePlots/) oder öffne [docs/index.html](docs/index.html) direkt im Browser. Die 28 Themen decken Einrichtung, Spielerabläufe, Verwaltung und Betrieb ab. Inhalte, Suche, Schriften und Rasterrechner funktionieren auch offline; für die Lizenzlinks den gesamten Ordner `docs/` mitnehmen.
 
 | Aufgabe | Einstieg |
 | --- | --- |
