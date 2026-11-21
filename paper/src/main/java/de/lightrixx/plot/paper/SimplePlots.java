@@ -19,6 +19,7 @@ import de.lightrixx.plot.paper.world.PlotWelt;
 import de.lightrixx.plot.paper.world.PlotZensur;
 import de.lightrixx.plot.service.PlotDienst;
 import de.lightrixx.plot.service.WettbewerbDienst;
+import de.lightrixx.plot.util.StartBanner;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.IOException;
@@ -40,6 +41,9 @@ public final class SimplePlots extends JavaPlugin {
     @Override
     public void onEnable() {
         try {
+            for (String zeile : StartBanner.zeilen(getPluginMeta().getVersion(), getServer().getName())) {
+                getSLF4JLogger().info(zeile);
+            }
             var datenordner = getDataFolder().toPath();
             var pluginManager = getServer().getPluginManager();
             if (pluginManager.getPlugin(ALTER_PLUGINNAME) != null) {

@@ -512,7 +512,7 @@ details>div{padding:14px 18px 2px}
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16"/><path d="M4 12h16"/><path d="M4 17h16"/></svg>
   </button>
   <button class="brand" id="brand" aria-label="Zur Startseite des Handbuchs"><svg class="mark" viewBox="0 0 28 28" aria-hidden="true"><rect width="28" height="28" rx="7" fill="#187850"/><path d="M13 5h2v18h-2zM5 13h18v2H5z" fill="#fff"/><path d="M6 6h5v5H6zm11 0h5v5h-5zM6 17h5v5H6zm11 0h5v5h-5z" fill="#fff" opacity=".5"/></svg>SimplePlots <small>Handbuch</small></button>
-  <span class="ver">v0.5.1-alpha</span>
+  <span class="ver">v0.5.2-alpha</span>
   <div class="grow"></div>
   <button class="search-btn" id="searchBtn" aria-label="Handbuch durchsuchen">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
@@ -532,7 +532,7 @@ details>div{padding:14px 18px 2px}
 
 <section class="page" data-id="ueberblick" data-group="Start" data-title="Überblick und Wegweiser">
   <h1>SimplePlots Handbuch</h1>
-  <p class="lead">Dieses Handbuch begleitet dich von der Einrichtung der Plotwelt bis zur Verwaltung einzelner Plots. Es gilt für SimplePlots v0.5.1-alpha auf Paper. Befehle, Rechte und Einstellungen findest du auch über die Suche.</p>
+  <p class="lead">Dieses Handbuch begleitet dich von der Einrichtung der Plotwelt bis zur Verwaltung einzelner Plots. Es gilt für SimplePlots v0.5.2-alpha auf Paper. Befehle, Rechte und Einstellungen findest du auch über die Suche.</p>
 <div class="hero">
     <div class="hero-copy">
       <p>In der Voreinstellung ist jede Plotfläche 32 × 32 Blöcke groß. Dazwischen liegen sieben Blöcke breite Wege; jeder Spieler kann drei Rasterzellen beanspruchen.</p>
@@ -590,7 +590,7 @@ details>div{padding:14px 18px 2px}
 <section class="page" data-id="installation" data-group="Start" data-title="Installation">
   <h1>Installation</h1>
   <p class="lead">Für eine neue Installation brauchst du Paper für Minecraft 26.1.2 und Java 25. Wenn du von PlotSystem wechselst, folge der eigenen <a href="#/installation/wechsel">Wechselanleitung</a>.</p>
-    <p>Im <a href="https://github.com/thelightrixx/SimplePlots/releases/tag/v0.5.1-alpha">Release v0.5.1-alpha</a> findest du die <a href="https://github.com/thelightrixx/SimplePlots/releases/download/v0.5.1-alpha/SimplePlots-v0.5.1-alpha.jar">Plugin-JAR</a> und die <a href="https://github.com/thelightrixx/SimplePlots/releases/download/v0.5.1-alpha/SHA256SUMS.txt">SHA-256-Prüfsumme</a>.</p>
+    <p>Im <a href="https://github.com/thelightrixx/SimplePlots/releases/tag/v0.5.2-alpha">Release v0.5.2-alpha</a> findest du die <a href="https://github.com/thelightrixx/SimplePlots/releases/download/v0.5.2-alpha/SimplePlots-v0.5.2-alpha.jar">Plugin-JAR</a> und die <a href="https://github.com/thelightrixx/SimplePlots/releases/download/v0.5.2-alpha/SHA256SUMS.txt">SHA-256-Prüfsumme</a>.</p>
   <h2 data-anchor="voraussetzungen">Voraussetzungen</h2>
 <div class="tbl"><table>
   <thead><tr><th scope="col">Einsatz</th><th scope="col">Voraussetzung</th></tr></thead>
@@ -604,7 +604,7 @@ details>div{padding:14px 18px 2px}
   <h2 data-anchor="download-pruefen">Download prüfen</h2>
   <p>Lade die JAR und <code>SHA256SUMS.txt</code> aus demselben Release herunter. Führe den Befehl für dein Betriebssystem im Downloadordner aus. Unter Windows vergleichst du den ausgegebenen Hash vollständig mit dem Eintrag in der Prüfsummendatei; Linux und macOS melden das Ergebnis direkt.</p>
   <h3>Windows PowerShell</h3>
-<pre data-lang="powershell">Get-FileHash -Algorithm SHA256 -LiteralPath .\SimplePlots-v0.5.1-alpha.jar
+<pre data-lang="powershell">Get-FileHash -Algorithm SHA256 -LiteralPath .\SimplePlots-v0.5.2-alpha.jar
 Get-Content -LiteralPath .\SHA256SUMS.txt</pre>
   <h3>Linux</h3>
 <pre data-lang="shell">sha256sum -c SHA256SUMS.txt</pre>
@@ -612,8 +612,8 @@ Get-Content -LiteralPath .\SHA256SUMS.txt</pre>
 <pre data-lang="shell">shasum -a 256 -c SHA256SUMS.txt</pre>
     <h2 data-anchor="neu">Neuen Server einrichten</h2>
     <ol>
-      <li>Lade die JAR aus dem Release herunter oder <a href="#/entwicklung/bauen">baue sie selbst</a>. Prüfe beim Download die SHA-256 und kopiere <code>SimplePlots-v0.5.1-alpha.jar</code> bei gestopptem Server nach <code>plugins/</code>.</li>
-      <li>Starte Paper und kontrolliere das Log auf Startfehler.</li>
+      <li>Lade die JAR aus dem Release herunter oder <a href="#/entwicklung/bauen">baue sie selbst</a>. Prüfe beim Download die SHA-256 und kopiere <code>SimplePlots-v0.5.2-alpha.jar</code> bei gestopptem Server nach <code>plugins/</code>.</li>
+      <li>Starte Paper und kontrolliere das Log auf Startfehler. Das grüne SP-Banner nennt Pluginname, Version, Autor und Serverplattform; anschließend bestätigt die Bereitschaftsmeldung den erfolgreichen Plugin-Start.</li>
       <li>Lege ein eigenes Raster fest, bevor ein Spieler die Plotwelt öffnet. Sende etwa <code>plot admin grid 48 7</code> an die Konsole. Standardmäßig sind Plots 32 × 32 Blöcke groß, Wege sieben Blöcke breit und drei Claims pro Spieler erlaubt.</li>
       <li>Erstelle die Plotwelt mit <code>plot admin create</code> in der Konsole oder betrete sie im Spiel mit <code>/plot world</code>. <code>/plot admin info</code> zeigt Raster und Claim-Limit.</li>
     </ol>
@@ -1333,7 +1333,7 @@ kanal: alpha</pre>
   <p>Prüfungen lesen Release-Metadaten aus dem SimplePlots-Repository und melden neue Versionen im Log. Sie laden keine JAR herunter. <code>/plot admin update check</code> startet eine manuelle Prüfung; <code>status</code> zeigt installierte, verfügbare und vorbereitete Version.</p>
   <p><code>/plot admin update apply confirm</code> lädt und prüft ein gefundenes Update und legt die JAR für den nächsten normalen Paper-Start bereit. Dabei werden Prüfsumme, Dateigröße und Plugin-Metadaten geprüft. Ein automatischer Neustart findet nicht statt. Sichere Daten und Welt vor dem Austausch; Einzelheiten zum Update-Ordner stehen unter <a href="#/betrieb/ingame-updater">Ingame-Updater</a>.</p>
   <h2 data-anchor="kanal">Warum Stable nichts findet</h2>
-  <p>SimplePlots v0.5.1-alpha ist ein Vorabrelease. Der Kanal <code>stable</code> bietet keine Alpha-Releases an. Verwende <code>alpha</code>, wenn neuere Alpha-Versionen berücksichtigt werden sollen. Gleiche und ältere Versionen sowie Release-Entwürfe werden übersprungen.</p>
+  <p>SimplePlots v0.5.2-alpha ist ein Vorabrelease. Der Kanal <code>stable</code> bietet keine Alpha-Releases an. Verwende <code>alpha</code>, wenn neuere Alpha-Versionen berücksichtigt werden sollen. Gleiche und ältere Versionen sowie Release-Entwürfe werden übersprungen.</p>
 </section>
 
 <section class="page" data-id="config-messages" data-group="Konfiguration und Rechte" data-title="messages.yml – Texte und Titel">
@@ -1602,6 +1602,12 @@ symbole:
 <section class="page" data-id="changelog" data-group="Betrieb" data-title="Changelog">
   <h1>Changelog</h1>
   <p class="lead">Die neueste Version steht oben. Einträge nennen den dokumentierten Stand und nötige Schritte für bestehende Installationen.</p>
+    <h2 data-anchor="v0-5-2-alpha">v0.5.2-alpha</h2>
+    <p><time datetime="2026-11-21">21.11.2026</time></p>
+    <ul>
+      <li>Beim Plugin-Start hebt ein grünes SP-Banner SimplePlots in der Konsole hervor. Aufbau und Ausrichtung entsprechen PunishSystem; neben dem Kürzel stehen Pluginname, aktuelle Version, Autor und Serverplattform.</li>
+    </ul>
+    <p><strong>Update-Hinweis.</strong> Paper stoppen, Plugin-Datenordner und Plotwelt gemeinsam sichern und die JAR durch <code>SimplePlots-v0.5.2-alpha.jar</code> ersetzen. Konfiguration, Permissions und Spielstände bleiben kompatibel; es ist keine Datenmigration nötig.</p>
     <h2 data-anchor="v0-5-1-alpha">v0.5.1-alpha</h2>
     <p><time datetime="2026-11-21">21.11.2026</time></p>
     <ul>

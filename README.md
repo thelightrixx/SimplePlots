@@ -1,8 +1,8 @@
-# SimplePlots v0.5.1-alpha
+# SimplePlots v0.5.2-alpha
 
 SimplePlots ergänzt einen Paper-Server um eine separate Survival-Plotwelt mit Claims, Baurechten, Plotgalerie und Bauwettbewerben. Spieler behalten beim Weltwechsel ihr Inventar.
 
-Version v0.5.1-alpha korrigiert die Adminrechte für alle vier Spielmodi und Flug in der gesamten Plotwelt. Alte Konfigurationsdateien im Plugin-Hauptordner werden nach `config/` übernommen und dort archiviert.
+Version v0.5.2-alpha ergänzt ein grünes SP-Konsolenbanner im Stil von PunishSystem mit Pluginname, Version, Autor und Serverplattform.
 
 ## Handbuch
 
@@ -35,10 +35,10 @@ Mit `Strg+K` (macOS: `⌘+K`) oder `/` durchsuchst du das Handbuch einschließli
 
 Folia wird nicht unterstützt. Eine Datenbank und zusätzliche Plugins sind für den aktuellen Funktionsumfang nicht erforderlich. Claims sind derzeit kostenlos.
 
-Im [Release v0.5.1-alpha](https://github.com/thelightrixx/SimplePlots/releases/tag/v0.5.1-alpha) findest du die [Plugin-JAR](https://github.com/thelightrixx/SimplePlots/releases/download/v0.5.1-alpha/SimplePlots-v0.5.1-alpha.jar) und die [SHA-256-Prüfsumme](https://github.com/thelightrixx/SimplePlots/releases/download/v0.5.1-alpha/SHA256SUMS.txt).
+Im [Release v0.5.2-alpha](https://github.com/thelightrixx/SimplePlots/releases/tag/v0.5.2-alpha) findest du die [Plugin-JAR](https://github.com/thelightrixx/SimplePlots/releases/download/v0.5.2-alpha/SimplePlots-v0.5.2-alpha.jar) und die [SHA-256-Prüfsumme](https://github.com/thelightrixx/SimplePlots/releases/download/v0.5.2-alpha/SHA256SUMS.txt).
 
-1. Lade die JAR aus dem Release herunter oder [baue sie selbst](#bauen-und-prüfen). Prüfe beim Download die SHA-256 und kopiere `SimplePlots-v0.5.1-alpha.jar` bei gestopptem Server nach `plugins/`.
-2. Starte Paper und prüfe das Log. Die Konfiguration entsteht unter `plugins/SimplePlots/`.
+1. Lade die JAR aus dem Release herunter oder [baue sie selbst](#bauen-und-prüfen). Prüfe beim Download die SHA-256 und kopiere `SimplePlots-v0.5.2-alpha.jar` bei gestopptem Server nach `plugins/`.
+2. Starte Paper und prüfe das Log mit dem grünen SP-Banner und der anschließenden Bereitschaftsmeldung. Die Konfiguration entsteht unter `plugins/SimplePlots/`.
 3. Lege vor der ersten Weltgenerierung bei Bedarf das Raster fest, etwa mit `plot admin grid 48 7` in der Konsole.
 4. Erstelle die Welt mit `plot admin create`. Im Spiel öffnet `/plot world` die Plotwelt; `/plot claim` beansprucht den Plot unter dir.
 
@@ -78,7 +78,7 @@ Der Aufruf funktioniert unabhängig vom aktuellen Arbeitsverzeichnis. Er prüft 
 
 Der Build prüft Versionen und Doku, führt die Werkzeugtests und `mvn -pl paper -am clean verify` aus und kontrolliert die fertige JAR. Unter `dist/` liegen anschließend:
 
-- `SimplePlots-v0.5.1-alpha.jar` – installierbares Plugin.
+- `SimplePlots-v0.5.2-alpha.jar` – installierbares Plugin.
 - `SHA256SUMS.txt` – SHA-256 der exakt geprüften JAR.
 - `RELEASE_NOTES.md` – Veröffentlichungstext aus dem aktuellen Changelog.
 
@@ -93,7 +93,7 @@ python scripts/check-version.py --jar
 python scripts/prepare-release.py
 ```
 
-Die Maven-Ausgabe bleibt `paper/target/SimplePlots-v0.5.1-alpha.jar`. Für gezielte Kerntests genügt `mvn -pl common -am test`. Der vollständige Build führt alle Tests aus; schnelle Maven-Aufrufe für die Entwicklung sind separat möglich.
+Die Maven-Ausgabe bleibt `paper/target/SimplePlots-v0.5.2-alpha.jar`. Für gezielte Kerntests genügt `mvn -pl common -am test`. Der vollständige Build führt alle Tests aus; schnelle Maven-Aufrufe für die Entwicklung sind separat möglich.
 
 `mvn -Pcoverage -pl paper -am clean verify` erzeugt zusätzlich JaCoCo-Berichte unter `common/target/site/jacoco/` und `paper/target/site/jacoco/`. Die CI führt diese Messung auf Windows und Linux aus und stellt die Berichte als Artefakte bereit. Die [Prüfbereiche und Grenzen](docs/index.html#/qualitaet/pruefungen) sind im Handbuch beschrieben.
 
