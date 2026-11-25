@@ -512,7 +512,7 @@ details>div{padding:14px 18px 2px}
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16"/><path d="M4 12h16"/><path d="M4 17h16"/></svg>
   </button>
   <button class="brand" id="brand" aria-label="Zur Startseite des Handbuchs"><svg class="mark" viewBox="0 0 28 28" aria-hidden="true"><rect width="28" height="28" rx="7" fill="#187850"/><path d="M13 5h2v18h-2zM5 13h18v2H5z" fill="#fff"/><path d="M6 6h5v5H6zm11 0h5v5h-5zM6 17h5v5H6zm11 0h5v5h-5z" fill="#fff" opacity=".5"/></svg>SimplePlots <small>Handbuch</small></button>
-  <span class="ver">v0.5.2-alpha</span>
+  <span class="ver">v0.6.0-alpha</span>
   <div class="grow"></div>
   <button class="search-btn" id="searchBtn" aria-label="Handbuch durchsuchen">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
@@ -532,11 +532,11 @@ details>div{padding:14px 18px 2px}
 
 <section class="page" data-id="ueberblick" data-group="Start" data-title="Überblick und Wegweiser">
   <h1>SimplePlots Handbuch</h1>
-  <p class="lead">Dieses Handbuch begleitet dich von der Einrichtung der Plotwelt bis zur Verwaltung einzelner Plots. Es gilt für SimplePlots v0.5.2-alpha auf Paper. Befehle, Rechte und Einstellungen findest du auch über die Suche.</p>
+  <p class="lead">Dieses Handbuch begleitet dich von der Einrichtung der Plotwelt bis zur Verwaltung einzelner Plots. Es gilt für SimplePlots v0.6.0-alpha auf Paper. Befehle, Rechte und Einstellungen findest du auch über die Suche.</p>
 <div class="hero">
     <div class="hero-copy">
       <p>In der Voreinstellung ist jede Plotfläche 32 × 32 Blöcke groß. Dazwischen liegen sieben Blöcke breite Wege; jeder Spieler kann drei Rasterzellen beanspruchen.</p>
-      <p>Gebaut wird im Survival-Modus mit den eigenen Materialien. Das Beanspruchen eines Plots kostet nichts.</p>
+      <p>Gebaut wird im Survival-Modus mit den eigenen Materialien. Das Beanspruchen eines Plots kostet standardmäßig nichts; optional zieht SimplePlots einen Preis je Rasterzelle direkt über EconomySystem ein.</p>
       <div class="hero-actions">
         <a class="hero-action primary" href="#/installation">Installation starten</a>
         <a class="hero-action" href="#/schnellstart">Ersten Plot beanspruchen</a>
@@ -590,13 +590,13 @@ details>div{padding:14px 18px 2px}
 <section class="page" data-id="installation" data-group="Start" data-title="Installation">
   <h1>Installation</h1>
   <p class="lead">Für eine neue Installation brauchst du Paper für Minecraft 26.1.2 und Java 25. Wenn du von PlotSystem wechselst, folge der eigenen <a href="#/installation/wechsel">Wechselanleitung</a>.</p>
-    <p>Im <a href="https://github.com/thelightrixx/SimplePlots/releases/tag/v0.5.2-alpha">Release v0.5.2-alpha</a> findest du die <a href="https://github.com/thelightrixx/SimplePlots/releases/download/v0.5.2-alpha/SimplePlots-v0.5.2-alpha.jar">Plugin-JAR</a> und die <a href="https://github.com/thelightrixx/SimplePlots/releases/download/v0.5.2-alpha/SHA256SUMS.txt">SHA-256-Prüfsumme</a>.</p>
+    <p>Im <a href="https://github.com/thelightrixx/SimplePlots/releases/tag/v0.6.0-alpha">Release v0.6.0-alpha</a> findest du die <a href="https://github.com/thelightrixx/SimplePlots/releases/download/v0.6.0-alpha/SimplePlots-v0.6.0-alpha.jar">Plugin-JAR</a> und die <a href="https://github.com/thelightrixx/SimplePlots/releases/download/v0.6.0-alpha/SHA256SUMS.txt">SHA-256-Prüfsumme</a>.</p>
   <h2 data-anchor="voraussetzungen">Voraussetzungen</h2>
 <div class="tbl"><table>
   <thead><tr><th scope="col">Einsatz</th><th scope="col">Voraussetzung</th></tr></thead>
   <tbody>
     <tr><td>Server</td><td>Paper für Minecraft <strong>26.1.2</strong>, Java <strong>25</strong>.</td></tr>
-    <tr><td>Zusatzsoftware</td><td>Keine Datenbank und keine weiteren Plugins nötig. LuckPerms ist optional.</td></tr>
+    <tr><td>Zusatzsoftware</td><td>Keine Datenbank und keine weiteren Plugins nötig. LuckPerms ist optional. EconomySystem ist optional und wird für Claim-Preise ohne Vault direkt angebunden.</td></tr>
     <tr><td>Nicht unterstützt</td><td>Folia. Das Plugin ist für eine einzelne schreibende Paper-Instanz ausgelegt.</td></tr>
     <tr><td>Eigener Build</td><td>JDK 25 oder neuer, Maven 3.9.11 und Python 3.10 oder neuer; unter Windows PowerShell 5.1 oder 7.</td></tr>
   </tbody>
@@ -604,7 +604,7 @@ details>div{padding:14px 18px 2px}
   <h2 data-anchor="download-pruefen">Download prüfen</h2>
   <p>Lade die JAR und <code>SHA256SUMS.txt</code> aus demselben Release herunter. Führe den Befehl für dein Betriebssystem im Downloadordner aus. Unter Windows vergleichst du den ausgegebenen Hash vollständig mit dem Eintrag in der Prüfsummendatei; Linux und macOS melden das Ergebnis direkt.</p>
   <h3>Windows PowerShell</h3>
-<pre data-lang="powershell">Get-FileHash -Algorithm SHA256 -LiteralPath .\SimplePlots-v0.5.2-alpha.jar
+<pre data-lang="powershell">Get-FileHash -Algorithm SHA256 -LiteralPath .\SimplePlots-v0.6.0-alpha.jar
 Get-Content -LiteralPath .\SHA256SUMS.txt</pre>
   <h3>Linux</h3>
 <pre data-lang="shell">sha256sum -c SHA256SUMS.txt</pre>
@@ -612,7 +612,7 @@ Get-Content -LiteralPath .\SHA256SUMS.txt</pre>
 <pre data-lang="shell">shasum -a 256 -c SHA256SUMS.txt</pre>
     <h2 data-anchor="neu">Neuen Server einrichten</h2>
     <ol>
-      <li>Lade die JAR aus dem Release herunter oder <a href="#/entwicklung/bauen">baue sie selbst</a>. Prüfe beim Download die SHA-256 und kopiere <code>SimplePlots-v0.5.2-alpha.jar</code> bei gestopptem Server nach <code>plugins/</code>.</li>
+      <li>Lade die JAR aus dem Release herunter oder <a href="#/entwicklung/bauen">baue sie selbst</a>. Prüfe beim Download die SHA-256 und kopiere <code>SimplePlots-v0.6.0-alpha.jar</code> bei gestopptem Server nach <code>plugins/</code>.</li>
       <li>Starte Paper und kontrolliere das Log auf Startfehler. Das grüne SP-Banner nennt Pluginname, Version, Autor und Serverplattform; anschließend bestätigt die Bereitschaftsmeldung den erfolgreichen Plugin-Start.</li>
       <li>Lege ein eigenes Raster fest, bevor ein Spieler die Plotwelt öffnet. Sende etwa <code>plot admin grid 48 7</code> an die Konsole. Standardmäßig sind Plots 32 × 32 Blöcke groß, Wege sieben Blöcke breit und drei Claims pro Spieler erlaubt.</li>
       <li>Erstelle die Plotwelt mit <code>plot admin create</code> in der Konsole oder betrete sie im Spiel mit <code>/plot world</code>. <code>/plot admin info</code> zeigt Raster und Claim-Limit.</li>
@@ -1070,6 +1070,7 @@ lp group plotteam permission set simpleplots.admin.diagnostics true</pre>
   <thead><tr><th scope="col">Aufgabe</th><th scope="col">Datei und vollständige Referenz</th></tr></thead>
   <tbody>
     <tr><td>Claim-Limit, Galerie, Zusammenlegen, Übertragung, Profilgrenzen, Eintrittstitel</td><td><a href="#/config-general">config/general.yml</a></td></tr>
+    <tr><td>Claim-Preise über EconomySystem</td><td><a href="#/config-general/wirtschaft">config/general.yml</a></td></tr>
     <tr><td>Plotgröße, Wegbreite, Boden- und Randmaterialien</td><td><a href="#/config-world">config/world.yml</a></td></tr>
     <tr><td>Natürliche Änderungen und Zensurgrenze</td><td><a href="#/config-protection">config/protection.yml</a></td></tr>
     <tr><td>Wegeflug, eigene Flughöhe und Geschwindigkeit</td><td><a href="#/config-fly">config/fly.yml</a></td></tr>
@@ -1092,7 +1093,7 @@ lp group plotteam permission set simpleplots.admin.diagnostics true</pre>
     <div class="tbl"><table>
       <thead><tr><th scope="col">Datei unter <code>config/</code></th><th scope="col">Einstellungen</th></tr></thead>
       <tbody>
-        <tr><td><code>general.yml</code></td><td>Claim-Limit, Galerie, Zusammenlegen, Besitzerübertragung und Angebotsdauer; maximale Profiltextlängen und Eintrittstitel einschließlich Anzeigedauer.</td></tr>
+        <tr><td><code>general.yml</code></td><td>Claim-Limit, Galerie, Zusammenlegen, Besitzerübertragung und Angebotsdauer; maximale Profiltextlängen und Eintrittstitel einschließlich Anzeigedauer; Claim-Preise über EconomySystem.</td></tr>
         <tr><td><code>world.yml</code></td><td>Raster, Oberfläche, Weg-, Erd- und Untergrundmaterial, Erdlagen und Randstufen; Chunk-Budget für Randarbeiten.</td></tr>
         <tr><td><code>protection.yml</code></td><td>Wachstum, Laubverfall und Feuerausbreitung innerhalb von Claims; rote Zensurstufen und maximale Chunkzahl je Zensurauftrag.</td></tr>
         <tr><td><code>fly.yml</code></td><td>Aktivierung und Geschwindigkeit für Wege und eigene Plots; eigene Flughöhe und Prüfintervall.</td></tr>
@@ -1160,6 +1161,10 @@ symbole:
     <tr><td><code>betreten.einblenden-millis</code></td><td><code>250</code></td><td>Positive Ganzzahl. Einblendzeit in Millisekunden.</td></tr>
     <tr><td><code>betreten.anzeigen-millis</code></td><td><code>2000</code></td><td>Positive Ganzzahl. Sichtbare Dauer in Millisekunden.</td></tr>
     <tr><td><code>betreten.ausblenden-millis</code></td><td><code>500</code></td><td>Positive Ganzzahl. Ausblendzeit in Millisekunden.</td></tr>
+    <tr><td><code>wirtschaft.aktiv</code></td><td><code>false</code></td><td>Bindet EconomySystem beim Start und nach jedem Reload direkt an. Ausgeschaltet bleiben Claims kostenlos.</td></tr>
+    <tr><td><code>wirtschaft.plugin</code></td><td><code>EconomySystem</code></td><td>Name des Bukkit-Plugins, dessen öffentliche Schnittstelle verwendet wird.</td></tr>
+    <tr><td><code>wirtschaft.preis</code></td><td><code>"250.00"</code></td><td>Text mit Punkt als Dezimaltrennzeichen, ab 0. Preis je beanspruchter Rasterzelle. <code>"0"</code> lässt Claims kostenlos.</td></tr>
+    <tr><td><code>wirtschaft.zeitlimit-millis</code></td><td><code>5000</code></td><td>100 bis 30000. Frist für Kontoabruf und Buchung. Läuft sie ab, wird der Claim ohne Abbuchung abgelehnt.</td></tr>
   </tbody>
 </table></div>
 <h2 data-anchor="standard">Mitgelieferte Standarddatei</h2>
@@ -1180,7 +1185,24 @@ betreten:
   titel: true
   einblenden-millis: 250
   anzeigen-millis: 2000
-  ausblenden-millis: 500</pre>
+  ausblenden-millis: 500
+# Bindet EconomySystem direkt an (ohne Vault). Der Preis gilt je beanspruchter Rasterzelle.
+# /plot claim und /plot auto buchen ihn ab; Claims der Verwaltung bleiben kostenlos.
+# plugin nennt das Bukkit-Plugin, zeitlimit-millis begrenzt den Zugriff auf dessen Speicher.
+wirtschaft:
+  aktiv: false
+  plugin: 'EconomySystem'
+  preis: '250.00'
+  zeitlimit-millis: 5000</pre>
+  <h2 data-anchor="wirtschaft">Claim-Preise über EconomySystem</h2>
+  <p>Mit <code>wirtschaft.aktiv: true</code> bucht SimplePlots den Preis je Rasterzelle über die öffentliche Plugin-Schnittstelle von EconomySystem ab. Vault ist weder installiert noch erforderlich. EconomySystem wird über <code>softdepend</code> vor SimplePlots geladen; <code>wirtschaft.plugin</code> nennt seinen Plugin-Namen. Preis und Aktivierung gelten ab dem nächsten <code>/plot admin reload</code>.</p>
+  <ul>
+    <li><code>/plot claim</code>, <code>/plot auto</code> und der Claim-Knopf im Menü buchen den Preis genau einmal ab. Reicht das Guthaben nicht, bleibt der Plot frei, es wird nichts gespeichert und <code>claim.guthaben</code> nennt den formatierten Preis.</li>
+    <li>Der Betrag wird vor der Plotänderung abgebucht. Scheitert die Speicherung danach, erstattet SimplePlots ihn über <code>depositDirect</code> und protokolliert eine fehlgeschlagene Erstattung im Serverlog. Der Plot bleibt in diesem Fall unverändert.</li>
+    <li>Claims der Verwaltung mit <code>/plot admin claim</code> sind kostenlos. Übertragungen und Zusammenlegungen ändern keinen Kontostand.</li>
+    <li>Fehlt EconomySystem oder passt seine Schnittstelle nicht, werden Spielerclaims mit <code>claim.wirtschaft-fehlt</code> abgelehnt; abgebucht wird nichts. Das Startlog nennt den Grund. <code>wirtschaft.aktiv: false</code> oder <code>preis: "0"</code> schalten die Abbuchung vollständig ab.</li>
+    <li>Eingenommene Beträge werden nicht an Dritte weitergegeben. Für Gutschriften, Rückerstattungen und Kontostände bleibt EconomySystem mit <code>/money</code> maßgeblich.</li>
+  </ul>
   <h2 data-anchor="limit">Claim-Limit im laufenden Betrieb ändern</h2>
   <p><code>/plot admin limit 5</code> speichert das neue Limit in dieser Datei und übernimmt es direkt. Alternativ <code>claims.pro-spieler</code> bearbeiten und <code>/plot admin reload</code> ausführen. Zwei zusammengelegte Zellen belegen weiterhin zwei Plätze. Ein niedrigeres Limit entfernt keine vorhandenen Claims.</p>
   <p>Ein ausgeschalteter Funktionsschalter löscht den zugehörigen Spielstand nicht. Bereits veröffentlichte Profile, verbundene Claims und Eigentum bleiben gespeichert. Die konkreten Arbeitsabläufe stehen unter <a href="#/galerie">Galerie</a> und <a href="#/grundstuecke">Zusammenlegen und Übertragen</a>.</p>
@@ -1333,7 +1355,7 @@ kanal: alpha</pre>
   <p>Prüfungen lesen Release-Metadaten aus dem SimplePlots-Repository und melden neue Versionen im Log. Sie laden keine JAR herunter. <code>/plot admin update check</code> startet eine manuelle Prüfung; <code>status</code> zeigt installierte, verfügbare und vorbereitete Version.</p>
   <p><code>/plot admin update apply confirm</code> lädt und prüft ein gefundenes Update und legt die JAR für den nächsten normalen Paper-Start bereit. Dabei werden Prüfsumme, Dateigröße und Plugin-Metadaten geprüft. Ein automatischer Neustart findet nicht statt. Sichere Daten und Welt vor dem Austausch; Einzelheiten zum Update-Ordner stehen unter <a href="#/betrieb/ingame-updater">Ingame-Updater</a>.</p>
   <h2 data-anchor="kanal">Warum Stable nichts findet</h2>
-  <p>SimplePlots v0.5.2-alpha ist ein Vorabrelease. Der Kanal <code>stable</code> bietet keine Alpha-Releases an. Verwende <code>alpha</code>, wenn neuere Alpha-Versionen berücksichtigt werden sollen. Gleiche und ältere Versionen sowie Release-Entwürfe werden übersprungen.</p>
+  <p>SimplePlots v0.6.0-alpha ist ein Vorabrelease. Der Kanal <code>stable</code> bietet keine Alpha-Releases an. Verwende <code>alpha</code>, wenn neuere Alpha-Versionen berücksichtigt werden sollen. Gleiche und ältere Versionen sowie Release-Entwürfe werden übersprungen.</p>
 </section>
 
 <section class="page" data-id="config-messages" data-group="Konfiguration und Rechte" data-title="messages.yml – Texte und Titel">
@@ -1602,6 +1624,16 @@ symbole:
 <section class="page" data-id="changelog" data-group="Betrieb" data-title="Changelog">
   <h1>Changelog</h1>
   <p class="lead">Die neueste Version steht oben. Einträge nennen den dokumentierten Stand und nötige Schritte für bestehende Installationen.</p>
+    <h2 data-anchor="v0-6-0-alpha">v0.6.0-alpha</h2>
+    <p><time datetime="2026-11-25">25.11.2026</time></p>
+    <ul>
+      <li>Claim-Preise lassen sich direkt über EconomySystem abbuchen, ohne Vault. Die Anbindung nutzt dessen öffentliche Plugin-Schnittstelle (<code>economy()</code>, <code>accountAsync</code>, <code>withdraw</code>, <code>depositDirect</code>, <code>currency</code>) und läuft in der bestehenden I/O-Warteschlange statt auf dem Serverthread.</li>
+      <li>Neue Einstellungen unter <code>general.yml: wirtschaft</code>: Aktivierung, Pluginname, Preis je Rasterzelle und Zeitlimit. <code>aktiv: false</code> oder <code>preis: "0"</code> lassen Claims kostenlos; bestehende Konfigurationen erhalten den Abschnitt beim Start automatisch.</li>
+      <li>Reicht das Guthaben nicht, bleibt der Plot frei, es wird nichts gespeichert. Scheitert die Speicherung nach einer Abbuchung, erstattet SimplePlots den Betrag und meldet eine fehlgeschlagene Erstattung im Serverlog.</li>
+      <li>Claims der Verwaltung mit <code>/plot admin claim</code> bleiben kostenlos. Fehlt EconomySystem bei aktivierter Anbindung, werden Spielerclaims mit einer eigenen Meldung abgelehnt, ohne etwas abzubuchen.</li>
+      <li>Neue Nachrichten <code>claim.guthaben</code> und <code>claim.wirtschaft-fehlt</code> ersetzen <code>claim.abgelehnt</code>. Fünf JUnit-Tests sichern Abbuchung, Ablehnung und Erstattung des Kaufpreises.</li>
+    </ul>
+    <p><strong>Update-Hinweis.</strong> Paper stoppen, Plugin-Datenordner und Plotwelt gemeinsam sichern und die JAR durch <code>SimplePlots-v0.6.0-alpha.jar</code> ersetzen. Bestehende Konfigurationen bleiben gültig; beim Start wird <code>wirtschaft</code> mit <code>aktiv: false</code> ergänzt, Claims bleiben also zunächst kostenlos. Für Preise EconomySystem installieren, <code>config/general.yml</code> anpassen und <code>/plot admin reload</code> ausführen. Vault ist nicht erforderlich. Ein Laufzeittest mit installiertem EconomySystem steht noch aus.</p>
     <h2 data-anchor="v0-5-2-alpha">v0.5.2-alpha</h2>
     <p><time datetime="2026-11-21">21.11.2026</time></p>
     <ul>
@@ -1762,7 +1794,7 @@ symbole:
   <h1>Häufige Fragen</h1>
   <p class="lead">Kurze Antworten auf typische Fragen zu Claims, Rechten, Flug und Betrieb.</p>
 <details><summary>Brauche ich LuckPerms oder eine Datenbank?</summary><div><p>Nein. Die Spielerrechte sind standardmäßig erlaubt, Adminrechte standardmäßig für Operatoren. LuckPerms kann Paper-Permissions verwalten, ist aber keine Voraussetzung. Spielstände werden lokal als YAML und Zensursicherungen gespeichert; es gibt derzeit keine Datenbankanbindung.</p></div></details>
-<details><summary>Was kostet ein Claim?</summary><div><p>Claims sind derzeit kostenlos. Es ist keine Economy-Anbindung nötig. <a href="#/schnellstart/claim">/plot auto</a> beansprucht direkt einen freien Plot; du brauchst danach keinen zweiten Claim-Befehl.</p></div></details>
+<details><summary>Was kostet ein Claim?</summary><div><p>Standardmäßig nichts. Mit <code>wirtschaft.aktiv: true</code> in <code>config/general.yml</code> zieht SimplePlots den Preis je Rasterzelle direkt über EconomySystem ein; Vault ist nicht nötig. Ohne erreichbare Anbindung werden Claims dann abgelehnt, ohne etwas abzubuchen. <a href="#/config-general/wirtschaft">Claim-Preise über EconomySystem</a> beschreibt die Einstellungen. <a href="#/schnellstart/claim">/plot auto</a> beansprucht direkt einen freien Plot; du brauchst danach keinen zweiten Claim-Befehl.</p></div></details>
 <details><summary>Behalte ich mein Inventar?</summary><div><p>Ja. Die Plotwelt verwendet das normale Inventar und deine eigenen Materialien. SimplePlots legt kein getrenntes Creative- oder Plotinventar an.</p></div></details>
 <details><summary>Kann ich Plotgröße und Wege später ändern?</summary><div><p>Vor der ersten Weltgenerierung ja, danach bleibt das Raster fest. Materialänderungen gelten für neue Chunks. Die gespeicherten Rastermetadaten zu löschen ist kein unterstützter Umbau; siehe <a href="#/plotwelt/festlegen">Raster festlegen</a>.</p></div></details>
 <details><summary>Warum zählt ein zusammengelegter Plot mehrfach gegen mein Limit?</summary><div><p>Das Limit zählt Rasterzellen. Ein Claim aus drei Zellen belegt drei Plätze. Die Zusammenlegung vereinigt Eigentum und Zugriffsregeln; sie erzeugt keine freien Claim-Plätze.</p></div></details>
@@ -1828,7 +1860,7 @@ python scripts/prepare-release.py</pre>
     <p>Unter Windows erledigt <code>build_all_jars.bat</code> diese Prüfungen einschließlich der PowerShell-Werkzeugtests. Das Skript funktioniert aus jedem Arbeitsverzeichnis und verändert die Plugin-Version nicht. <code>nobump</code> und <code>ci</code> sind als bisherige Aufrufzusätze möglich. Ein eigener Maven-Pfad kann über <code>SIMPLEPLOTS_MVN</code> gesetzt werden; <code>PLOTSYSTEM_MVN</code> bleibt als alter Name lesbar.</p>
     <p>Ohne vorgegebenes Maven und ohne Maven im <code>PATH</code> lädt das Skript Apache Maven 3.9.11 nach <code>.tools/</code>. Die SHA-512 der Distribution ist im Werkzeugskript festgelegt. <code>JAVA_HOME</code> oder der <code>PATH</code> müssen auf JDK 25 oder neuer zeigen. Der geprüfte Build führt alle Tests aus.</p>
     <p><code>paper/target/</code> enthält die Maven-Ausgabe. <code>dist/</code> enthält eine Kopie der exakt geprüften JAR, <code>SHA256SUMS.txt</code> und <code>RELEASE_NOTES.md</code> aus dem aktuellen Changelog. Die JAR-Prüfung kontrolliert Plugin- und Maven-Versionen, die enthaltenen Kernklassen, Java-21-Bytecode, aktuelle Ressourcen und Lizenz. Server- und Testbibliotheken dürfen nicht eingebettet sein.</p>
-    <p><code>common</code> enthält Raster, Rollen, Claim- und Wettbewerbslogik. <code>paper</code> bindet Welt, Befehle, Schutzregeln und YAML-Speicherung an Paper an. <code>PlotKauf.kostenlos()</code> ist der aktuelle Einstiegspunkt für das spätere Geldsystem.</p>
+    <p><code>common</code> enthält Raster, Rollen, Claim- und Wettbewerbslogik. <code>paper</code> bindet Welt, Befehle, Schutzregeln und YAML-Speicherung an Paper an. <code>PlotKauf</code> bildet den Kaufvertrag; <code>PlotKaeufer</code> bucht den Preis über <code>EconomySystemWirtschaft</code> ab und erstattet ihn bei Speicherfehlern. <code>PlotKauf.kostenlos()</code> bleibt für kostenlose Setups und Tests.</p>
     <p><a href="#/qualitaet">Qualität und Architektur</a> beschreibt Zustandsübergänge, I/O, Journal und Prüfumfang. <code>mvn -Pcoverage -pl paper -am clean verify</code> erzeugt zusätzlich Testabdeckungsberichte je Modul.</p>
     <h2 data-anchor="testserver">Lokalen Testserver vorbereiten</h2>
     <pre data-lang="shell">powershell -NoProfile -ExecutionPolicy Bypass -File scripts/dev-test.ps1 -PrepareOnly</pre>

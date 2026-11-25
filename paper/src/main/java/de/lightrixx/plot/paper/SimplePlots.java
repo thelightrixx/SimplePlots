@@ -1,12 +1,13 @@
 package de.lightrixx.plot.paper;
 
-import de.lightrixx.plot.economy.PlotKauf;
 import de.lightrixx.plot.paper.command.PlotAuftraege;
 import de.lightrixx.plot.paper.command.PlotBefehl;
 import de.lightrixx.plot.paper.command.PlotBetrieb;
 import de.lightrixx.plot.paper.config.PlotKonfiguration;
 import de.lightrixx.plot.paper.config.PlotMenueKonfiguration;
 import de.lightrixx.plot.paper.config.PlotNachrichten;
+import de.lightrixx.plot.paper.economy.EconomySystemWirtschaft;
+import de.lightrixx.plot.paper.economy.PlotKaeufer;
 import de.lightrixx.plot.paper.gui.PlotMenue;
 import de.lightrixx.plot.paper.listener.PlotBauListener;
 import de.lightrixx.plot.paper.listener.PlotMechanikListener;
@@ -56,7 +57,9 @@ public final class SimplePlots extends JavaPlugin {
             var texte = new PlotNachrichten(this);
             var gui = new PlotMenueKonfiguration(this);
             konfiguration.altbestandArchivieren();
-            var plots = new PlotDienst(new PlotYamlSpeicher(datenordner.resolve("plots.yml")), PlotKauf.kostenlos());
+            var wirtschaft = new EconomySystemWirtschaft(konfiguration, getSLF4JLogger());
+            var plots = new PlotDienst(new PlotYamlSpeicher(datenordner.resolve("plots.yml")),
+                    new PlotKaeufer(wirtschaft, konfiguration, getSLF4JLogger()));
             var welt = new PlotWelt(this, konfiguration, plots, datenordner.resolve("welt.yml"));
             var wettbewerbe = new WettbewerbDienst(new WettbewerbYamlSpeicher(datenordner.resolve("wettbewerb.yml")), plots);
             auftraege = new PlotAuftraege(this, texte);
@@ -65,7 +68,10 @@ public final class SimplePlots extends JavaPlugin {
             flug = new PlotFlug(this, welt, plots, texte);
             updater = new PlotUpdater(this, konfiguration, texte, datenordner.getParent().resolve(getFile().getName()));
             var zensur = new PlotZensur(this, welt, plots, auftraege, texte, menue::schliessen);
-            betrieb.nachReload(() -> updater.planen(false));
+            betrieb.nachReload(() -> {
+                updater.planen(false);
+                wirtschaft.neuBinden();
+            });
 
             pluginManager.registerEvents(new PlotBauListener(welt, plots, wettbewerbe), this);
             pluginManager.registerEvents(new PlotMechanikListener(welt, plots, wettbewerbe), this);
@@ -79,7 +85,7 @@ public final class SimplePlots extends JavaPlugin {
             updater.planen(true);
 
             var befehl = new PlotBefehl(getServer(), getSLF4JLogger(), plots, welt, konfiguration, texte, menue, wettbewerbe,
-                    auftraege, betrieb);
+                    auftraege, betrieb, wirtschaft);
             befehl.funktionen(flug, updater, zensur);
             var plotBefehl = Objects.requireNonNull(getCommand("plot"), "/plot fehlt in plugin.yml");
             plotBefehl.setExecutor(befehl);

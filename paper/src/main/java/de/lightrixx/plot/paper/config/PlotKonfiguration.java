@@ -8,6 +8,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -164,10 +165,21 @@ public final class PlotKonfiguration {
                 case "fly.eigener-plot.hoehe" -> 1024;
                 case "fly.pruefintervall-ticks", "world.rand-chunks-pro-tick" -> 100;
                 case "updates.intervall-minuten" -> 10080;
+                case "general.wirtschaft.zeitlimit-millis" -> 30000;
                 default -> Integer.MAX_VALUE;
             };
-            if (zahl < 1 || zahl > maximum) {
-                throw new IOException(key + ": Erwartet 1 bis " + maximum);
+            int minimum = key.equals("general.wirtschaft.zeitlimit-millis") ? 100 : 1;
+            if (zahl < minimum || zahl > maximum) {
+                throw new IOException(key + ": Erwartet " + minimum + " bis " + maximum);
+            }
+        }
+        if (key.equals("general.wirtschaft.preis")) {
+            try {
+                if (new BigDecimal((String) wert).signum() < 0) {
+                    throw new NumberFormatException("negativ");
+                }
+            } catch (NumberFormatException e) {
+                throw new IOException(key + ": Betrag als Text mit Punkt als Dezimaltrennzeichen erwartet, etwa \"250.00\".");
             }
         }
         if (wert instanceof Number zahl && key.endsWith("geschwindigkeit")
@@ -204,6 +216,7 @@ public final class PlotKonfiguration {
     public boolean aktiv(String key) { return werte.aktiv(key); }
     public int zahl(String key) { return werte.zahl(key); }
     public double dezimal(String key) { return ((Number) werte.optionen().get(key)).doubleValue(); }
+    public BigDecimal betrag(String key) { return new BigDecimal(text(key)); }
     public String text(String key) { return (String) werte.optionen().get(key); }
     public Material material(String key) { return Material.matchMaterial(text(key)); }
 

@@ -112,8 +112,21 @@ public final class PlotDienst {
     public boolean hatZensiertePlots() { return bestand.hatZensiertePlots(); }
 
     public synchronized ClaimErgebnis claim(PlotId id, UUID besitzer, int limit) throws IOException {
+        return claim(id, new PlotKauf.Kaeufer(besitzer, null), limit);
+    }
+
+    public synchronized ClaimErgebnis claim(PlotId id, PlotKauf.Kaeufer kaeufer, int limit) throws IOException {
+        Objects.requireNonNull(kaeufer, "Käufer");
+        return claimMit(id, kaeufer, limit, kauf);
+    }
+
+    /** Zuweisungen durch die Verwaltung buchen keinen Kaufpreis ab. */
+    public synchronized ClaimErgebnis claimKostenlos(PlotId id, UUID besitzer, int limit) throws IOException {
+        return claimMit(id, new PlotKauf.Kaeufer(besitzer, null), limit, PlotKauf.kostenlos());
+    }
+
+    private ClaimErgebnis claimMit(PlotId id, PlotKauf.Kaeufer kaeufer, int limit, PlotKauf zahlung) throws IOException {
         Objects.requireNonNull(id, "Plot-ID");
-        Objects.requireNonNull(besitzer, "Besitzer");
         if (limit < 1) {
             throw new IllegalArgumentException("Das Claim-Limit muss mindestens 1 sein.");
         }
@@ -121,12 +134,15 @@ public final class PlotDienst {
         if (aktuell.zellen().containsKey(id)) {
             return ClaimErgebnis.BELEGT;
         }
-        if (aktuell.belegteZellen().getOrDefault(besitzer, 0L) >= limit) {
+        if (aktuell.belegteZellen().getOrDefault(kaeufer.id(), 0L) >= limit) {
             return ClaimErgebnis.LIMIT;
         }
-        Plot plot = Plot.neu(id, besitzer);
-        return kauf.abschliessen(besitzer, id, () -> uebernehmen(plot))
-                ? ClaimErgebnis.CLAIMED : ClaimErgebnis.ABGELEHNT;
+        Plot plot = Plot.neu(id, kaeufer.id());
+        return switch (zahlung.abschliessen(kaeufer, id, () -> uebernehmen(plot))) {
+            case GEKAUFT -> ClaimErgebnis.CLAIMED;
+            case KEIN_GELD -> ClaimErgebnis.KEIN_GELD;
+            case NICHT_VERFUEGBAR -> ClaimErgebnis.WIRTSCHAFT_FEHLT;
+        };
     }
 
     public synchronized PlotId naechsterFreierPlot() {
@@ -346,7 +362,7 @@ public final class PlotDienst {
     }
 
     public enum ClaimErgebnis {
-        CLAIMED, BELEGT, LIMIT, ABGELEHNT
+        CLAIMED, BELEGT, LIMIT, KEIN_GELD, WIRTSCHAFT_FEHLT
     }
 
     public enum RollenErgebnis {

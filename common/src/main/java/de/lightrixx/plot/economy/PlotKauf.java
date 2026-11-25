@@ -3,6 +3,7 @@ package de.lightrixx.plot.economy;
 import de.lightrixx.plot.model.PlotId;
 
 import java.io.IOException;
+import java.util.Objects;
 import java.util.UUID;
 
 @FunctionalInterface
@@ -12,13 +13,24 @@ public interface PlotKauf {
      * Eine Ablehnung lässt den Speicher unangetastet. Eine kostenpflichtige Implementierung
      * muss Abbuchung und Speicherung auch bei Fehlern konsistent halten.
      */
-    boolean abschliessen(UUID spieler, PlotId plot, Speicherung speicherung) throws IOException;
+    KaufErgebnis abschliessen(Kaeufer kaeufer, PlotId plot, Speicherung speicherung) throws IOException;
 
     static PlotKauf kostenlos() {
-        return (spieler, plot, speicherung) -> {
+        return (kaeufer, plot, speicherung) -> {
             speicherung.speichern();
-            return true;
+            return KaufErgebnis.GEKAUFT;
         };
+    }
+
+    enum KaufErgebnis {
+        GEKAUFT, KEIN_GELD, NICHT_VERFUEGBAR
+    }
+
+    record Kaeufer(UUID id, String name) {
+        public Kaeufer {
+            Objects.requireNonNull(id, "Spieler-ID");
+            name = name == null || name.isBlank() ? id.toString() : name;
+        }
     }
 
     @FunctionalInterface

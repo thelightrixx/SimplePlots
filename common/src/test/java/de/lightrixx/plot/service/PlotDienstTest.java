@@ -34,10 +34,10 @@ class PlotDienstTest {
     @Test
     void reserviertNurFreiePlotsInnerhalbDesLimits() throws IOException {
         var aufrufe = new AtomicInteger();
-        var dienst = new PlotDienst(speicher, (spieler, plot, speichern) -> {
+        var dienst = new PlotDienst(speicher, (kaeufer, plot, speichern) -> {
             aufrufe.incrementAndGet();
             speichern.speichern();
-            return true;
+            return PlotKauf.KaufErgebnis.GEKAUFT;
         });
         assertEquals(id, dienst.naechsterFreierPlot());
         assertEquals(CLAIMED, dienst.claim(id, besitzer, 1));
@@ -78,11 +78,20 @@ class PlotDienstTest {
     }
 
     @Test
-    void belaesstDenSpeicherBeiAbgelehntemKauf() throws IOException {
-        var dienst = new PlotDienst(speicher, (spieler, plot, speichern) -> false);
-        assertEquals(ABGELEHNT, dienst.claim(id, besitzer, 1));
+    void belaesstDenSpeicherBeiFehlendemGuthaben() throws IOException {
+        var dienst = new PlotDienst(speicher, (kaeufer, plot, speichern) -> PlotKauf.KaufErgebnis.KEIN_GELD);
+        assertEquals(KEIN_GELD, dienst.claim(id, besitzer, 1));
         assertTrue(dienst.finden(id).isEmpty());
         assertTrue(speicher.laden().isEmpty());
+    }
+
+    @Test
+    void weistVerwaltungsClaimsOhneKaufpreisZu() throws IOException {
+        var dienst = new PlotDienst(speicher, (kaeufer, plot, speichern) -> {
+            throw new AssertionError("Verwaltungs-Claims dürfen nichts abbuchen.");
+        });
+        assertEquals(CLAIMED, dienst.claimKostenlos(id, besitzer, 1));
+        assertEquals(1, dienst.anzahlPlots());
     }
 
     @Test

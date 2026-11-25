@@ -3,6 +3,7 @@ version: ${project.version}
 main: de.lightrixx.plot.paper.SimplePlots
 api-version: '26.1'
 folia-supported: false
+softdepend: [EconomySystem]
 description: Plotwelt mit Claims, Rollen, Flugregeln und Moderation.
 commands:
   plot:

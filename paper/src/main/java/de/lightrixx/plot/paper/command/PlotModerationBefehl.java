@@ -72,7 +72,7 @@ final class PlotModerationBefehl {
             } catch (ArithmeticException e) { texte.senden(sender, "fehler.plot-id"); return; }
             welt.ladenOderErstellen();
             spielerId(sender, args[3]).ifPresent(ziel -> auftraege.ausfuehren(sender, "/plot admin claim",
-                    () -> plots.claim(id, ziel, Integer.MAX_VALUE), ergebnis -> {
+                    () -> plots.claimKostenlos(id, ziel, Integer.MAX_VALUE), ergebnis -> {
                         texte.senden(sender, ergebnis == PlotDienst.ClaimErgebnis.CLAIMED ? "moderation.gespeichert" : "claim.belegt",
                                 unparsed("id", id.toString()));
                         menue.schliessen();

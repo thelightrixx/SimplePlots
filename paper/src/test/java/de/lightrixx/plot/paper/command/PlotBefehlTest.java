@@ -3,6 +3,7 @@ package de.lightrixx.plot.paper.command;
 import de.lightrixx.plot.paper.PlotBerechtigungen;
 import de.lightrixx.plot.paper.config.PlotKonfiguration;
 import de.lightrixx.plot.paper.config.PlotNachrichten;
+import de.lightrixx.plot.paper.economy.Wirtschaft;
 import de.lightrixx.plot.paper.gui.PlotMenue;
 import de.lightrixx.plot.paper.world.PlotWelt;
 import de.lightrixx.plot.service.PlotDienst;
@@ -30,7 +31,8 @@ class PlotBefehlTest {
     private final PlotAuftraege auftraege = mock(PlotAuftraege.class);
     private final PlotBetrieb betrieb = mock(PlotBetrieb.class);
     private final PlotBefehl befehl = new PlotBefehl(mock(Server.class), mock(Logger.class), plots, welt,
-            mock(PlotKonfiguration.class), texte, menue, mock(WettbewerbDienst.class), auftraege, betrieb);
+            mock(PlotKonfiguration.class), texte, menue, mock(WettbewerbDienst.class), auftraege, betrieb,
+            mock(Wirtschaft.class));
 
     @Test
     void verweigertBefehleOhneBasisrechtBevorSieZustandAnfassen() {

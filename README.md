@@ -1,8 +1,8 @@
-# SimplePlots v0.5.2-alpha
+# SimplePlots v0.6.0-alpha
 
 SimplePlots ergänzt einen Paper-Server um eine separate Survival-Plotwelt mit Claims, Baurechten, Plotgalerie und Bauwettbewerben. Spieler behalten beim Weltwechsel ihr Inventar.
 
-Version v0.5.2-alpha ergänzt ein grünes SP-Konsolenbanner im Stil von PunishSystem mit Pluginname, Version, Autor und Serverplattform.
+Version v0.6.0-alpha verbindet Claim-Preise direkt mit EconomySystem, ohne Vault. Aktivierung, Preis je Rasterzelle und Zeitlimit stehen unter `wirtschaft` in `config/general.yml`; ohne Anbindung bleiben Claims kostenlos.
 
 ## Handbuch
 
@@ -33,11 +33,13 @@ Mit `Strg+K` (macOS: `⌘+K`) oder `/` durchsuchst du das Handbuch einschließli
 | Entwicklung | JDK **25 oder neuer**, Maven **3.9.11**, Python **3.10 oder neuer** |
 | Windows-Werkzeuge | Windows PowerShell **5.1** oder PowerShell **7** |
 
-Folia wird nicht unterstützt. Eine Datenbank und zusätzliche Plugins sind für den aktuellen Funktionsumfang nicht erforderlich. Claims sind derzeit kostenlos.
+Folia wird nicht unterstützt. Eine Datenbank und zusätzliche Plugins sind nicht erforderlich. Claims sind standardmäßig kostenlos; optional bucht SimplePlots einen Preis je Rasterzelle direkt über EconomySystem ab. Vault wird dafür nicht benötigt.
 
-Im [Release v0.5.2-alpha](https://github.com/thelightrixx/SimplePlots/releases/tag/v0.5.2-alpha) findest du die [Plugin-JAR](https://github.com/thelightrixx/SimplePlots/releases/download/v0.5.2-alpha/SimplePlots-v0.5.2-alpha.jar) und die [SHA-256-Prüfsumme](https://github.com/thelightrixx/SimplePlots/releases/download/v0.5.2-alpha/SHA256SUMS.txt).
+Für Preise wird EconomySystem über `softdepend` vor SimplePlots geladen. `wirtschaft.aktiv: true` schaltet die Abbuchung ein, `wirtschaft.preis` legt den Betrag je Rasterzelle fest. Reicht das Guthaben nicht oder fehlt die Anbindung, bleibt der Plot frei und es wird nichts gespeichert. Scheitert die Speicherung nach einer Abbuchung, erstattet SimplePlots den Betrag. Claims der Verwaltung bleiben kostenlos.
 
-1. Lade die JAR aus dem Release herunter oder [baue sie selbst](#bauen-und-prüfen). Prüfe beim Download die SHA-256 und kopiere `SimplePlots-v0.5.2-alpha.jar` bei gestopptem Server nach `plugins/`.
+Im [Release v0.6.0-alpha](https://github.com/thelightrixx/SimplePlots/releases/tag/v0.6.0-alpha) findest du die [Plugin-JAR](https://github.com/thelightrixx/SimplePlots/releases/download/v0.6.0-alpha/SimplePlots-v0.6.0-alpha.jar) und die [SHA-256-Prüfsumme](https://github.com/thelightrixx/SimplePlots/releases/download/v0.6.0-alpha/SHA256SUMS.txt).
+
+1. Lade die JAR aus dem Release herunter oder [baue sie selbst](#bauen-und-prüfen). Prüfe beim Download die SHA-256 und kopiere `SimplePlots-v0.6.0-alpha.jar` bei gestopptem Server nach `plugins/`.
 2. Starte Paper und prüfe das Log mit dem grünen SP-Banner und der anschließenden Bereitschaftsmeldung. Die Konfiguration entsteht unter `plugins/SimplePlots/`.
 3. Lege vor der ersten Weltgenerierung bei Bedarf das Raster fest, etwa mit `plot admin grid 48 7` in der Konsole.
 4. Erstelle die Welt mit `plot admin create`. Im Spiel öffnet `/plot world` die Plotwelt; `/plot claim` beansprucht den Plot unter dir.
@@ -78,7 +80,7 @@ Der Aufruf funktioniert unabhängig vom aktuellen Arbeitsverzeichnis. Er prüft 
 
 Der Build prüft Versionen und Doku, führt die Werkzeugtests und `mvn -pl paper -am clean verify` aus und kontrolliert die fertige JAR. Unter `dist/` liegen anschließend:
 
-- `SimplePlots-v0.5.2-alpha.jar` – installierbares Plugin.
+- `SimplePlots-v0.6.0-alpha.jar` – installierbares Plugin.
 - `SHA256SUMS.txt` – SHA-256 der exakt geprüften JAR.
 - `RELEASE_NOTES.md` – Veröffentlichungstext aus dem aktuellen Changelog.
 
@@ -93,7 +95,7 @@ python scripts/check-version.py --jar
 python scripts/prepare-release.py
 ```
 
-Die Maven-Ausgabe bleibt `paper/target/SimplePlots-v0.5.2-alpha.jar`. Für gezielte Kerntests genügt `mvn -pl common -am test`. Der vollständige Build führt alle Tests aus; schnelle Maven-Aufrufe für die Entwicklung sind separat möglich.
+Die Maven-Ausgabe bleibt `paper/target/SimplePlots-v0.6.0-alpha.jar`. Für gezielte Kerntests genügt `mvn -pl common -am test`. Der vollständige Build führt alle Tests aus; schnelle Maven-Aufrufe für die Entwicklung sind separat möglich.
 
 `mvn -Pcoverage -pl paper -am clean verify` erzeugt zusätzlich JaCoCo-Berichte unter `common/target/site/jacoco/` und `paper/target/site/jacoco/`. Die CI führt diese Messung auf Windows und Linux aus und stellt die Berichte als Artefakte bereit. Die [Prüfbereiche und Grenzen](docs/index.html#/qualitaet/pruefungen) sind im Handbuch beschrieben.
 

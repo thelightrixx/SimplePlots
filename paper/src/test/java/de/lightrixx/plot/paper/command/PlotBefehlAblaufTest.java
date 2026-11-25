@@ -7,6 +7,7 @@ import de.lightrixx.plot.model.PlotRechte;
 import de.lightrixx.plot.paper.PlotBerechtigungen;
 import de.lightrixx.plot.paper.config.PlotKonfiguration;
 import de.lightrixx.plot.paper.config.PlotNachrichten;
+import de.lightrixx.plot.paper.economy.Wirtschaft;
 import de.lightrixx.plot.paper.gui.PlotMenue;
 import de.lightrixx.plot.paper.storage.PlotYamlSpeicher;
 import de.lightrixx.plot.paper.storage.WettbewerbYamlSpeicher;
@@ -127,7 +128,7 @@ class PlotBefehlAblaufTest {
             throw new AssertionError("Unerwarteter Speicherfehler im Befehlsablauf", (Throwable) aufruf.getArgument(3));
         }).when(log).error(anyString(), any(), any(), any());
         befehl = new PlotBefehl(server, log, plots, welt, konfiguration, texte, menue,
-                wettbewerbe, auftraege, mock(PlotBetrieb.class));
+                wettbewerbe, auftraege, mock(PlotBetrieb.class), mock(Wirtschaft.class));
         befehl.funktionen(mock(de.lightrixx.plot.paper.listener.PlotFlug.class),
                 mock(de.lightrixx.plot.paper.update.PlotUpdater.class), mock(de.lightrixx.plot.paper.world.PlotZensur.class));
     }

@@ -1,11 +1,13 @@
 package de.lightrixx.plot.paper.command;
 
+import de.lightrixx.plot.economy.PlotKauf;
 import de.lightrixx.plot.model.Plot;
 import de.lightrixx.plot.model.PlotId;
 import de.lightrixx.plot.model.PlotProfil.Kategorie;
 import de.lightrixx.plot.paper.PlotBerechtigungen;
 import de.lightrixx.plot.paper.config.PlotKonfiguration;
 import de.lightrixx.plot.paper.config.PlotNachrichten;
+import de.lightrixx.plot.paper.economy.Wirtschaft;
 import de.lightrixx.plot.paper.gui.PlotMenue;
 import de.lightrixx.plot.paper.listener.PlotFlug;
 import de.lightrixx.plot.paper.update.PlotUpdater;
@@ -59,11 +61,12 @@ public final class PlotBefehl implements TabExecutor {
     private final PlotAuftraege auftraege;
     private final PlotUebertragung uebertragung;
     private final WettbewerbDienst wettbewerbe;
+    private final Wirtschaft wirtschaft;
     private PlotFlug flug;
 
     public PlotBefehl(Server server, Logger log, PlotDienst plots, PlotWelt welt,
                       PlotKonfiguration konfiguration, PlotNachrichten texte, PlotMenue menue, WettbewerbDienst wettbewerbe,
-                      PlotAuftraege auftraege, PlotBetrieb betrieb) {
+                      PlotAuftraege auftraege, PlotBetrieb betrieb, Wirtschaft wirtschaft) {
         this.server = server;
         this.log = log;
         this.plots = plots;
@@ -72,6 +75,7 @@ public final class PlotBefehl implements TabExecutor {
         this.texte = texte;
         this.auftraege = auftraege;
         this.wettbewerbe = wettbewerbe;
+        this.wirtschaft = wirtschaft;
         this.admin = new PlotAdminBefehl(konfiguration, welt, texte, betrieb);
         this.menue = menue;
         this.verwaltung = new PlotVerwaltungBefehl(plots, welt, texte, wettbewerbe, auftraege);
@@ -213,14 +217,17 @@ public final class PlotBefehl implements TabExecutor {
         }
         int limit = konfiguration.claimLimit();
         UUID besitzer = spieler.getUniqueId();
+        var kaeufer = new PlotKauf.Kaeufer(besitzer, spieler.getName());
         auftraege.ausfuehren(spieler, "/plot " + (auto ? "auto" : "claim"), () -> {
             PlotId ziel = auto ? plots.naechsterFreierPlot() : id.orElseThrow();
-            return new ClaimAntwort(ziel, plots.claim(ziel, besitzer, limit));
+            return new ClaimAntwort(ziel, plots.claim(ziel, kaeufer, limit));
         }, antwort -> {
             switch (antwort.ergebnis()) {
                 case BELEGT -> texte.senden(spieler, "claim.belegt", unparsed("id", antwort.id().toString()));
                 case LIMIT -> texte.senden(spieler, "claim.limit", unparsed("limit", Integer.toString(limit)));
-                case ABGELEHNT -> texte.senden(spieler, "claim.abgelehnt");
+                case KEIN_GELD -> texte.senden(spieler, "claim.guthaben", unparsed("preis",
+                        wirtschaft.formatiere(konfiguration.betrag("general.wirtschaft.preis"))));
+                case WIRTSCHAFT_FEHLT -> texte.senden(spieler, "claim.wirtschaft-fehlt");
                 case CLAIMED -> {
                     texte.senden(spieler, "claim.erfolg", unparsed("id", antwort.id().toString()));
                     if (auto && spieler.isOnline() && plotModus(spieler)) {

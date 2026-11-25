@@ -11,6 +11,15 @@ uebertragung:
 profil:
   name-laenge: 32
   beschreibung-laenge: 120
+# Bindet EconomySystem direkt an (ohne Vault). Der Preis gilt je beanspruchter Rasterzelle.
+# /plot claim und /plot auto buchen ihn ab; Claims der Verwaltung bleiben kostenlos.
+# plugin nennt das Bukkit-Plugin, zeitlimit-millis begrenzt den Zugriff auf dessen Speicher.
+wirtschaft:
+  aktiv: false
+  plugin: 'EconomySystem'
+  preis: '250.00'
+  zeitlimit-millis: 5000
+
 betreten:
   titel: true
   einblenden-millis: 250

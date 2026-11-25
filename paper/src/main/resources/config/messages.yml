@@ -34,7 +34,8 @@ teleport:
 claim:
   belegt: 'Plot <yellow><id></yellow> ist bereits beansprucht.'
   limit: 'Du hast dein Limit von <yellow><limit></yellow> Plots erreicht.'
-  abgelehnt: '<red>Der Claim wurde abgelehnt.</red>'
+  guthaben: 'Dieser Claim kostet <yellow><preis></yellow>. Dein Guthaben reicht nicht.'
+  wirtschaft-fehlt: '<red>Die Wirtschaft ist derzeit nicht verfügbar. Es wurde nichts abgebucht.</red>'
   erfolg: 'Plot <yellow><id></yellow> gehört jetzt dir.'
 
 liste:
