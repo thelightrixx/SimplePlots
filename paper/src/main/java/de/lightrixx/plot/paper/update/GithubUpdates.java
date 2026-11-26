@@ -35,12 +35,22 @@ public final class GithubUpdates {
     GithubUpdates(Abruf abruf, String minecraft) { this.abruf = abruf; this.minecraft = minecraft; }
 
     public Optional<Release> pruefen(String installiert, boolean vorab) throws IOException {
+        return pruefen(installiert, vorab ? "alpha" : "stable");
+    }
+
+    public Optional<Release> pruefen(String installiert, String kanal) throws IOException {
         String json = new String(abruf.laden(URI.create("https://api.github.com/repos/" + REPO + "/releases?per_page=30"),
                 2 * 1024 * 1024), StandardCharsets.UTF_8);
-        return auswerten(json, installiert, vorab);
+        return auswerten(json, installiert, kanal);
     }
 
     static Optional<Release> auswerten(String json, String installiert, boolean vorab) throws IOException {
+        return auswerten(json, installiert, vorab ? "alpha" : "stable");
+    }
+
+    static Optional<Release> auswerten(String json, String installiert, String kanal) throws IOException {
+        if (!List.of("stable", "beta", "alpha").contains(kanal)) throw new IOException("Ungültiger Update-Kanal.");
+        boolean vorab = !kanal.equals("stable");
         var optionen = new LoaderOptions();
         optionen.setAllowDuplicateKeys(false);
         optionen.setCodePointLimit(2 * 1024 * 1024);
@@ -60,6 +70,8 @@ public final class GithubUpdates {
                     continue;
                 }
                 if (vergleich.compareTo(aktuelle) <= 0 || (!vorab && !vergleich.vorab().isEmpty())) continue;
+                if (kanal.equals("beta") && !vergleich.vorab().isEmpty()
+                        && !List.of("beta", "rc").contains(vergleich.vorab().getFirst())) continue;
                 if (!(release.get("assets") instanceof List<?> assets)) throw new IOException("Release-Dateien fehlen.");
                 String name = "SimplePlots-" + version + ".jar";
                 Map<?, ?> jar = asset(assets, name), sums = asset(assets, "SHA256SUMS.txt");

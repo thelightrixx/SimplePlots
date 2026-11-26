@@ -90,6 +90,24 @@ class PlotMenueKonfigurationTest {
     }
 
     @Test
+    void schreibtDenBeimReloadErgaenztenFlugslotUndBehaeltEigeneWerte() throws IOException {
+        Path pfad = ordner.resolve("gui.yml");
+        var gui = laden(pfad);
+        var datei = new de.lightrixx.plot.paper.storage.YamlDatei(pfad);
+        var yaml = datei.laden().orElseThrow();
+        yaml.set("hauptmenue.slots.flug", null);
+        yaml.set("hauptmenue.slots.eigene", 22);
+        yaml.set("zusatz", "behalten");
+        datei.speichern(yaml);
+        String vorher = Files.readString(pfad);
+        var neu = gui.vorbereiten();
+        assertNotEquals(22, neu.hauptslots().get("flug"));
+        assertEquals(neu.hauptslots().get("flug"), datei.laden().orElseThrow().getInt("hauptmenue.slots.flug"));
+        assertEquals("behalten", datei.laden().orElseThrow().getString("zusatz"));
+        assertEquals(vorher, Files.readString(ordner.resolve("gui.yml.bak")));
+    }
+
+    @Test
     void behaeltAngepassteNeueMenuesBeiUndLehntUngueltigeAltmenuesAb() throws IOException {
         Path ziel = ordner.resolve("config/gui.yml");
         Files.writeString(ordner.resolve("gui.yml"), "hauptmenue:\n  slots:\n    eigene: 27\n");

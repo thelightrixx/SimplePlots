@@ -18,11 +18,13 @@ import java.util.Map;
 final class PlotWegrand {
     private static final NamespacedKey RAND = new NamespacedKey("simpleplots", "wegrand");
     private static final NamespacedKey RAND_TYP = new NamespacedKey("simpleplots", "wegrand-material");
+    private static final NamespacedKey INNENWEG = new NamespacedKey("simpleplots", "innenweg");
     private static final Material RAND_MATERIAL = Material.STONE_BRICK_SLAB;
     private static final int HOEHE = PlotGenerator.BODEN_Y + 1;
     private static final byte KEIN_RAND = 0;
     private static final byte VORGESEHEN = 1;
     private static final byte GESETZT = 2;
+    private static final byte ENTFERNT = 3;
     private static final int CHUNKS_PRO_TICK = 8;
     private final PlotDienst plots;
     private final PlotKonfiguration konfiguration;
@@ -71,6 +73,8 @@ final class PlotWegrand {
         if (rand == null || rand.length != 256) {
             rand = new byte[256];
         }
+        byte[] innenwege = daten.get(INNENWEG, PersistentDataType.BYTE_ARRAY);
+        if (innenwege == null || innenwege.length != 256) innenwege = new byte[256];
         boolean geaendert = false;
         Material material = konfiguration == null ? RAND_MATERIAL : konfiguration.material("world.material.rand");
         Material weg = konfiguration == null ? Material.STONE_BRICKS : konfiguration.material("world.material.weg");
@@ -80,20 +84,32 @@ final class PlotWegrand {
             for (int z = 0; z < 16; z++) {
                 int index = x * 16 + z;
                 byte alt = rand[index];
-                boolean wegrand = plots.istWegrand(raster, chunk.getX() * 16 + x, chunk.getZ() * 16 + z);
-                if (wegrand == (alt != KEIN_RAND) && (bisher == material || alt != GESETZT)) {
+                int blockX = chunk.getX() * 16 + x, blockZ = chunk.getZ() * 16 + z;
+                boolean innenweg = raster.istWeg(blockX, blockZ) && plots.plotBei(raster, blockX, blockZ).isPresent();
+                if (innenwege[index] != (innenweg ? 1 : 0)) {
+                    if (!innenweg) {
+                        Block boden = chunk.getBlock(x, PlotGenerator.BODEN_Y, z);
+                        Material oberflaeche = konfiguration == null ? Material.GRASS_BLOCK : konfiguration.material("world.material.oberflaeche");
+                        if (boden.getType() == oberflaeche) boden.setType(weg, false);
+                    }
+                    innenwege[index] = (byte) (innenweg ? 1 : 0);
+                    geaendert = true;
+                }
+                boolean wegrand = plots.istWegrand(raster, blockX, blockZ);
+                if ((!wegrand && alt == KEIN_RAND) || (wegrand && alt == ENTFERNT)) {
                     continue;
                 }
                 Block block = chunk.getBlock(x, HOEHE, z);
                 if (wegrand) {
-                    if (alt == GESETZT && block.getType() == bisher && block.getBlockData() instanceof Slab slab
+                    if (alt == GESETZT && bisher != material && block.getType() == bisher && block.getBlockData() instanceof Slab slab
                             && slab.getType() == Slab.Type.BOTTOM && !slab.isWaterlogged()) {
                         block.setType(material, false);
                         geaendert = true;
                         continue;
                     }
+                    if (alt == GESETZT && block.getType() == material) continue;
                     rand[index] = VORGESEHEN;
-                    if (block.getType().isAir() && chunk.getBlock(x, PlotGenerator.BODEN_Y, z).getType() == weg) {
+                    if (block.isEmpty() && chunk.getBlock(x, PlotGenerator.BODEN_Y, z).getType() == weg) {
                         block.setType(material, false);
                         rand[index] = GESETZT;
                     }
@@ -110,8 +126,10 @@ final class PlotWegrand {
         }
         if (geaendert) {
             daten.set(RAND, PersistentDataType.BYTE_ARRAY, rand);
+            daten.set(INNENWEG, PersistentDataType.BYTE_ARRAY, innenwege);
         }
         if (bisher != material || gespeichert == null) daten.set(RAND_TYP, PersistentDataType.STRING, material.name());
+        PlotBiom.aktualisieren(chunk, raster, plots);
     }
 
     void markierungEntfernen(Block block) {
@@ -119,7 +137,7 @@ final class PlotWegrand {
         byte[] rand = daten.get(RAND, PersistentDataType.BYTE_ARRAY);
         int index = (block.getX() & 15) * 16 + (block.getZ() & 15);
         if (rand != null && rand.length == 256 && rand[index] == GESETZT) {
-            rand[index] = VORGESEHEN;
+            rand[index] = ENTFERNT;
             daten.set(RAND, PersistentDataType.BYTE_ARRAY, rand);
         }
     }

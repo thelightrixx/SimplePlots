@@ -58,7 +58,7 @@ class PlotUpdaterTest {
         when(config.aktiv("updates.aktiviert")).thenReturn(true);
         when(config.text("updates.kanal")).thenReturn("alpha");
         when(sender.hasPermission("simpleplots.admin.update")).thenReturn(true);
-        when(github.pruefen("v0.5.0-alpha", true)).thenReturn(Optional.of(release));
+        when(github.pruefen("v0.5.0-alpha", "alpha")).thenReturn(Optional.of(release));
         when(github.herunterladen(release)).thenReturn(new byte[]{1, 2, 3});
         updater = new PlotUpdater(plugin, config, texte, original, github);
     }

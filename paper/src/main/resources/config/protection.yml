@@ -2,6 +2,11 @@
 zensur-rand: RED_NETHER_BRICK_SLAB
 # Für größere Flächen diese Grenze bewusst erhöhen. Arbeit in kleinen Abschnitten.
 zensur-maximale-chunks: 256
+# Mehrere Abschnitte je Tick; das Zeitbudget begrenzt die Arbeit zusätzlich.
+# Ein einzelner Abschnitt wird immer vollständig beendet. Datei-I/O läuft im Hintergrund.
+# Chunkladen, Entitysicherung und die abschließende Welt-Synchronisierung fallen nicht unter dieses Blockbudget.
+zensur-abschnitte-pro-tick: 8
+zensur-zeitbudget-millis: 4
 # Natürliche Änderungen bleiben auf den jeweiligen Claim beschränkt.
 pflanzenwachstum: true
 laubverfall: true

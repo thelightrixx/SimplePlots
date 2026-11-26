@@ -5,6 +5,7 @@ funktionen:
   galerie: true
   zusammenlegen: true
   uebertragen: true
+  biome: true
 uebertragung:
   gueltigkeit-sekunden: 120
 # Obergrenzen des Datenmodells: Name 32, Beschreibung 120 Zeichen.
@@ -21,6 +22,10 @@ wirtschaft:
   zeitlimit-millis: 5000
 
 betreten:
+  # actionbar zeigt Plotname und Besitzer über der Hotbar; title nutzt den großen Bildschirmtitel.
+  anzeige: actionbar
+  # Bestehender Hauptschalter für die Plot-Anzeige. Zeiten gelten nur für title.
+  # Zensurhinweise werden unabhängig davon angezeigt.
   titel: true
   einblenden-millis: 250
   anzeigen-millis: 2000

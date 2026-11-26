@@ -98,7 +98,7 @@ final class PlotModerationBefehl {
         if (aktion.equals("setowner")) {
             if (args.length != 5 || !args[4].equalsIgnoreCase("confirm")) { hilfe(sender); return; }
             spielerId(sender, args[3]).ifPresent(ziel -> auftraege.ausfuehren(sender, "/plot admin setowner",
-                    () -> plots.uebertragen(id, plot.besitzer(), ziel, Integer.MAX_VALUE, wettbewerbe::gesperrt), ergebnis -> {
+                    () -> plots.uebertragen(plot, ziel, Integer.MAX_VALUE, wettbewerbe::gesperrt), ergebnis -> {
                         texte.senden(sender, "transfer." + ergebnis.name().toLowerCase(Locale.ROOT).replace('_', '-'),
                                 unparsed("id", plot.id().toString()));
                         menue.schliessen();
@@ -107,8 +107,12 @@ final class PlotModerationBefehl {
         }
         if (aktion.equals("unclaim")) {
             if (args.length != 4 || !args[3].equalsIgnoreCase("confirm")) { hilfe(sender); return; }
+            var plotwelt = welt.ladenOderErstellen();
             auftraege.ausfuehren(sender, "/plot admin unclaim", () -> plots.freigeben(id, wettbewerbe::gesperrt),
-                    ergebnis -> antwort(sender, ergebnis));
+                    ergebnis -> {
+                        if (ergebnis == PlotDienst.Aenderung.GEAENDERT) welt.wegrandAktualisieren(plotwelt, plot);
+                        antwort(sender, ergebnis);
+                    });
             return;
         }
         if (aktion.equals("role")) {

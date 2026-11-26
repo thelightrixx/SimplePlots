@@ -270,6 +270,23 @@ public final class PlotDienst {
         return Aenderung.GEAENDERT;
     }
 
+    public synchronized TrennErgebnis aufteilen(PlotId id, UUID besitzer, Predicate<PlotId> gesperrt,
+                                               boolean bestaetigt) throws IOException {
+        Plot plot = finden(id).orElse(null);
+        if (plot == null || !plot.besitzer().equals(besitzer)) return TrennErgebnis.FREMDER_PLOT;
+        if (plot.zensiert() || gesperrt.test(plot.id())) return TrennErgebnis.GESPERRT;
+        if (plot.zellen().size() == 1) return TrennErgebnis.EINZELPLOT;
+        if (!bestaetigt) return TrennErgebnis.BESTAETIGEN;
+        var neu = new LinkedHashMap<>(bestand.plots());
+        for (PlotId zelle : plot.zellen()) {
+            PlotProfil profil = zelle.equals(plot.id()) ? plot.profil().mitBesuchspunkt(Optional.empty())
+                    : PlotProfil.leer().mitBiom(plot.profil().biom());
+            neu.put(zelle, new Plot(zelle, besitzer, plot.rechte(), profil, java.util.Set.of(zelle)));
+        }
+        speichern(neu);
+        return TrennErgebnis.GETRENNT;
+    }
+
     public synchronized Aenderung zensieren(PlotId id, boolean wert) throws IOException {
         Plot plot = finden(id).orElse(null);
         return plot == null ? Aenderung.FREMDER_PLOT : aendern(plot, plot.mitZensur(wert));
@@ -296,6 +313,11 @@ public final class PlotDienst {
         }
         uebernehmen(plot.mitBesitzer(ziel));
         return Uebertragung.UEBERTRAGEN;
+    }
+
+    public synchronized Uebertragung uebertragen(Plot erwartet, UUID ziel, int limit, Predicate<PlotId> gesperrt) throws IOException {
+        if (!finden(erwartet.id()).filter(erwartet::equals).isPresent()) return Uebertragung.VERAENDERT;
+        return uebertragen(erwartet.id(), erwartet.besitzer(), ziel, limit, gesperrt);
     }
 
     public synchronized Aenderung freigeben(PlotId id, Predicate<PlotId> gesperrt) throws IOException {
@@ -374,10 +396,14 @@ public final class PlotDienst {
     }
 
     public enum Uebertragung {
-        UEBERTRAGEN, FREMDER_PLOT, GESPERRT, GLEICH, LIMIT
+        UEBERTRAGEN, FREMDER_PLOT, GESPERRT, GLEICH, LIMIT, VERAENDERT
     }
 
     public enum MergeErgebnis {
         VEREINIGT, BESTAETIGEN, FREMDER_PLOT, GLEICH, GESPERRT, KEIN_NACHBAR
+    }
+
+    public enum TrennErgebnis {
+        GETRENNT, BESTAETIGEN, FREMDER_PLOT, GESPERRT, EINZELPLOT
     }
 }

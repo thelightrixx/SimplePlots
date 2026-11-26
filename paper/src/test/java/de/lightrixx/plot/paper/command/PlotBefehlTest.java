@@ -56,6 +56,24 @@ class PlotBefehlTest {
     }
 
     @Test
+    void zeigtDieVersionMitBasisrechtAuchInDerKonsoleUndNutztDenSpielerRueckkehrort() {
+        var konsole = mock(CommandSender.class);
+        rechte(konsole, PlotBerechtigungen.USE);
+        befehl.onCommand(konsole, null, "plot", new String[]{"version"});
+        verify(betrieb).version(konsole);
+        var spieler = mock(Player.class);
+        var plotwelt = mock(org.bukkit.World.class);
+        var ziel = new org.bukkit.Location(mock(org.bukkit.World.class), 123, 75, -45, 80, 20);
+        rechte(spieler, PlotBerechtigungen.USE);
+        when(spieler.getWorld()).thenReturn(plotwelt);
+        when(welt.istPlotWelt(plotwelt)).thenReturn(true);
+        when(welt.rueckkehr(spieler)).thenReturn(ziel);
+        befehl.onCommand(spieler, null, "plot", new String[]{"back"});
+        verify(spieler).teleport(ziel);
+        verify(welt, never()).rueckkehr();
+    }
+
+    @Test
     void bietetDiagnoseMitEinzelnemRechtAnUndGibtKeineWeiterenAdminAktionenFrei() {
         var sender = mock(CommandSender.class);
         rechte(sender, PlotBerechtigungen.USE, PlotBerechtigungen.DIAGNOSE);

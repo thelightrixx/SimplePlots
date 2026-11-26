@@ -87,10 +87,29 @@ public final class ZensurSpeicher {
     }
 
     public void teilSichern(String name, byte[] daten) throws IOException {
-        if (status.contains("teile." + name)) throw new IOException("Sicherungsteil bereits vorhanden: " + name);
-        BinaerDatei.speichern(pfad(name + ".nbt"), daten);
+        teileSichern(Map.of(name, daten));
+    }
+
+    public Map<String, byte[]> teile(java.util.List<String> namen) throws IOException {
+        var ergebnis = new LinkedHashMap<String, byte[]>();
+        for (String name : namen) {
+            var daten = teil(name);
+            if (daten.isPresent()) ergebnis.put(name, daten.get());
+        }
+        return Map.copyOf(ergebnis);
+    }
+
+    public void teileSichern(Map<String, byte[]> teile) throws IOException {
+        for (String name : teile.keySet()) {
+            if (!name.matches("[0-9]+-[0-9]+")) throw new IOException("Ungültiger Sicherungsteil: " + name);
+            if (status.contains("teile." + name)) throw new IOException("Sicherungsteil bereits vorhanden: " + name);
+        }
+        if (teile.isEmpty()) return;
         var neu = kopie();
-        neu.set("teile." + name, GithubUpdates.sha256(daten));
+        for (var teil : teile.entrySet()) {
+            BinaerDatei.speichern(pfad(teil.getKey() + ".nbt"), teil.getValue());
+            neu.set("teile." + teil.getKey(), GithubUpdates.sha256(teil.getValue()));
+        }
         datei.speichern(neu);
         status = neu;
     }
@@ -130,6 +149,10 @@ public final class ZensurSpeicher {
         neu.set("phase", "ZENSIERT");
         datei.speichern(neu);
         status = neu;
+    }
+
+    public boolean abgeschlossen() {
+        return status.getBoolean("vollstaendig") && "ZENSIERT".equals(status.getString("phase"));
     }
 
     private YamlConfiguration kopie() {

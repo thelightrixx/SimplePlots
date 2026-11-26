@@ -7,6 +7,7 @@ import de.lightrixx.plot.paper.config.PlotNachrichten;
 import de.lightrixx.plot.paper.world.PlotWelt;
 import de.lightrixx.plot.service.PlotDienst;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
+import net.kyori.adventure.text.Component;
 import net.kyori.adventure.title.Title;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -72,7 +73,11 @@ public final class PlotZutrittListener implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void teleportAnzeigen(PlayerTeleportEvent event) {
+        welt.rueckkehrMerken(event.getPlayer(), event.getFrom(), event.getTo());
         var id = welt.plotBei(event.getTo());
+        if (id.isEmpty()) {
+            anzeigeLeeren(event.getPlayer(), event.getFrom());
+        }
         if (id.isEmpty() || id.equals(welt.plotBei(event.getFrom()))) {
             return;
         }
@@ -166,6 +171,14 @@ public final class PlotZutrittListener implements Listener {
         var id = welt.plotBei(ziel);
         if (id.isPresent() && !id.equals(welt.plotBei(von))) {
             plotAnzeigen(spieler, id.get());
+        } else if (id.isEmpty()) {
+            anzeigeLeeren(spieler, von);
+        }
+    }
+
+    private void anzeigeLeeren(Player spieler, Location von) {
+        if (welt.plotBei(von).isPresent() && "actionbar".equals(welt.konfiguration().text("general.betreten.anzeige"))) {
+            spieler.sendActionBar(Component.empty());
         }
     }
 
@@ -174,7 +187,7 @@ public final class PlotZutrittListener implements Listener {
         var plotId = unparsed("id", id.toString());
         if (plot != null && plot.zensiert()) {
             texte.senden(spieler, "zensur.hinweis");
-            spieler.showTitle(Title.title(texte.komponente("zensur.titel"), texte.komponente("zensur.untertitel"), TITELZEITEN));
+            anzeigen(spieler, "zensur.titel", "zensur.untertitel", TITELZEITEN);
             return;
         }
         var config = welt.konfiguration();
@@ -182,8 +195,7 @@ public final class PlotZutrittListener implements Listener {
         var zeiten = Title.Times.times(Duration.ofMillis(config.zahl("general.betreten.einblenden-millis")),
                 Duration.ofMillis(config.zahl("general.betreten.anzeigen-millis")), Duration.ofMillis(config.zahl("general.betreten.ausblenden-millis")));
         if (plot == null) {
-            spieler.showTitle(Title.title(texte.komponente("betreten.frei-titel", plotId),
-                    texte.komponente("betreten.frei-untertitel", plotId), zeiten));
+            anzeigen(spieler, "betreten.frei-titel", "betreten.frei-untertitel", zeiten, plotId);
             return;
         }
         if (!PlotBerechtigungen.darfBetreten(spieler, plot)) {
@@ -198,7 +210,17 @@ public final class PlotZutrittListener implements Listener {
         };
         String titel = profil.name().isEmpty() ? "betreten.titel-ohne-name" : "betreten.titel";
         String untertitel = profil.beschreibung().isEmpty() ? "betreten.untertitel-ohne-beschreibung" : "betreten.untertitel";
-        spieler.showTitle(Title.title(texte.komponente(titel, platzhalter), texte.komponente(untertitel, platzhalter), zeiten));
+        anzeigen(spieler, titel, untertitel, zeiten, platzhalter);
+    }
+
+    private void anzeigen(Player spieler, String titel, String untertitel, Title.Times zeiten, TagResolver... platzhalter) {
+        var oben = texte.komponente(titel, platzhalter);
+        var unten = texte.komponente(untertitel, platzhalter);
+        if ("title".equals(welt.konfiguration().text("general.betreten.anzeige"))) {
+            spieler.showTitle(Title.title(oben, unten, zeiten));
+        } else {
+            spieler.sendActionBar(oben.append(texte.komponente("betreten.trenner")).append(unten));
+        }
     }
 
     private void aufWegSetzen(Player spieler, Location ort, PlotId id) {

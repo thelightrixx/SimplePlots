@@ -165,4 +165,41 @@ class PlotKonfigurationTest {
         assertThrows(IOException.class, () -> config.limitSetzen(5));
         assertEquals(3, config.claimLimit());
     }
+
+    @Test
+    void ergaenztStandardsUndKommentareBeimReloadOhneEigeneWerteOderSicherungenErneutZuSchreiben() throws IOException {
+        var config = laden();
+        Path general = ordner.resolve("config/general.yml");
+        String eigen = "claims:\n  pro-spieler: 7\nzusatz: behalten\n";
+        Files.writeString(general, eigen);
+        var neu = config.vorbereiten();
+        assertEquals(7, neu.claimLimit());
+        assertEquals(3, config.claimLimit());
+        assertEquals("actionbar", neu.optionen().get("general.betreten.anzeige"));
+        assertTrue(Files.readString(general).contains("zusatz: behalten"));
+        assertTrue(Files.readString(general).contains("Zeiten gelten nur für title"));
+        assertEquals(eigen, Files.readString(ordner.resolve("config/general.yml.bak")));
+        Files.writeString(ordner.resolve("config/general.yml.bak"), "Sicherung erhalten");
+        String einmal = Files.readString(general);
+        config.vorbereiten();
+        assertEquals(einmal, Files.readString(general));
+        assertEquals("Sicherung erhalten", Files.readString(ordner.resolve("config/general.yml.bak")));
+    }
+
+    @Test
+    void validiertNeueAnzeigeUpdateKanaeleUndZensurBudgets() throws IOException {
+        var config = laden();
+        assertEquals("beta", config.text("updates.kanal"));
+        for (String kanal : new String[]{"alpha", "beta", "stable"}) {
+            Files.writeString(ordner.resolve("config/updates.yml"), "kanal: " + kanal + "\n");
+            assertEquals(kanal, config.vorbereiten().optionen().get("updates.kanal"));
+        }
+        Files.writeString(ordner.resolve("config/general.yml"), "betreten:\n  anzeige: sidebar\n");
+        assertThrows(IOException.class, config::vorbereiten);
+        Files.writeString(ordner.resolve("config/general.yml"), "betreten:\n  anzeige: actionbar\n");
+        for (String wert : new String[]{"zensur-abschnitte-pro-tick: 0\n", "zensur-abschnitte-pro-tick: 33\n", "zensur-zeitbudget-millis: 21\n"}) {
+            Files.writeString(ordner.resolve("config/protection.yml"), wert);
+            assertThrows(IOException.class, config::vorbereiten);
+        }
+    }
 }

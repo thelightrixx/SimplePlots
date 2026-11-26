@@ -59,12 +59,17 @@ public final class PlotMenueKonfiguration {
                 ergaenzt = true;
             }
         }
+        ergaenzt |= PlotKonfiguration.standardsErgaenzen(standard, yaml);
         if (Files.notExists(pfad) || alt.isPresent() || ergaenzt) datei.speichern(yaml);
     }
 
     public Daten vorbereiten() throws IOException {
         var yaml = datei.laden().orElseThrow(() -> new IOException(RESSOURCE + " fehlt."));
-        return pruefen(yaml);
+        String vorher = yaml.saveToString();
+        var neu = pruefen(yaml);
+        PlotKonfiguration.standardsErgaenzen(standard, yaml);
+        if (!vorher.equals(yaml.saveToString())) datei.speichern(yaml);
+        return neu;
     }
 
     private Daten pruefen(YamlConfiguration yaml) throws IOException {

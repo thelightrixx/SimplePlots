@@ -72,7 +72,7 @@ public record Plot(PlotId id, UUID besitzer, PlotRechte rechte, PlotProfil profi
 
     public Plot mitBesitzer(UUID neu) {
         var neuesProfil = new PlotProfil(profil.name(), profil.beschreibung(), profil.kategorie(),
-                profil.gelistetSeit(), profil.besuchspunkt(), Set.of());
+                profil.gelistetSeit(), profil.besuchspunkt(), Set.of(), profil.biom());
         return new Plot(id, neu, new PlotRechte(Set.of(), Set.of(), Set.of(), Set.of(), Set.of()),
                 neuesProfil, zellen, zensiert);
     }

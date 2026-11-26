@@ -177,7 +177,8 @@ public final class PlotYamlSpeicher implements PlotSpeicher {
     private static PlotProfil profilLesen(ConfigurationSection profil) {
         if (profil == null || !profil.isString("name") || !profil.isString("beschreibung")
                 || (!profil.isInt("gelistet-seit") && !profil.isLong("gelistet-seit"))
-                || (profil.contains("kategorie") && !profil.isString("kategorie"))) {
+                || (profil.contains("kategorie") && !profil.isString("kategorie"))
+                || (profil.contains("biom") && !profil.isString("biom"))) {
             throw new IllegalArgumentException("Ungültiges Plot-Profil.");
         }
         var kategorie = Optional.ofNullable(profil.getString("kategorie")).map(PlotProfil.Kategorie::valueOf);
@@ -192,7 +193,7 @@ public final class PlotYamlSpeicher implements PlotSpeicher {
                     (float) ort.getDouble("yaw")));
         }
         return new PlotProfil(profil.getString("name"), profil.getString("beschreibung"), kategorie,
-                profil.getLong("gelistet-seit"), punkt, spielerListe(profil, "likes"));
+                profil.getLong("gelistet-seit"), punkt, spielerListe(profil, "likes"), Optional.ofNullable(profil.getString("biom")));
     }
 
     @Override
@@ -320,6 +321,7 @@ public final class PlotYamlSpeicher implements PlotSpeicher {
         sektion.set("gelistet-seit", profil.gelistetSeit());
         profil.kategorie().ifPresent(kategorie -> sektion.set("kategorie", kategorie.name()));
         sektion.set("likes", sortierteUuids(profil.likes()));
+        profil.biom().ifPresent(biom -> sektion.set("biom", biom));
         profil.besuchspunkt().ifPresent(punkt -> {
             var ort = sektion.createSection("besuchspunkt");
             ort.set("x", punkt.x());

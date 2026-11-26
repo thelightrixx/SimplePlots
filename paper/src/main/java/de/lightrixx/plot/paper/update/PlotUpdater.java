@@ -78,15 +78,15 @@ public final class PlotUpdater {
     private void pruefen(CommandSender sender) {
         if (!bereit(sender)) return;
         String aktuell = plugin.getPluginMeta().getVersion();
-        boolean alpha = config.text("updates.kanal").equals("alpha");
+        String kanal = config.text("updates.kanal");
         zustand = "prueft";
-        auftraege.einreichen(() -> github.pruefen(aktuell, alpha)).whenComplete((release, fehler) -> rueckmeldung(() -> {
+        auftraege.einreichen(() -> github.pruefen(aktuell, kanal)).whenComplete((release, fehler) -> rueckmeldung(() -> {
             laeuft.set(false);
             if (fehler != null) {
                 fehlgeschlagen(sender, fehler);
                 return;
             }
-            if (!config.aktiv("updates.aktiviert") || alpha != config.text("updates.kanal").equals("alpha")) {
+            if (!config.aktiv("updates.aktiviert") || !kanal.equals(config.text("updates.kanal"))) {
                 zustand = "ungeprueft";
                 if (sender != null) texte.senden(sender, "update.zuerst-pruefen");
                 return;

@@ -81,8 +81,7 @@ public final class PlotBetrieb {
 
     public void diagnose(CommandSender sender) {
         var status = auftraege.status();
-        texte.senden(sender, "diagnose.version", unparsed("version", plugin.getPluginMeta().getVersion()),
-                unparsed("server", plugin.getServer().getVersion()), unparsed("java", Runtime.version().toString()));
+        version(sender);
         texte.senden(sender, "diagnose.welt", unparsed("world", welt.schluessel().toString()),
                 unparsed("loaded", Boolean.toString(welt.istGeladen())),
                 unparsed("size", Integer.toString(welt.raster().groesse())),
@@ -95,7 +94,15 @@ public final class PlotBetrieb {
                 unparsed("success", Long.toString(status.erfolgreich())),
                 unparsed("failed", Long.toString(status.fehlgeschlagen())),
                 unparsed("duration", Long.toString(status.letzteDauerMillis())));
+        texte.senden(sender, "diagnose.zensur", unparsed("count", Long.toString(plots.alle().stream().filter(de.lightrixx.plot.model.Plot::zensiert).count())),
+                unparsed("sections", Integer.toString(konfiguration.zahl("protection.zensur-abschnitte-pro-tick"))),
+                unparsed("budget", Integer.toString(konfiguration.zahl("protection.zensur-zeitbudget-millis"))));
         texte.senden(sender, "diagnose.hinweis");
+    }
+
+    public void version(CommandSender sender) {
+        texte.senden(sender, "diagnose.version", unparsed("version", plugin.getPluginMeta().getVersion()),
+                unparsed("server", plugin.getServer().getVersion()), unparsed("java", Runtime.version().toString()));
     }
 
     record Reload(PlotKonfiguration.Werte einstellungen, Map<String, String> texte, PlotMenueKonfiguration.Daten gui) {

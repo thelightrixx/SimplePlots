@@ -284,6 +284,49 @@ class PlotBefehlAblaufTest {
     }
 
     @Test
+    void laesstEinAltesAngebotNachEinerMergeAenderungNichtMehrAnnehmen() throws IOException {
+        when(gast.hasPermission(anyString())).thenAnswer(aufruf -> Set.of(PlotBerechtigungen.USE,
+                PlotBerechtigungen.CLAIM, PlotBerechtigungen.MANAGE).contains(aufruf.getArgument(0)));
+        ausfuehren(besitzer, "claim");
+        ausfuehren(besitzer, "transfer", "Gast");
+        plots.claim(new PlotId(1, 0), besitzerId, 2);
+        plots.zusammenlegen(id, new PlotId(1, 0), besitzerId, ziel -> false, true);
+        ausfuehren(gast, "accept", "0;0");
+        assertEquals(besitzerId, plots.finden(id).orElseThrow().besitzer());
+        assertEquals(2, plots.finden(id).orElseThrow().zellen().size());
+        verify(texte).senden(eq(gast), eq("transfer.veraendert"), any(net.kyori.adventure.text.minimessage.tag.resolver.TagResolver.class));
+    }
+
+    @Test
+    void loestMergesErstNachBestaetigungUeberDenAliasAufUndAktualisiertDieWege() throws IOException {
+        ausfuehren(besitzer, "claim");
+        plots.claim(new PlotId(1, 0), besitzerId, 2);
+        ausfuehren(besitzer, "merge", "1;0", "confirm");
+        ausfuehren(besitzer, "unlink");
+        assertEquals(1, plots.anzahlPlots());
+        ausfuehren(besitzer, "unmerge", "confirm");
+        assertEquals(2, plots.anzahlPlots());
+        assertTrue(welt.plotBei(new Location(plotwelt, 35, 64, 5)).isEmpty());
+        verify(welt, times(2)).wegrandAktualisieren(eq(plotwelt), any());
+        assertEquals(java.util.List.of("confirm"), befehl.onTabComplete(besitzer, null, "plot", new String[]{"unmerge", ""}));
+    }
+
+    @Test
+    void setztBiomVorgabenZurueckUndBeachtetDieWettbewerbssperre() throws IOException {
+        ausfuehren(besitzer, "claim");
+        plots.profilAendern(id, besitzerId, profil -> profil.mitBiom(Optional.of("minecraft:desert")));
+        ausfuehren(konsole, "contest", "start", "Biomprüfung");
+        ausfuehren(besitzer, "submit");
+        ausfuehren(besitzer, "biome", "off");
+        assertEquals(Optional.of("minecraft:desert"), plots.finden(id).orElseThrow().profil().biom());
+        verify(texte).senden(besitzer, "biom.gesperrt");
+        ausfuehren(besitzer, "withdraw");
+        ausfuehren(besitzer, "biome", "off");
+        assertTrue(plots.finden(id).orElseThrow().profil().biom().isEmpty());
+        verify(welt).wegrandAktualisieren(eq(plotwelt), any());
+    }
+
+    @Test
     void zaehltZensierteWettbewerbsbeitraegeNichtInDerOeffentlichenAnzeige() throws IOException {
         when(texte.komponente(anyString())).thenReturn(net.kyori.adventure.text.Component.empty());
         var anzeige = new AtomicReference<String>();

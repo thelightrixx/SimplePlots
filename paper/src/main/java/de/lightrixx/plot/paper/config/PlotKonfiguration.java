@@ -70,14 +70,7 @@ public final class PlotKonfiguration {
         werte = pruefen(dateien);
         for (String name : DATEIEN) {
             var yaml = dateien.get(name);
-            boolean fehlt = Files.notExists(pfad(name));
-            for (String key : standard.get(name).getKeys(true)) {
-                if (!standard.get(name).isConfigurationSection(key) && !yaml.contains(key)) {
-                    yaml.set(key, standard.get(name).get(key));
-                    fehlt = true;
-                }
-                yaml.setComments(key, standard.get(name).getComments(key));
-            }
+            boolean fehlt = standardsErgaenzen(standard.get(name), yaml) || Files.notExists(pfad(name));
             if (fehlt) {
                 new YamlDatei(pfad(name)).speichern(yaml);
             }
@@ -85,6 +78,18 @@ public final class PlotKonfiguration {
     }
 
     private Path pfad(String name) { return ordner.resolve(name + ".yml"); }
+
+    static boolean standardsErgaenzen(YamlConfiguration standard, YamlConfiguration geladen) {
+        String vorher = geladen.saveToString();
+        for (String key : standard.getKeys(true)) {
+            if (!standard.isConfigurationSection(key) && !geladen.contains(key, true)) geladen.set(key, standard.get(key));
+        }
+        for (String key : standard.getKeys(true)) {
+            if (!standard.getComments(key).isEmpty()) geladen.setComments(key, standard.getComments(key));
+            if (!standard.getInlineComments(key).isEmpty()) geladen.setInlineComments(key, standard.getInlineComments(key));
+        }
+        return !vorher.equals(geladen.saveToString());
+    }
 
     static Optional<YamlConfiguration> altbestand(Path ziel, YamlConfiguration standard, YamlConfiguration aktuell) throws IOException {
         Path config = ziel.toAbsolutePath().getParent();
@@ -120,7 +125,11 @@ public final class PlotKonfiguration {
             geladen.put(name, new YamlDatei(pfad(name)).laden()
                     .orElseThrow(() -> new IOException("Konfiguration fehlt: " + pfad(name))));
         }
-        return pruefen(geladen);
+        Werte neu = pruefen(geladen);
+        for (String name : DATEIEN) {
+            if (standardsErgaenzen(standard.get(name), geladen.get(name))) new YamlDatei(pfad(name)).speichern(geladen.get(name));
+        }
+        return neu;
     }
 
     private Werte pruefen(Map<String, YamlConfiguration> dateien) throws IOException {
@@ -166,6 +175,8 @@ public final class PlotKonfiguration {
                 case "fly.pruefintervall-ticks", "world.rand-chunks-pro-tick" -> 100;
                 case "updates.intervall-minuten" -> 10080;
                 case "general.wirtschaft.zeitlimit-millis" -> 30000;
+                case "protection.zensur-abschnitte-pro-tick" -> 32;
+                case "protection.zensur-zeitbudget-millis" -> 20;
                 default -> Integer.MAX_VALUE;
             };
             int minimum = key.equals("general.wirtschaft.zeitlimit-millis") ? 100 : 1;
@@ -193,8 +204,11 @@ public final class PlotKonfiguration {
                 throw new IOException(key + ": Festes Blockmaterial ohne Schwerkraft erwartet (Rand: Slab).");
             }
         }
-        if (key.equals("updates.kanal") && !List.of("stable", "alpha").contains(wert)) {
-            throw new IOException("updates.kanal: stable oder alpha erwartet.");
+        if (key.equals("general.betreten.anzeige") && !List.of("actionbar", "title").contains(wert)) {
+            throw new IOException(key + ": actionbar oder title erwartet.");
+        }
+        if (key.equals("updates.kanal") && !List.of("stable", "beta", "alpha").contains(wert)) {
+            throw new IOException("updates.kanal: stable, beta oder alpha erwartet.");
         }
     }
 

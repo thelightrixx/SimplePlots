@@ -47,7 +47,7 @@ public final class PlotBefehl implements TabExecutor {
             "menu", "discover", "like", "unlike", "contest", "vote", "withdraw");
     private static final List<String> ROLLENBEFEHLE = List.of("trust", "untrust", "deny", "undeny", "kick", "ban", "unban",
             "add", "unadd", "storage", "unstore");
-    private static final List<String> VERWALTUNG = List.of("profile", "sethome", "flag", "merge", "submit");
+    private static final List<String> VERWALTUNG = List.of("profile", "sethome", "flag", "merge", "unlink", "biome", "submit");
     private final Server server;
     private final Logger log;
     private final PlotDienst plots;
@@ -62,6 +62,7 @@ public final class PlotBefehl implements TabExecutor {
     private final PlotUebertragung uebertragung;
     private final WettbewerbDienst wettbewerbe;
     private final Wirtschaft wirtschaft;
+    private final PlotBetrieb betrieb;
     private PlotFlug flug;
 
     public PlotBefehl(Server server, Logger log, PlotDienst plots, PlotWelt welt,
@@ -76,6 +77,7 @@ public final class PlotBefehl implements TabExecutor {
         this.auftraege = auftraege;
         this.wettbewerbe = wettbewerbe;
         this.wirtschaft = wirtschaft;
+        this.betrieb = betrieb;
         this.admin = new PlotAdminBefehl(konfiguration, welt, texte, betrieb);
         this.menue = menue;
         this.verwaltung = new PlotVerwaltungBefehl(plots, welt, texte, wettbewerbe, auftraege);
@@ -95,9 +97,12 @@ public final class PlotBefehl implements TabExecutor {
             return true;
         }
         String aktion = args.length == 0 ? "help" : args[0].toLowerCase(Locale.ROOT);
+        if (aktion.equals("unmerge")) aktion = "unlink";
         try {
             if (aktion.equals("help")) {
                 hilfe(sender);
+            } else if (aktion.equals("version") && args.length == 1) {
+                betrieb.version(sender);
             } else if (aktion.equals("admin")) {
                 admin.ausfuehren(sender, args);
             } else if (aktion.equals("contest")) {
@@ -129,7 +134,7 @@ public final class PlotBefehl implements TabExecutor {
             }
             case "back" -> {
                 if (welt.istPlotWelt(spieler.getWorld())) {
-                    teleport(spieler, welt.rueckkehr(), "teleport.zurueck");
+                    teleport(spieler, welt.rueckkehr(spieler), "teleport.zurueck");
                 } else {
                     texte.senden(spieler, "fehler.keine-plotwelt");
                 }
@@ -141,7 +146,7 @@ public final class PlotBefehl implements TabExecutor {
             case "info" -> info(spieler);
             case "menu" -> menue.oeffnen(spieler);
             case "discover" -> entdecken(spieler, args);
-            case "profile", "flag", "sethome", "merge", "like", "unlike", "submit", "vote" -> amPlot(spieler, aktion, args);
+            case "profile", "flag", "sethome", "merge", "unlink", "biome", "like", "unlike", "submit", "vote" -> amPlot(spieler, aktion, args);
             case "withdraw" -> wettbewerb.zurueckziehen(spieler);
             case "ban" -> rolle(spieler, "deny", args);
             case "unban" -> rolle(spieler, "undeny", args);
@@ -342,6 +347,7 @@ public final class PlotBefehl implements TabExecutor {
             if (besitz.zellen().size() > 1) {
                 texte.senden(spieler, "merge.info", unparsed("count", Integer.toString(besitz.zellen().size())));
             }
+            texte.senden(spieler, "biom.info", unparsed("biome", besitz.profil().biom().orElse("minecraft:plains")));
             if (PlotBerechtigungen.istAdmin(spieler) || besitz.besitzer().equals(spieler.getUniqueId())) {
                 texte.senden(spieler, "info.rollen", unparsed("trusted", namen(besitz.rechte().trusted())),
                         unparsed("denied", namen(besitz.rechte().gebannt())));
@@ -542,10 +548,18 @@ public final class PlotBefehl implements TabExecutor {
             return passende(kategorien("all"), args[1]);
         }
         if (sender.hasPermission(MANAGE)) {
+            if (aktion.equals("biome")) {
+                var biome = io.papermc.paper.registry.RegistryAccess.registryAccess()
+                        .getRegistry(io.papermc.paper.registry.RegistryKey.BIOME).stream()
+                        .map(biom -> biom.getKey().toString().replaceFirst("^minecraft:", "")).collect(Collectors.toCollection(ArrayList::new));
+                biome.add("off");
+                return passende(biome, args[1]);
+            }
             var vorschlaege = switch (aktion) {
                 case "profile" -> List.of("name", "description", "category");
                 case "sethome" -> List.of("off");
                 case "flag" -> List.of("doors", "switches");
+                case "unlink", "unmerge" -> List.of("confirm");
                 default -> List.<String>of();
             };
             if (!vorschlaege.isEmpty()) {
@@ -566,6 +580,7 @@ public final class PlotBefehl implements TabExecutor {
 
     private List<String> unterbefehle(CommandSender sender) {
         var befehle = new ArrayList<String>();
+        befehle.add("version");
         if (sender instanceof Player) {
             befehle.addAll(BESUCHSBEFEHLE);
             if (sender.hasPermission(CLAIM)) {

@@ -91,10 +91,15 @@ public final class PlotZensur implements Listener {
     }
 
     private void beginnen(CommandSender sender, World plotwelt, Plot plot, boolean wiederherstellen, boolean neu, boolean automatisch) {
+        int maximum = welt.konfiguration().zahl("protection.zensur-maximale-chunks");
+        if ((long) plot.zellen().size() * welt.raster().groesse() * welt.raster().groesse() > maximum * 256L) {
+            texte.senden(sender, "zensur.zu-gross");
+            return;
+        }
         List<Flaeche> flaechen = flaechen(plot, welt.raster());
         Set<Long> chunks = new java.util.LinkedHashSet<>();
         for (Flaeche teil : flaechen) chunks.add(((long) (teil.x() >> 4) << 32) | ((teil.z() >> 4) & 0xffffffffL));
-        if (chunks.size() > welt.konfiguration().zahl("protection.zensur-maximale-chunks") || (!automatisch && arbeiten.size() >= 8)) {
+        if (chunks.size() > maximum || (!automatisch && arbeiten.size() >= 8)) {
             texte.senden(sender, "zensur.zu-gross");
             return;
         }
@@ -112,9 +117,14 @@ public final class PlotZensur implements Listener {
                 modus = false;
             }
             if (neu) plots.zensieren(plot.id(), true);
-            return modus;
-        }, modus -> {
-            arbeit.wiederherstellen = modus;
+            return new Beginn(modus, automatisch && !modus && speicher.abgeschlossen());
+        }, beginn -> {
+            arbeit.wiederherstellen = beginn.wiederherstellen();
+            if (beginn.unveraendert()) {
+                beenden(arbeit);
+                entitiesAusblenden();
+                return;
+            }
             ansichtenAktualisieren.run();
             entitiesAusblenden();
             for (Player spieler : plotwelt.getPlayers()) {
@@ -193,53 +203,88 @@ public final class PlotZensur implements Listener {
             abschliessen(arbeit);
             return;
         }
-        Flaeche flaeche = arbeit.flaechen.get(arbeit.flaeche);
-        int y = arbeit.welt.getMinHeight() + arbeit.schicht * 16;
-        String name = arbeit.flaeche + "-" + arbeit.schicht;
-        Location ort = new Location(arbeit.welt, flaeche.x(), y, flaeche.z());
-        io(arbeit, () -> arbeit.speicher.teil(name), daten -> {
-            if (daten.isEmpty()) {
-                if (arbeit.wiederherstellen) throw new IllegalStateException("Sicherungsteil fehlt: " + name);
-                var struktur = plugin.getServer().getStructureManager().createStructure();
-                struktur.fill(ort, new BlockVector(flaeche.breite(), Math.min(16, arbeit.welt.getMaxHeight() - y), flaeche.tiefe()), false);
-                byte[] bytes;
-                try (var puffer = new ByteArrayOutputStream()) {
-                    plugin.getServer().getStructureManager().saveStructure(puffer, struktur);
-                    bytes = puffer.toByteArray();
-                } catch (IOException e) {
-                    throw new IllegalStateException("Plotabschnitt konnte nicht gesichert werden.", e);
-                }
-                io(arbeit, () -> { arbeit.speicher.teilSichern(name, bytes); return true; }, wert -> {
-                    ausblenden(arbeit, flaeche, y);
-                    naechsterTeil(arbeit);
-                });
-            } else {
-                if (arbeit.wiederherstellen) {
-                    try (var puffer = new ByteArrayInputStream(daten.get())) {
-                        var struktur = plugin.getServer().getStructureManager().loadStructure(puffer);
-                        if (!struktur.getSize().equals(new BlockVector(flaeche.breite(), Math.min(16, arbeit.welt.getMaxHeight() - y), flaeche.tiefe()))
-                                || struktur.getPaletteCount() != 1) {
-                            throw new IOException("Sicherungsteil hat eine unerwartete Größe: " + name);
-                        }
-                        if (arbeit.details) {
-                            struktur.place(ort, false, StructureRotation.NONE, Mirror.NONE, 0, 1, new Random(0));
-                        } else {
-                            // Mehrteilige Blöcke brauchen ihre Nachbarn, bevor Paper NBT und Formen aktualisiert.
-                            for (var block : struktur.getPalettes().getFirst().getBlocks()) {
-                                arbeit.welt.getBlockAt(flaeche.x() + block.getX(), y + block.getY(), flaeche.z() + block.getZ())
-                                        .setBlockData(block.getBlockData(), false);
-                            }
-                        }
-                    } catch (IOException e) {
-                        throw new IllegalStateException("Plotabschnitt konnte nicht wiederhergestellt werden.", e);
-                    }
-                } else ausblenden(arbeit, flaeche, y);
-                naechsterTeil(arbeit);
+        var abschnitte = new ArrayList<Abschnitt>();
+        while (abschnitte.size() < 32 && arbeit.flaeche < arbeit.flaechen.size()) {
+            abschnitte.add(new Abschnitt(arbeit.flaeche + "-" + arbeit.schicht, arbeit.flaechen.get(arbeit.flaeche),
+                    arbeit.welt.getMinHeight() + arbeit.schicht * 16));
+            naechsterTeil(arbeit);
+        }
+        io(arbeit, () -> arbeit.speicher.teile(abschnitte.stream().map(Abschnitt::name).toList()), daten -> {
+            if (arbeit.wiederherstellen && daten.size() != abschnitte.size()) {
+                throw new IllegalStateException("Zensursicherung enthält nicht alle Abschnitte.");
             }
+            if (daten.size() == abschnitte.size()) anwenden(arbeit, abschnitte, daten, 0);
+            else erfassen(arbeit, abschnitte, new LinkedHashMap<>(daten), new LinkedHashMap<>(), 0);
         });
     }
 
+    private void erfassen(Arbeit arbeit, List<Abschnitt> abschnitte, Map<String, byte[]> daten, Map<String, byte[]> neu, int start) {
+        long ende = System.nanoTime() + welt.konfiguration().zahl("protection.zensur-zeitbudget-millis") * 1_000_000L;
+        int index = start;
+        int maximum = welt.konfiguration().zahl("protection.zensur-abschnitte-pro-tick");
+        do {
+            Abschnitt teil = abschnitte.get(index++);
+            if (!daten.containsKey(teil.name())) {
+                var struktur = plugin.getServer().getStructureManager().createStructure();
+                struktur.fill(teil.ort(arbeit.welt), teil.groesse(arbeit.welt), false);
+                try (var puffer = new ByteArrayOutputStream()) {
+                    plugin.getServer().getStructureManager().saveStructure(puffer, struktur);
+                    neu.put(teil.name(), puffer.toByteArray());
+                } catch (IOException e) {
+                    throw new IllegalStateException("Plotabschnitt konnte nicht gesichert werden.", e);
+                }
+            }
+        } while (index < abschnitte.size() && index - start < maximum && System.nanoTime() < ende);
+        int weiter = index;
+        if (weiter < abschnitte.size()) {
+            spaeter(arbeit, () -> erfassen(arbeit, abschnitte, daten, neu, weiter));
+        } else if (!neu.isEmpty()) {
+            io(arbeit, () -> { arbeit.speicher.teileSichern(neu); return true; }, wert -> {
+                daten.putAll(neu);
+                anwenden(arbeit, abschnitte, daten, 0);
+            });
+        } else anwenden(arbeit, abschnitte, daten, 0);
+    }
+
+    private void anwenden(Arbeit arbeit, List<Abschnitt> abschnitte, Map<String, byte[]> daten, int start) {
+        long ende = System.nanoTime() + welt.konfiguration().zahl("protection.zensur-zeitbudget-millis") * 1_000_000L;
+        int index = start;
+        int maximum = welt.konfiguration().zahl("protection.zensur-abschnitte-pro-tick");
+        do {
+            Abschnitt teil = abschnitte.get(index++);
+            if (arbeit.wiederherstellen) {
+                try (var puffer = new ByteArrayInputStream(daten.get(teil.name()))) {
+                    var struktur = plugin.getServer().getStructureManager().loadStructure(puffer);
+                    if (!struktur.getSize().equals(teil.groesse(arbeit.welt))
+                            || struktur.getPaletteCount() != 1) {
+                        throw new IOException("Sicherungsteil hat eine unerwartete Größe: " + teil.name());
+                    }
+                    if (arbeit.details) {
+                        struktur.place(teil.ort(arbeit.welt), false, StructureRotation.NONE, Mirror.NONE, 0, 1, new Random(0));
+                    } else {
+                        // Mehrteilige Blöcke brauchen ihre Nachbarn, bevor Paper NBT und Formen aktualisiert.
+                        for (var block : struktur.getPalettes().getFirst().getBlocks()) {
+                            arbeit.welt.getBlockAt(teil.flaeche().x() + block.getX(), teil.y() + block.getY(), teil.flaeche().z() + block.getZ())
+                                    .setBlockData(block.getBlockData(), false);
+                        }
+                    }
+                } catch (IOException e) {
+                    throw new IllegalStateException("Plotabschnitt konnte nicht wiederhergestellt werden.", e);
+                }
+            } else ausblenden(arbeit, teil.flaeche(), teil.y());
+        } while (index < abschnitte.size() && index - start < maximum && System.nanoTime() < ende);
+        int weiter = index;
+        if (weiter < abschnitte.size()) spaeter(arbeit, () -> anwenden(arbeit, abschnitte, daten, weiter));
+        else spaeter(arbeit, () -> teilBearbeiten(arbeit));
+    }
+
     private void ausblenden(Arbeit arbeit, Flaeche flaeche, int y) {
+        var config = welt.konfiguration();
+        int erdeAb = PlotGenerator.BODEN_Y - config.zahl("world.erdschichten");
+        Material untergrund = config.material("world.material.untergrund");
+        Material erde = config.material("world.material.erde");
+        Material oberflaeche = config.material("world.material.oberflaeche");
+        Material randMaterial = config.material("protection.zensur-rand");
         for (int x = flaeche.x(); x < flaeche.x() + flaeche.breite(); x++) {
             for (int z = flaeche.z(); z < flaeche.z() + flaeche.tiefe(); z++) {
                 boolean rand = false;
@@ -251,10 +296,11 @@ public final class PlotZensur implements Listener {
                 }
                 for (int hoehe = y; hoehe < Math.min(y + 16, arbeit.welt.getMaxHeight()); hoehe++) {
                     Material material = hoehe == arbeit.welt.getMinHeight() ? Material.BEDROCK
-                            : hoehe < 60 ? Material.STONE : hoehe < 63 ? Material.DIRT
-                            : hoehe == 63 ? Material.GRASS_BLOCK
-                            : hoehe == 64 && rand ? welt.konfiguration().material("protection.zensur-rand") : Material.AIR;
-                    arbeit.welt.getBlockAt(x, hoehe, z).setType(material, false);
+                            : hoehe < erdeAb ? untergrund : hoehe < PlotGenerator.BODEN_Y ? erde
+                            : hoehe == PlotGenerator.BODEN_Y ? oberflaeche
+                            : hoehe == PlotGenerator.BODEN_Y + 1 && rand ? randMaterial : Material.AIR;
+                    var block = arbeit.welt.getBlockAt(x, hoehe, z);
+                    if (block.getType() != material) block.setType(material, false);
                 }
             }
         }
@@ -266,7 +312,6 @@ public final class PlotZensur implements Listener {
             arbeit.schicht = 0;
             arbeit.flaeche++;
         }
-        spaeter(arbeit, () -> teilBearbeiten(arbeit));
     }
 
     private void abschliessen(Arbeit arbeit) {
@@ -295,6 +340,7 @@ public final class PlotZensur implements Listener {
             return true;
         }, wert -> {
             beenden(arbeit);
+            welt.wegrandAktualisieren(arbeit.welt, arbeit.plot);
             entitiesAusblenden();
             ansichtenAktualisieren.run();
             texte.senden(arbeit.sender, arbeit.wiederherstellen ? "zensur.wiederhergestellt" : "zensur.fertig",
@@ -437,6 +483,13 @@ public final class PlotZensur implements Listener {
     }
 
     record Flaeche(int x, int z, int breite, int tiefe) { }
+
+    private record Beginn(boolean wiederherstellen, boolean unveraendert) { }
+
+    private record Abschnitt(String name, Flaeche flaeche, int y) {
+        Location ort(World welt) { return new Location(welt, flaeche.x(), y, flaeche.z()); }
+        BlockVector groesse(World welt) { return new BlockVector(flaeche.breite(), Math.min(16, welt.getMaxHeight() - y), flaeche.tiefe()); }
+    }
 
     private static final class Arbeit {
         final CommandSender sender;

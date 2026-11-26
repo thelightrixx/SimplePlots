@@ -56,6 +56,23 @@ class PlotYamlSpeicherTest {
     }
 
     @Test
+    void erhaeltBiomBeiProfilwechselBesitzerwechselUndNeustartUndEntferntEsExplizit() throws IOException {
+        var pfad = ordner.resolve("plots.yml");
+        var besitzer = UUID.randomUUID();
+        var id = new PlotId(0, 0);
+        var plots = new PlotDienst(new PlotYamlSpeicher(pfad), PlotKauf.kostenlos());
+        plots.claim(id, besitzer, 1);
+        plots.profilAendern(id, besitzer, profil -> profil.mitBiom(Optional.of("minecraft:desert")).mitName("Wüste").mitBeschreibung("Oase"));
+        var neu = UUID.randomUUID();
+        plots.uebertragen(id, besitzer, neu, 1, ziel -> false);
+        var neustart = new PlotDienst(new PlotYamlSpeicher(pfad), PlotKauf.kostenlos());
+        assertEquals(Optional.of("minecraft:desert"), neustart.finden(id).orElseThrow().profil().biom());
+        neustart.profilAendern(id, neu, profil -> profil.mitBiom(Optional.empty()));
+        assertTrue(new PlotYamlSpeicher(pfad).laden().getFirst().profil().biom().isEmpty());
+        assertThrows(IllegalArgumentException.class, () -> PlotProfil.leer().mitBiom(Optional.of("../fremd")));
+    }
+
+    @Test
     void erhaeltDieZensurImJournalUndLehntFalscheDatentypenAb() throws IOException {
         Path pfad = ordner.resolve("plots.yml");
         var speicher = new PlotYamlSpeicher(pfad);

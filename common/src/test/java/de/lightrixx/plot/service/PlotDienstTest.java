@@ -437,6 +437,57 @@ class PlotDienstTest {
         assertTrue(dienst.vomBesitzer(besitzer).isEmpty());
     }
 
+    @Test
+    void trenntMergesAtomarUndErkenntZwischenwegeNachNeustartWiederAlsWege() throws IOException {
+        var dienst = new PlotDienst(speicher, PlotKauf.kostenlos());
+        var nachbar = id.verschoben(1, 0);
+        var raster = new PlotRaster(32, 7);
+        dienst.claim(id, besitzer, 2);
+        dienst.claim(nachbar, besitzer, 2);
+        dienst.rolleAendern(id, besitzer, gast, TRUST);
+        dienst.rolleAendern(nachbar, besitzer, gast, TRUST);
+        dienst.profilAendern(id, besitzer, profil -> profil.mitName("Hafen")
+                .mitBesuchspunkt(Optional.of(new PlotProfil.Besuchspunkt(45, 64, 5, 90))));
+        dienst.zusammenlegen(id, nachbar, besitzer, ziel -> false, true);
+        Plot vorher = dienst.finden(id).orElseThrow();
+        assertEquals(Optional.of(id), dienst.plotBei(raster, 35, 5));
+        assertEquals(PlotDienst.TrennErgebnis.BESTAETIGEN, dienst.aufteilen(id, besitzer, ziel -> false, false));
+        assertEquals(PlotDienst.TrennErgebnis.FREMDER_PLOT, dienst.aufteilen(id, gast, ziel -> false, true));
+        assertEquals(PlotDienst.TrennErgebnis.GESPERRT, dienst.aufteilen(id, besitzer, ziel -> true, true));
+        speicher.schreibfehler = true;
+        assertThrows(IOException.class, () -> dienst.aufteilen(id, besitzer, ziel -> false, true));
+        assertEquals(List.of(vorher), dienst.alle());
+        assertEquals(vorher, dienst.nachName("Hafen").orElseThrow());
+        assertEquals(Optional.of(id), dienst.plotBei(raster, 35, 5));
+        speicher.schreibfehler = false;
+        assertEquals(PlotDienst.TrennErgebnis.GETRENNT, dienst.aufteilen(nachbar, besitzer, ziel -> false, true));
+        var neustart = new PlotDienst(speicher, PlotKauf.kostenlos());
+        assertEquals(2, neustart.anzahlPlots());
+        assertEquals(2, neustart.anzahlZellen());
+        assertEquals(2, neustart.vomBesitzer(besitzer).size());
+        assertTrue(neustart.plotBei(raster, 35, 5).isEmpty());
+        assertTrue(neustart.istWegrand(raster, 32, 5));
+        assertTrue(neustart.istWegrand(raster, 38, 5));
+        assertEquals(Optional.of(nachbar), neustart.plotBei(raster, 40, 5));
+        assertEquals(id, neustart.nachName("Hafen").orElseThrow().id());
+        assertTrue(neustart.finden(id).orElseThrow().profil().besuchspunkt().isEmpty());
+        assertEquals("", neustart.finden(nachbar).orElseThrow().profil().name());
+        assertTrue(neustart.finden(nachbar).orElseThrow().darfBauen(gast));
+        assertEquals(PlotDienst.TrennErgebnis.EINZELPLOT, neustart.aufteilen(id, besitzer, ziel -> false, true));
+        assertEquals(LIMIT, neustart.claim(new PlotId(2, 0), besitzer, 2));
+    }
+
+    @Test
+    void trenntKeineZensiertenMerges() throws IOException {
+        var dienst = new PlotDienst(speicher, PlotKauf.kostenlos());
+        dienst.claim(id, besitzer, 2);
+        dienst.claim(id.verschoben(1, 0), besitzer, 2);
+        dienst.zusammenlegen(id, id.verschoben(1, 0), besitzer, ziel -> false, true);
+        dienst.zensieren(id, true);
+        assertEquals(PlotDienst.TrennErgebnis.GESPERRT, dienst.aufteilen(id, besitzer, ziel -> false, true));
+        assertEquals(1, dienst.anzahlPlots());
+    }
+
     private static final class TestSpeicher implements PlotSpeicher {
         private List<Plot> daten = List.of();
         private boolean schreibfehler;

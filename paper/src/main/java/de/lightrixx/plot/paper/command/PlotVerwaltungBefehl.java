@@ -9,6 +9,9 @@ import de.lightrixx.plot.paper.world.PlotWelt;
 import de.lightrixx.plot.service.PlotDienst;
 import de.lightrixx.plot.service.WettbewerbDienst;
 import org.bukkit.entity.Player;
+import org.bukkit.NamespacedKey;
+import io.papermc.paper.registry.RegistryAccess;
+import io.papermc.paper.registry.RegistryKey;
 
 import java.util.Arrays;
 import java.util.Locale;
@@ -35,7 +38,7 @@ final class PlotVerwaltungBefehl {
     }
 
     void ausfuehren(Player spieler, PlotId id, String aktion, String[] args) {
-        if (aktion.equals("merge") && !welt.konfiguration().aktiv("general.funktionen.zusammenlegen")) {
+        if ((aktion.equals("merge") || aktion.equals("unlink")) && !welt.konfiguration().aktiv("general.funktionen.zusammenlegen")) {
             texte.senden(spieler, "fehler.deaktiviert");
             return;
         }
@@ -50,6 +53,8 @@ final class PlotVerwaltungBefehl {
                         ergebnis -> aenderungSenden(spieler, ergebnis, "profil." + aktion));
             }
             case "merge" -> zusammenlegen(spieler, id, args);
+            case "unlink" -> aufteilen(spieler, id, args);
+            case "biome" -> biom(spieler, id, args);
             default -> throw new IllegalArgumentException("Unbekannter Plot-Unterbefehl " + aktion);
         }
     }
@@ -172,6 +177,53 @@ final class PlotVerwaltungBefehl {
             case EIGENER_PLOT -> "profil.eigener-plot";
             case GEBANNT -> "zugang.gebannt";
             case GESPERRT -> "zensur.gesperrt";
+        });
+    }
+
+    private void aufteilen(Player spieler, PlotId id, String[] args) {
+        if (args.length > 2 || (args.length == 2 && !args[1].equalsIgnoreCase("confirm"))) {
+            texte.senden(spieler, "trennen.hilfe");
+            return;
+        }
+        UUID besitzer = spieler.getUniqueId();
+        var vorher = plots.finden(id);
+        var plotwelt = spieler.getWorld();
+        boolean bestaetigt = args.length == 2;
+        auftraege.ausfuehren(spieler, "/plot unlink",
+                () -> plots.aufteilen(id, besitzer, wettbewerbe::gesperrt, bestaetigt), ergebnis -> {
+            texte.senden(spieler, "trennen." + ergebnis.name().toLowerCase(Locale.ROOT).replace('_', '-'));
+            if (ergebnis == PlotDienst.TrennErgebnis.GETRENNT) {
+                vorher.ifPresent(plot -> welt.wegrandAktualisieren(plotwelt, plot));
+            }
+        });
+    }
+
+    private void biom(Player spieler, PlotId id, String[] args) {
+        if (!welt.konfiguration().aktiv("general.funktionen.biome")) {
+            texte.senden(spieler, "fehler.deaktiviert");
+            return;
+        }
+        if (args.length != 2) {
+            texte.senden(spieler, "biom.hilfe");
+            return;
+        }
+        Optional<String> biom = Optional.empty();
+        if (!args[1].equalsIgnoreCase("off")) {
+            var key = NamespacedKey.fromString(args[1].toLowerCase(Locale.ROOT));
+            if (key == null || RegistryAccess.registryAccess().getRegistry(RegistryKey.BIOME).get(key) == null) {
+                texte.senden(spieler, "biom.ungueltig");
+                return;
+            }
+            biom = Optional.of(key.toString());
+        }
+        var ziel = biom;
+        UUID besitzer = spieler.getUniqueId();
+        var plotwelt = spieler.getWorld();
+        auftraege.ausfuehren(spieler, "/plot biome", () -> plots.finden(id).filter(plot -> wettbewerbe.gesperrt(plot.id())).isPresent()
+                ? PlotDienst.Aenderung.GESPERRT : plots.profilAendern(id, besitzer, profil -> profil.mitBiom(ziel)), ergebnis -> {
+            if (ergebnis == PlotDienst.Aenderung.GESPERRT) texte.senden(spieler, "biom.gesperrt");
+            else aenderungSenden(spieler, ergebnis, "biom.gespeichert");
+            if (ergebnis == PlotDienst.Aenderung.GEAENDERT) plots.finden(id).ifPresent(plot -> welt.wegrandAktualisieren(plotwelt, plot));
         });
     }
 }

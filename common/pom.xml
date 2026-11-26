@@ -7,7 +7,7 @@
     <parent>
         <groupId>de.lightrixx</groupId>
         <artifactId>simpleplots-parent</artifactId>
-        <version>v0.6.0-alpha</version>
+        <version>v0.7.0-beta</version>
     </parent>
 
     <artifactId>simpleplots-common</artifactId>

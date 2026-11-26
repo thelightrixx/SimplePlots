@@ -38,6 +38,7 @@ public final class YamlDatei {
     public Optional<YamlConfiguration> laden() throws IOException {
         String text;
         try {
+            if (Files.size(pfad) > MAX_ZEICHEN) throw new IOException("YAML-Datei ist zu groß: " + pfad);
             text = Files.readString(pfad);
         } catch (NoSuchFileException e) {
             return Optional.empty();
@@ -48,7 +49,10 @@ public final class YamlDatei {
             var optionen = new LoaderOptions();
             optionen.setAllowDuplicateKeys(false);
             optionen.setCodePointLimit(MAX_ZEICHEN);
-            new Yaml(new SafeConstructor(optionen)).load(text);
+            Object daten = new Yaml(new SafeConstructor(optionen)).load(text);
+            if (!(daten instanceof java.util.Map<?, ?> mapping) || mapping.isEmpty()) {
+                throw new IOException("Leeres oder ungültiges YAML-Mapping in " + pfad);
+            }
             yaml.loadFromString(text);
         } catch (InvalidConfigurationException | YAMLException e) {
             throw new IOException("Ungültiges YAML in " + pfad, e);

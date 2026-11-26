@@ -29,8 +29,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 class PlotWeltTest {
     @TempDir
@@ -60,6 +59,44 @@ class PlotWeltTest {
         World plotwelt = welt(new NamespacedKey("simpleplots", "plots"), -4, 65, -4);
         var fehler = assertThrows(IOException.class, () -> verwaltung(List.of(plotwelt)));
         assertTrue(fehler.getMessage().contains("minecraft:overworld"));
+    }
+
+    @Test
+    void behaeltDenLetztenHauptweltStandortMitBlickrichtungProSpielerUndNachNeustart() throws IOException {
+        World hauptwelt = mock(World.class);
+        when(hauptwelt.getKey()).thenReturn(NamespacedKey.minecraft("overworld"));
+        when(hauptwelt.getMinHeight()).thenReturn(-64);
+        when(hauptwelt.getMaxHeight()).thenReturn(320);
+        when(hauptwelt.getSpawnLocation()).thenReturn(new Location(hauptwelt, 0, 80, 0));
+        var grenze = mock(org.bukkit.WorldBorder.class);
+        when(hauptwelt.getWorldBorder()).thenReturn(grenze);
+        when(grenze.isInside(any())).thenReturn(true);
+        World plotwelt = welt(new NamespacedKey("simpleplots", "plots"), -4, 65, -4);
+        var spieler = mock(org.bukkit.entity.Player.class);
+        var daten = mock(org.bukkit.persistence.PersistentDataContainer.class);
+        when(spieler.getPersistentDataContainer()).thenReturn(daten);
+        var gespeichert = new java.util.concurrent.atomic.AtomicReference<List<Double>>();
+        doAnswer(aufruf -> { gespeichert.set(aufruf.getArgument(2)); return null; }).when(daten)
+                .set(any(), eq(org.bukkit.persistence.PersistentDataType.LIST.doubles()), anyList());
+        when(daten.get(any(), eq(org.bukkit.persistence.PersistentDataType.LIST.doubles()))).thenAnswer(aufruf -> gespeichert.get());
+        var verwaltung = verwaltung(List.of(hauptwelt, plotwelt));
+        assertEquals(hauptwelt.getSpawnLocation(), verwaltung.rueckkehr(spieler));
+        var vorher = new Location(hauptwelt, 123.25, 72.5, -456.75, 87.5f, -23.5f);
+        verwaltung.rueckkehrMerken(spieler, vorher, new Location(plotwelt, 0, 64, 0));
+        vorher.add(20, 0, 0);
+        var ziel = verwaltung(List.of(hauptwelt, plotwelt)).rueckkehr(spieler);
+        assertEquals(123.25, ziel.getX());
+        assertEquals(72.5, ziel.getY());
+        assertEquals(-456.75, ziel.getZ());
+        assertEquals(87.5f, ziel.getYaw());
+        assertEquals(-23.5f, ziel.getPitch());
+        verwaltung.rueckkehrMerken(spieler, new Location(plotwelt, 0, 64, 0), vorher);
+        assertEquals(ziel, verwaltung.rueckkehr(spieler));
+        gespeichert.set(List.of(Double.NaN, 64.0, 0.0, 0.0, 0.0));
+        assertEquals(hauptwelt.getSpawnLocation(), verwaltung.rueckkehr(spieler));
+        gespeichert.set(List.of(100.0, 64.0, 0.0, 0.0, 0.0));
+        when(grenze.isInside(any())).thenReturn(false);
+        assertEquals(hauptwelt.getSpawnLocation(), verwaltung.rueckkehr(spieler));
     }
 
     @Test

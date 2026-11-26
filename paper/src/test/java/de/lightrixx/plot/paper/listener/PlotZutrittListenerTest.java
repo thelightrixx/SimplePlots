@@ -45,6 +45,7 @@ class PlotZutrittListenerTest {
         var config = mock(de.lightrixx.plot.paper.config.PlotKonfiguration.class);
         when(config.aktiv(anyString())).thenReturn(true);
         when(config.zahl(anyString())).thenReturn(250);
+        when(config.text("general.betreten.anzeige")).thenReturn("actionbar");
         when(welt.konfiguration()).thenReturn(config);
         when(spieler.getPersistentDataContainer()).thenReturn(mock(org.bukkit.persistence.PersistentDataContainer.class));
         when(spieler.getUniqueId()).thenReturn(gast);
@@ -161,5 +162,28 @@ class PlotZutrittListenerTest {
         assertDoesNotThrow(() -> listener.teleportieren(teleport));
         assertDoesNotThrow(() -> listener.teleportAnzeigen(teleport));
         verifyNoInteractions(texte);
+    }
+
+    @Test
+    void zeigtFreiePlotsUeberDerHotbarUndLeertDieAnzeigeAufDemWeg() {
+        when(plots.finden(id)).thenReturn(Optional.empty());
+        listener.bewegungAnzeigen(new PlayerMoveEvent(spieler, aufWeg, aufPlot));
+        verify(spieler).sendActionBar(any(Component.class));
+        verify(spieler, never()).showTitle(any(net.kyori.adventure.title.Title.class));
+        clearInvocations(spieler);
+        listener.bewegungAnzeigen(new PlayerMoveEvent(spieler, aufPlot, aufWeg));
+        verify(spieler).sendActionBar(Component.empty());
+        clearInvocations(spieler);
+        listener.bewegungAnzeigen(new PlayerMoveEvent(spieler, aufWeg, aufWeg.clone().add(1, 0, 0)));
+        verify(spieler, never()).sendActionBar(any(Component.class));
+    }
+
+    @Test
+    void erlaubtDenBisherigenTitelAlsAusdruecklicheEinstellung() {
+        when(plots.finden(id)).thenReturn(Optional.empty());
+        when(welt.konfiguration().text("general.betreten.anzeige")).thenReturn("title");
+        listener.bewegungAnzeigen(new PlayerMoveEvent(spieler, aufWeg, aufPlot));
+        verify(spieler).showTitle(any(net.kyori.adventure.title.Title.class));
+        verify(spieler, never()).sendActionBar(any(Component.class));
     }
 }

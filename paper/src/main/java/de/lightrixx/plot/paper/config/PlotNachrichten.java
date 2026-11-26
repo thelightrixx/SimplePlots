@@ -48,13 +48,7 @@ public final class PlotNachrichten {
             aktualisiert = aktualisiereStandardtexte(geladen);
         }
         var geprueft = pruefen(geladen);
-        boolean ergaenzt = false;
-        for (String key : standard.getKeys(true)) {
-            if (!standard.isConfigurationSection(key) && !geladen.contains(key)) {
-                geladen.set(key, standard.get(key));
-                ergaenzt = true;
-            }
-        }
+        boolean ergaenzt = PlotKonfiguration.standardsErgaenzen(standard, geladen);
         if (Files.notExists(pfad) || alt.isPresent() || aktualisiert || ergaenzt) {
             datei.speichern(geladen);
         }
@@ -68,7 +62,8 @@ public final class PlotNachrichten {
                 "<green>/plot admin gamemode</green> <yellow>creative</yellow> oder <yellow>survival</yellow>");
         boolean raster = aktualisiereStandardtext(geladen, "admin.reload-raster",
                 "<red>Reload abgelehnt: Das Raster in config.yml weicht von der bestehenden Plotwelt ab. Der bisherige Stand bleibt aktiv.</red>");
-        return prefix || menue || modus || raster;
+        boolean rueckkehr = aktualisiereStandardtext(geladen, "teleport.zurueck", "Du bist am Spawn der Spielwelt.");
+        return prefix || menue || modus || raster || rueckkehr;
     }
 
     private boolean aktualisiereStandardtext(YamlConfiguration geladen, String schluessel, String bisher) {
@@ -80,7 +75,10 @@ public final class PlotNachrichten {
     }
 
     public Map<String, String> vorbereiten() throws IOException {
-        return pruefen(datei.laden().orElseThrow(() -> new IOException(RESSOURCE + " fehlt.")));
+        var geladen = datei.laden().orElseThrow(() -> new IOException(RESSOURCE + " fehlt."));
+        var neu = pruefen(geladen);
+        if (PlotKonfiguration.standardsErgaenzen(standard, geladen)) datei.speichern(geladen);
+        return neu;
     }
 
     public void uebernehmen(Map<String, String> neu) {

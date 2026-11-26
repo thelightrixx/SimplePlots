@@ -5,7 +5,7 @@ hilfe:
   claim: '<green>/plot claim</green> beansprucht den freien Plot unter dir. <green>/plot auto</green> weist dir einen freien Plot zu.'
   rollen: 'Auf deinem Plot kannst du <green>/plot trust</green>, <green>/plot untrust</green>, <green>/plot deny</green>, <green>/plot undeny</green> oder <green>/plot kick</green> mit einem Spielernamen verwenden.'
   galerie: '<green>/plot menu</green> · <green>/plot discover</green> · <green>/plot visit #Plotname</green> · <green>/plot like</green> · <green>/plot contest</green>'
-  verwaltung: '<green>/plot profile</green> · <green>/plot sethome</green> · <green>/plot flag</green> · <green>/plot add [Spieler]</green> · <green>/plot storage [Spieler]</green> · <green>/plot merge</green>'
+  verwaltung: '<green>/plot profile</green> · <green>/plot sethome</green> · <green>/plot flag</green> · <green>/plot add [Spieler]</green> · <green>/plot storage [Spieler]</green> · <green>/plot merge</green> · <green>/plot unlink</green> · <green>/plot biome</green>'
   neu: '<green>/plot fly [on|off]</green> · <green>/plot transfer [Spieler|cancel]</green> · <green>/plot accept [X;Z]</green> · <green>/plot decline [X;Z]</green>'
 
 fehler:
@@ -26,7 +26,7 @@ fehler:
 
 teleport:
   welt: 'Du bist in der Plotwelt.'
-  zurueck: 'Du bist am Spawn der Spielwelt.'
+  zurueck: 'Du bist zurück in der Hauptwelt.'
   plot: 'Du bist auf deinem neuen Plot.'
   vor-plot: 'Du stehst auf dem Weg vor dem Plot.'
   besuchspunkt: 'Du bist am Besuchspunkt des Plots.'
@@ -48,7 +48,23 @@ info:
   rollen: 'Trusted <yellow><trusted></yellow> · Gebannt <yellow><denied></yellow>'
   bauhelfer-lager: 'Bauhelfer <yellow><helpers></yellow> · Lagerzugriff <yellow><storage></yellow>'
 
+biom:
+  gesperrt: 'Während Zensur oder Wettbewerbsbewertung kann das Biom nicht geändert werden.'
+  hilfe: '<green>/plot biome [Biom oder off]</green> · Tab zeigt verfügbare Biome. Beispiel: <green>/plot biome desert</green>'
+  ungueltig: 'Dieses Biom ist auf dem Server nicht registriert. Wähle einen Tab-Vorschlag.'
+  gespeichert: 'Biom gespeichert. Geladene Chunks werden schrittweise angepasst. Randbereiche, deren 4 × 4-Biomzelle einen Weg oder Nachbarplot schneidet, bleiben im Standardbiom.'
+  info: 'Plot-Biom <yellow><biome></yellow>'
+
+trennen:
+  hilfe: '<green>/plot unlink [confirm]</green> · Alias: <green>/plot unmerge</green>'
+  bestaetigen: '<yellow>Merge in einzelne Claims aufteilen? Besitzer, Rechte und Bauten bleiben erhalten. Der Besuchspunkt wird zurückgesetzt. Bauten auf bisherigen Zwischenwegen werden öffentlich geschützt. Bestätige mit <green>/plot unlink confirm</green>.</yellow>'
+  getrennt: 'Merge aufgelöst. Die einzelnen Claims gehören weiterhin dir; Zwischenwege sind wieder öffentlich.'
+  fremder-plot: 'Das kann nur der Besitzer dieses Plots.'
+  gesperrt: 'Während Zensur oder Wettbewerbsbewertung kann der Merge nicht aufgelöst werden.'
+  einzelplot: 'Dieser Plot besteht bereits aus einer einzelnen Rasterzelle.'
+
 betreten:
+  trenner: ' <dark_gray>·</dark_gray> '
   titel: '<green><name></green>'
   titel-ohne-name: '<green>Plot <id></green>'
   untertitel: '<yellow><owner></yellow> <dark_gray>·</dark_gray> <gray><description></gray>'
@@ -88,6 +104,7 @@ flug:
   grenze: 'Du hast den erlaubten Flugbereich verlassen und wurdest sicher auf dem Weg abgesetzt.'
 
 transfer:
+  veraendert: 'Der angebotene Plot wurde inzwischen geändert oder das Angebot ist abgelaufen. Lass dir ein neues Angebot machen.'
   hilfe: '<green>/plot transfer [Spieler|cancel]</green> auf deinem Plot; Empfänger: <green>/plot accept [X;Z]</green> oder <green>/plot decline [X;Z]</green>. Rollen und Likes werden beim Wechsel zurückgesetzt.'
   fehlt: 'Kein gültiges Übertragungsangebot für diesen Plot vorhanden.'
   abgelehnt: 'Übertragungsangebot abgelehnt.'
@@ -164,6 +181,7 @@ diagnose:
   welt: 'Welt <yellow><world></yellow> · geladen <loaded> · Raster <size> × <size> · Wegbreite <road>'
   daten: 'Plots <yellow><plots></yellow> · Rasterzellen <cells> · Wettbewerbsbeiträge <entries>'
   speicher: 'YAML-I/O · wartend <queued> · laufend <running> · erfolgreich <success> · fehlgeschlagen <failed> · letzter Auftrag <duration> ms'
+  zensur: 'Zensierte Plots <yellow><count></yellow> · Weltarbeit höchstens <sections> Abschnitte / <budget> ms je Tick (ein Abschnitt kann länger dauern)'
   hinweis: 'Zähler gelten seit dem Pluginstart und umfassen auch Reload-Aufträge. Bei Schreibfehlern das Serverlog prüfen. Spielstände nur bei gestopptem Server bearbeiten.'
 
 profil:

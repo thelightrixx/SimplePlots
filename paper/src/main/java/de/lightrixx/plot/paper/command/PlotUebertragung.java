@@ -1,6 +1,7 @@
 package de.lightrixx.plot.paper.command;
 
 import de.lightrixx.plot.model.PlotId;
+import de.lightrixx.plot.model.Plot;
 import de.lightrixx.plot.paper.PlotBerechtigungen;
 import de.lightrixx.plot.paper.config.PlotNachrichten;
 import de.lightrixx.plot.paper.gui.PlotMenue;
@@ -77,8 +78,8 @@ final class PlotUebertragung {
         int limit = welt.konfiguration().claimLimit();
         UUID ziel = spieler.getUniqueId();
         angebote.remove(id);
-        auftraege.ausfuehren(spieler, "/plot accept", () -> plots.uebertragen(id, angebot.besitzer(), ziel, limit,
-                wettbewerbe::gesperrt), ergebnis -> {
+        auftraege.ausfuehren(spieler, "/plot accept", () -> angebot.bis() <= System.currentTimeMillis()
+                ? PlotDienst.Uebertragung.VERAENDERT : plots.uebertragen(angebot.stand(), ziel, limit, wettbewerbe::gesperrt), ergebnis -> {
             texte.senden(spieler, "transfer." + ergebnis.name().toLowerCase(Locale.ROOT).replace('_', '-'), unparsed("id", id.toString()));
             if (ergebnis == PlotDienst.Uebertragung.UEBERTRAGEN) {
                 menue.schliessen();
@@ -115,7 +116,7 @@ final class PlotUebertragung {
             return;
         }
         int sekunden = welt.konfiguration().zahl("general.uebertragung.gueltigkeit-sekunden");
-        angebote.put(id, new Angebot(spieler.getUniqueId(), ziel.getUniqueId(), System.currentTimeMillis() + sekunden * 1000L));
+        angebote.put(id, new Angebot(spieler.getUniqueId(), ziel.getUniqueId(), System.currentTimeMillis() + sekunden * 1000L, plot.get()));
         texte.senden(spieler, "transfer.angeboten", unparsed("id", id.toString()), unparsed("player", ziel.getName()));
         texte.senden(ziel, "transfer.angebot", unparsed("id", id.toString()), unparsed("owner", spieler.getName()),
                 unparsed("seconds", Integer.toString(sekunden)));
@@ -127,5 +128,5 @@ final class PlotUebertragung {
                 && eintrag.getValue().ziel().equals(spieler.getUniqueId())).map(eintrag -> eintrag.getKey().toString()).toList();
     }
 
-    private record Angebot(UUID besitzer, UUID ziel, long bis) { }
+    private record Angebot(UUID besitzer, UUID ziel, long bis, Plot stand) { }
 }

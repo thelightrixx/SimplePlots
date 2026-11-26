@@ -21,12 +21,15 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.world.ChunkLoadEvent;
+import org.bukkit.entity.Player;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 public final class PlotWelt implements Listener {
@@ -34,6 +37,7 @@ public final class PlotWelt implements Listener {
     private static final NamespacedKey WELT_KEY = new NamespacedKey("simpleplots", NAME);
     // Welten mit Rasterformat 1 behalten ihre Identität für gespeicherte Spielerpositionen.
     private static final NamespacedKey ALTER_WELT_KEY = new NamespacedKey("plotsystem", NAME);
+    private static final NamespacedKey RUECKKEHR = new NamespacedKey("simpleplots", "rueckkehr");
     private final Server server;
     private final Plugin plugin;
     private final World spielwelt;
@@ -237,6 +241,21 @@ public final class PlotWelt implements Listener {
 
     public Location rueckkehr() {
         return spielwelt.getSpawnLocation();
+    }
+
+    public void rueckkehrMerken(Player spieler, Location von, Location nach) {
+        if (nach == null || von.getWorld() != spielwelt || nach.getWorld() == spielwelt) return;
+        spieler.getPersistentDataContainer().set(RUECKKEHR, PersistentDataType.LIST.doubles(),
+                List.of(von.getX(), von.getY(), von.getZ(), (double) von.getYaw(), (double) von.getPitch()));
+    }
+
+    public Location rueckkehr(Player spieler) {
+        var ort = spieler.getPersistentDataContainer().get(RUECKKEHR, PersistentDataType.LIST.doubles());
+        if (ort == null || ort.size() != 5 || ort.stream().anyMatch(wert -> !Double.isFinite(wert))
+                || ort.get(1) < spielwelt.getMinHeight() || ort.get(1) >= spielwelt.getMaxHeight()
+                || Math.abs(ort.get(3)) > Float.MAX_VALUE || Math.abs(ort.get(4)) > 90) return rueckkehr();
+        var ziel = new Location(spielwelt, ort.get(0), ort.get(1), ort.get(2), ort.get(3).floatValue(), ort.get(4).floatValue());
+        return spielwelt.getWorldBorder().isInside(ziel) ? ziel : rueckkehr();
     }
 
     private void sicherFreierWeltname() throws IOException {

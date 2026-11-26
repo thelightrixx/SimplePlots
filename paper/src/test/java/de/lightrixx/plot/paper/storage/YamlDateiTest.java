@@ -50,6 +50,17 @@ class YamlDateiTest {
     }
 
     @Test
+    void lehntLeereDateienUndAndereWurzeltypenAbOhneSieAnzufassen() throws IOException {
+        Path pfad = ordner.resolve("config.yml");
+        for (String text : new String[]{"", "# abgebrochen\n", "null\n", "[]\n", "{}\n", "42\n"}) {
+            Files.writeString(pfad, text);
+            assertThrows(IOException.class, () -> new YamlDatei(pfad).laden());
+            assertEquals(text, Files.readString(pfad));
+            assertFalse(Files.exists(ordner.resolve("config.yml.bak")));
+        }
+    }
+
+    @Test
     void entferntTemporaereDateiNachFehlgeschlagenemErsetzen() throws IOException {
         Path pfad = Files.createDirectory(ordner.resolve("plots.yml"));
         Files.writeString(pfad.resolve("behalten.txt"), "vorhanden");

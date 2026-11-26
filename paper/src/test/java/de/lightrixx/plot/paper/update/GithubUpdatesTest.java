@@ -44,6 +44,18 @@ class GithubUpdatesTest {
     }
 
     @Test
+    void trenntBetaUndAlphaKanaeleUndLaesstDenWechselZurStabilenVersionZu() throws IOException {
+        String json = "[" + release("v0.8.0-alpha", true, 20, "null") + ","
+                + release("v0.7.0-beta", true, 20, "null") + "," + release("v0.6.0", false, 20, "null") + "]";
+        assertEquals("v0.7.0-beta", GithubUpdates.auswerten(json, "v0.6.0-alpha", "beta").orElseThrow().version());
+        assertEquals("v0.8.0-alpha", GithubUpdates.auswerten(json, "v0.6.0-alpha", "alpha").orElseThrow().version());
+        assertEquals("v0.6.0", GithubUpdates.auswerten(json, "v0.6.0-alpha", "stable").orElseThrow().version());
+        String folge = "[" + release("v0.7.0-rc.1", true, 20, "null") + "," + release("v0.7.0", false, 20, "null") + "]";
+        assertEquals("v0.7.0", GithubUpdates.auswerten(folge, "v0.7.0-beta", "beta").orElseThrow().version());
+        assertThrows(IOException.class, () -> GithubUpdates.auswerten(json, "v0.6.0-alpha", "unbekannt"));
+    }
+
+    @Test
     void prueftDownloadGroessePruefsummeUndPluginIdentitaet() throws IOException {
         byte[] jar = jar("SimplePlots", VERSION);
         String hash = GithubUpdates.sha256(jar);
