@@ -1,6 +1,16 @@
 # config.yml wird beim ersten Start übernommen und danach als Altbestand erhalten.
 claims:
   pro-spieler: 3
+# Ohne Weltangabe außerhalb einer Plotwelt gilt diese Welt. Namen entsprechen worlds/<Name>.yml.
+welten:
+  standard: plots
+# In LuckPerms z. B. simpleplots.rang.moderator vergeben. Explizite Einzelrechte gelten weiter.
+# Eigene Gruppen sind erlaubt. Bündel dürfen keine anderen Bündel enthalten.
+rang-buendel:
+  spieler: [simpleplots.use, simpleplots.claim, simpleplots.manage, simpleplots.fly]
+  supporter: [simpleplots.use, simpleplots.admin.list, simpleplots.admin.inspect, simpleplots.admin.visit]
+  moderator: [simpleplots.use, simpleplots.admin.list, simpleplots.admin.inspect, simpleplots.admin.visit, simpleplots.admin.role, simpleplots.admin.profile, simpleplots.admin.censor, simpleplots.admin.diagnostics]
+  admin: [simpleplots.admin]
 funktionen:
   galerie: true
   zusammenlegen: true

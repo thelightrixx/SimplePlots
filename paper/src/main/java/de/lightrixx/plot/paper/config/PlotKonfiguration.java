@@ -22,6 +22,7 @@ import java.util.Optional;
 public final class PlotKonfiguration {
     private static final List<String> DATEIEN = List.of("general", "world", "protection", "fly", "contests", "updates");
     private final Path ordner;
+    private final Path weltDatei;
     private final Map<String, YamlConfiguration> standard = new LinkedHashMap<>();
     private volatile Werte werte;
     private final java.util.function.Predicate<Material> festesMaterial;
@@ -31,6 +32,7 @@ public final class PlotKonfiguration {
     }
 
     public PlotKonfiguration(Path bisher, java.util.function.Predicate<Material> festesMaterial) throws IOException {
+        weltDatei = null;
         this.festesMaterial = Objects.requireNonNull(festesMaterial);
         ordner = bisher.toAbsolutePath().getParent().resolve("config");
         long vorhanden = DATEIEN.stream().filter(name -> Files.exists(pfad(name))).count();
@@ -79,6 +81,51 @@ public final class PlotKonfiguration {
 
     private Path pfad(String name) { return ordner.resolve(name + ".yml"); }
 
+    private PlotKonfiguration(PlotKonfiguration basis, Path datei) throws IOException {
+        ordner = basis.ordner;
+        weltDatei = datei;
+        festesMaterial = basis.festesMaterial;
+        standard.putAll(basis.standard);
+        werte = vorbereiten();
+    }
+
+    public PlotKonfiguration fuerWelt(String name) throws IOException {
+        if (!name.matches("[a-z0-9][a-z0-9_-]{0,63}")) throw new IOException("Ungültiger Plotweltname: " + name);
+        return new PlotKonfiguration(this, ordner.getParent().resolve("worlds").resolve(name + ".yml"));
+    }
+
+    public String weltname() {
+        return weltDatei == null ? "plots" : weltDatei.getFileName().toString().replaceFirst("\\.yml$", "");
+    }
+
+    /** Bei bestehenden Installationen bleibt die ursprüngliche Datenablage unverändert. */
+    public Path datenordner() {
+        return weltname().equals("plots") ? ordner.getParent() : ordner.getParent().resolve("data").resolve(weltname());
+    }
+
+    public List<PlotKonfiguration> weltenLaden() throws IOException {
+        Path welten = ordner.getParent().resolve("worlds");
+        if (Files.notExists(welten)) {
+            var yaml = new YamlConfiguration();
+            yaml.options().setHeader(List.of("Plotwelt plots. Fehlende Werte erben die Einstellungen aus config/.",
+                    "Weitere Welten: eine YAML-Datei pro Welt anlegen; Übernahme beim nächsten Pluginstart.",
+                    "Abschnitte: general, world, protection, fly und contests. Raster nach Erstellung fest."));
+            yaml.set("world.raster.plotgroesse", raster().groesse());
+            yaml.set("world.raster.wegbreite", raster().wegbreite());
+            new YamlDatei(welten.resolve("plots.yml")).speichern(yaml);
+        }
+        var ergebnis = new java.util.ArrayList<PlotKonfiguration>();
+        try (var dateien = Files.list(welten)) {
+            for (Path datei : dateien.filter(p -> p.getFileName().toString().endsWith(".yml")).sorted().toList()) {
+                ergebnis.add(fuerWelt(datei.getFileName().toString().replaceFirst("\\.yml$", "")));
+            }
+        }
+        if (ergebnis.stream().noneMatch(config -> config.weltname().equals(text("general.welten.standard")))) {
+            throw new IOException("Die konfigurierte Standardwelt general.welten.standard fehlt in worlds/.");
+        }
+        return List.copyOf(ergebnis);
+    }
+
     static boolean standardsErgaenzen(YamlConfiguration standard, YamlConfiguration geladen) {
         String vorher = geladen.saveToString();
         for (String key : standard.getKeys(true)) {
@@ -125,6 +172,20 @@ public final class PlotKonfiguration {
             geladen.put(name, new YamlDatei(pfad(name)).laden()
                     .orElseThrow(() -> new IOException("Konfiguration fehlt: " + pfad(name))));
         }
+        if (weltDatei != null) {
+            var welt = new YamlDatei(weltDatei).laden().orElseThrow(() -> new IOException("Weltkonfiguration fehlt: " + weltDatei));
+            for (String name : welt.getKeys(false)) {
+                if (!DATEIEN.contains(name) || name.equals("updates") || !welt.isConfigurationSection(name))
+                    throw new IOException(weltDatei + ": Unbekannter Weltabschnitt " + name);
+                for (String key : welt.getConfigurationSection(name).getKeys(true)) {
+                    if (welt.isConfigurationSection(name + "." + key)) continue;
+                    if (!standard.get(name).contains(key) || key.startsWith("welten.") || key.startsWith("rang-buendel."))
+                        throw new IOException(weltDatei + ": Unbekannte oder globale Option " + name + "." + key);
+                    geladen.get(name).set(key, welt.get(name + "." + key));
+                }
+            }
+            return pruefen(geladen);
+        }
         Werte neu = pruefen(geladen);
         for (String name : DATEIEN) {
             if (standardsErgaenzen(standard.get(name), geladen.get(name))) new YamlDatei(pfad(name)).speichern(geladen.get(name));
@@ -150,13 +211,31 @@ public final class PlotKonfiguration {
                 if ((normal instanceof Boolean && !(wert instanceof Boolean))
                         || (normal instanceof Integer && !(wert instanceof Integer))
                         || (normal instanceof Double && !(wert instanceof Number))
-                        || (normal instanceof String && !(wert instanceof String))) {
+                        || (normal instanceof String && !(wert instanceof String))
+                        || (normal instanceof List<?> && !(wert instanceof List<?>))
+                        || (wert instanceof List<?> liste && liste.stream().anyMatch(Objects::isNull))) {
                     throw new IOException(id + ": Ungültiger Werttyp.");
                 }
                 pruefeWert(id, wert);
-                optionen.put(id, wert);
+                optionen.put(id, wert instanceof List<?> liste ? List.copyOf(liste) : wert);
             }
         }
+        var buendel = new LinkedHashMap<String, List<String>>();
+        var gruppen = dateien.get("general").getConfigurationSection("rang-buendel");
+        if (gruppen != null) {
+            for (String gruppe : gruppen.getKeys(false)) {
+                Object roh = gruppen.get(gruppe);
+                if (!gruppe.matches("[a-z0-9][a-z0-9_-]{0,31}") || !(roh instanceof List<?> liste)
+                        || liste.stream().anyMatch(wert -> !(wert instanceof String text)
+                        || !text.matches("simpleplots\\.[a-z0-9_.-]+") || text.startsWith("simpleplots.rang.")))
+                    throw new IOException("general.rang-buendel: Ungültige Gruppe oder Berechtigung bei " + gruppe);
+                buendel.put(gruppe, List.copyOf(gruppen.getStringList(gruppe)));
+            }
+        } else if (dateien.get("general").contains("rang-buendel")) throw new IOException("general.rang-buendel: Abschnitt erwartet.");
+        // Fehlende Standardgruppen erben die Vorgabe; ausdrücklich leere Listen bleiben leer.
+        for (String gruppe : standard.get("general").getConfigurationSection("rang-buendel").getKeys(false))
+            buendel.putIfAbsent(gruppe, List.copyOf(standard.get("general").getStringList("rang-buendel." + gruppe)));
+        optionen.put("general.rang-buendel", Map.copyOf(buendel));
         var basis = new YamlConfiguration();
         basis.set("raster.plotgroesse", optionen.get("world.raster.plotgroesse"));
         basis.set("raster.wegbreite", optionen.get("world.raster.wegbreite"));
@@ -210,6 +289,8 @@ public final class PlotKonfiguration {
         if (key.equals("updates.kanal") && !List.of("stable", "beta", "alpha").contains(wert)) {
             throw new IOException("updates.kanal: stable, beta oder alpha erwartet.");
         }
+        if (key.equals("general.welten.standard") && !((String) wert).matches("[a-z0-9][a-z0-9_-]{0,63}"))
+            throw new IOException(key + ": Ungültiger Weltname.");
     }
 
     private static Werte rasterUndLimit(YamlConfiguration yaml) throws IOException {
@@ -236,10 +317,11 @@ public final class PlotKonfiguration {
 
     public void rasterSetzen(PlotRaster wert) throws IOException {
         vorbereiten();
-        var datei = new YamlDatei(pfad("world"));
+        var datei = new YamlDatei(weltDatei == null ? pfad("world") : weltDatei);
         var yaml = datei.laden().orElseThrow(() -> new IOException("world.yml fehlt."));
-        yaml.set("raster.plotgroesse", wert.groesse());
-        yaml.set("raster.wegbreite", wert.wegbreite());
+        String prefix = weltDatei == null ? "" : "world.";
+        yaml.set(prefix + "raster.plotgroesse", wert.groesse());
+        yaml.set(prefix + "raster.wegbreite", wert.wegbreite());
         datei.speichern(yaml);
         var optionen = new HashMap<>(werte.optionen());
         optionen.put("world.raster.plotgroesse", wert.groesse());
@@ -252,9 +334,9 @@ public final class PlotKonfiguration {
             throw new IllegalArgumentException("Das Claim-Limit muss mindestens 1 sein.");
         }
         vorbereiten();
-        var datei = new YamlDatei(pfad("general"));
+        var datei = new YamlDatei(weltDatei == null ? pfad("general") : weltDatei);
         var yaml = datei.laden().orElseThrow(() -> new IOException("general.yml fehlt."));
-        yaml.set("claims.pro-spieler", wert);
+        yaml.set((weltDatei == null ? "" : "general.") + "claims.pro-spieler", wert);
         datei.speichern(yaml);
         var optionen = new HashMap<>(werte.optionen());
         optionen.put("general.claims.pro-spieler", wert);

@@ -12,6 +12,7 @@ import de.lightrixx.plot.paper.gui.PlotMenue;
 import de.lightrixx.plot.paper.listener.PlotFlug;
 import de.lightrixx.plot.paper.update.PlotUpdater;
 import de.lightrixx.plot.paper.world.PlotWelt;
+import de.lightrixx.plot.paper.world.PlotEntfernen;
 import de.lightrixx.plot.paper.world.PlotZensur;
 import de.lightrixx.plot.service.PlotDienst;
 import de.lightrixx.plot.service.WettbewerbDienst;
@@ -88,6 +89,12 @@ public final class PlotBefehl implements TabExecutor {
     public void funktionen(PlotFlug flug, PlotUpdater updater, PlotZensur zensur) {
         this.flug = flug;
         admin.moderation(new PlotModerationBefehl(plots, welt, wettbewerbe, auftraege, texte, menue, updater, zensur));
+    }
+
+    public void funktionen(PlotFlug flug, PlotUpdater updater, PlotZensur zensur,
+                           PlotEntfernen entfernen) {
+        funktionen(flug, updater, zensur);
+        admin.entfernen(entfernen);
     }
 
     @Override
@@ -488,6 +495,14 @@ public final class PlotBefehl implements TabExecutor {
             return passende(unterbefehle(sender), aktion);
         }
         if (aktion.equals("admin") && PlotAdminBefehl.erlaubteUnterbefehle(sender).contains(args[1].toLowerCase(Locale.ROOT))) {
+            if (args.length == 3 && List.of("censor", "uncensor", "remove", "restore", "inspect", "visit", "claim", "unclaim", "setowner", "role", "profile")
+                    .contains(args[1].toLowerCase(Locale.ROOT))) {
+                var ids = new ArrayList<String>();
+                if (sender instanceof Player spieler && welt.istPlotWelt(spieler.getWorld())) ids.add("~");
+                if (args[1].equalsIgnoreCase("restore")) plots.entfernungen().forEach(eintrag -> ids.add(eintrag.id().toString()));
+                else plots.alle().forEach(plot -> ids.add(plot.id().toString()));
+                return passende(ids, args[2]);
+            }
             if (args.length == 3 && args[1].equalsIgnoreCase("update")) return passende(List.of("check", "status", "apply"), args[2]);
             if (args.length == 3 && args[1].equalsIgnoreCase("bypass")) return passende(List.of("on", "off"), args[2]);
             if (args.length == 4) {

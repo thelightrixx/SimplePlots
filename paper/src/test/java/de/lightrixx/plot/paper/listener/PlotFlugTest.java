@@ -36,6 +36,19 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 class PlotFlugTest {
+    @Test
+    void fremderPlotweltListenerVeraendertKeineFlugerlaubnisOderGeschwindigkeit() {
+        flug.befehl(spieler, new String[]{"fly", "on"});
+        assertTrue(darfFliegen.get());
+        float vorher = tempo.get();
+        when(spieler.getWorld()).thenReturn(hauptwelt);
+        ort.set(new Location(hauptwelt, 5, 64, 35));
+        flug.anderePlotwelten(welt -> welt == hauptwelt);
+        flug.aktualisieren(spieler);
+        flug.beitreten(new org.bukkit.event.player.PlayerJoinEvent(spieler, net.kyori.adventure.text.Component.empty()));
+        var start = new PlayerToggleFlightEvent(spieler, true); flug.starten(start);
+        assertFalse(start.isCancelled()); assertTrue(darfFliegen.get()); assertEquals(vorher, tempo.get());
+    }
     private final UUID id = UUID.randomUUID();
     private final PlotId plotId = new PlotId(0, 0);
     private final Player spieler = mock(Player.class);

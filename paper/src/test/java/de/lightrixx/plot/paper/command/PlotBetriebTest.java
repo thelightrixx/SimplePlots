@@ -106,6 +106,33 @@ class PlotBetriebTest {
         auftrag.run();
     }
 
+    @Test
+    void uebernimmtMehrereWeltenGemeinsamUndBehaeltBeiFehlerInZweiterWeltAlleAltenWerte() throws Exception {
+        var ersterConfig = konfiguration.weltenLaden().getFirst();
+        Path zweiteDatei = ordner.resolve("worlds/creative.yml");
+        Files.writeString(zweiteDatei, "general:\n  claims:\n    pro-spieler: 4\n");
+        var zweiterConfig = konfiguration.fuerWelt("creative");
+        var ersteWelt = mock(PlotWelt.class); var zweiteWelt = mock(PlotWelt.class);
+        var erster = new PlotBetrieb(mock(JavaPlugin.class), ersterConfig, texte, gui, menue, ersteWelt,
+                mock(PlotDienst.class), mock(WettbewerbDienst.class), auftraege);
+        var zweiter = new PlotBetrieb(mock(JavaPlugin.class), zweiterConfig, texte, gui, menue, zweiteWelt,
+                mock(PlotDienst.class), mock(WettbewerbDienst.class), auftraege);
+        var verbund = java.util.List.of(erster, zweiter);
+        erster.verbund(konfiguration, verbund); zweiter.verbund(konfiguration, verbund);
+        schreiben(32, 8); Files.writeString(zweiteDatei, "general:\n  claims:\n    pro-spieler: -1\n");
+        erster.neuladen(sender); naechsterTick();
+        assertEquals(3, ersterConfig.claimLimit()); assertEquals(4, zweiterConfig.claimLimit());
+        assertEquals(3, konfiguration.claimLimit());
+        assertFalse(erster.reloadLaeuft()); assertFalse(zweiter.reloadLaeuft());
+        verify(gui, never()).uebernehmen(any());
+        Files.writeString(zweiteDatei, "general:\n  claims:\n    pro-spieler: 6\n");
+        zweiter.neuladen(sender);
+        assertEquals(3, ersterConfig.claimLimit()); assertEquals(4, zweiterConfig.claimLimit());
+        naechsterTick();
+        assertEquals(8, ersterConfig.claimLimit()); assertEquals(6, zweiterConfig.claimLimit());
+        assertEquals(8, konfiguration.claimLimit()); verify(gui).uebernehmen(any());
+    }
+
     private void schreiben(int groesse, int limit) throws IOException {
         if (Files.exists(ordner.resolve("config/general.yml"))) {
             Files.writeString(ordner.resolve("config/general.yml"), "claims:\n  pro-spieler: " + limit + "\n");

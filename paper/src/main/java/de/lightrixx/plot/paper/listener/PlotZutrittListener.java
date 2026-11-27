@@ -37,6 +37,9 @@ public final class PlotZutrittListener implements Listener {
     private final PlotWelt welt;
     private final PlotDienst plots;
     private final PlotNachrichten texte;
+    private java.util.function.Predicate<org.bukkit.World> anderePlotwelt = welt -> false;
+
+    public void anderePlotwelten(java.util.function.Predicate<org.bukkit.World> pruefung) { anderePlotwelt = java.util.Objects.requireNonNull(pruefung); }
 
     public PlotZutrittListener(Plugin plugin, PlotWelt welt, PlotDienst plots, PlotNachrichten texte) {
         this.plugin = plugin;
@@ -158,6 +161,7 @@ public final class PlotZutrittListener implements Listener {
     }
 
     private void ankunft(Player spieler) {
+        if (anderePlotwelt.test(spieler.getWorld())) return;
         boolean plotwelt = welt.istPlotWelt(spieler.getWorld());
         PlotBerechtigungen.modusAmOrtPruefen(spieler, plotwelt);
         if (!plotwelt) {

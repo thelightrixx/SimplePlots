@@ -1,6 +1,7 @@
 package de.lightrixx.plot.paper.command;
 
 import de.lightrixx.plot.model.Plot;
+import de.lightrixx.plot.model.PlotEntfernung;
 import de.lightrixx.plot.model.PlotId;
 import de.lightrixx.plot.model.PlotProfil;
 import de.lightrixx.plot.paper.PlotBerechtigungen;
@@ -8,6 +9,7 @@ import de.lightrixx.plot.paper.config.PlotNachrichten;
 import de.lightrixx.plot.paper.gui.PlotMenue;
 import de.lightrixx.plot.paper.update.PlotUpdater;
 import de.lightrixx.plot.paper.world.PlotWelt;
+import de.lightrixx.plot.paper.world.PlotEntfernen;
 import de.lightrixx.plot.paper.world.PlotZensur;
 import de.lightrixx.plot.service.PlotDienst;
 import de.lightrixx.plot.service.WettbewerbDienst;
@@ -19,6 +21,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.function.UnaryOperator;
 
@@ -33,6 +36,9 @@ final class PlotModerationBefehl {
     private final PlotMenue menue;
     private final PlotUpdater updater;
     private final PlotZensur zensur;
+    private PlotEntfernen entfernen;
+
+    void entfernen(PlotEntfernen dienst) { entfernen = Objects.requireNonNull(dienst); }
 
     PlotModerationBefehl(PlotDienst plots, PlotWelt welt, WettbewerbDienst wettbewerbe, PlotAuftraege auftraege,
                         PlotNachrichten texte, PlotMenue menue, PlotUpdater updater, PlotZensur zensur) {
@@ -52,8 +58,24 @@ final class PlotModerationBefehl {
         }
         if (args.length < 3) { hilfe(sender); return; }
         PlotId id;
-        try { id = PlotId.lesen(args[2]); }
+        try {
+            if (args[2].equals("~")) {
+                if (!(sender instanceof Player spieler)) { texte.senden(sender, "fehler.nur-spieler"); return; }
+                if (!welt.istPlotWelt(spieler.getWorld())) { texte.senden(sender, "fehler.keine-plotwelt"); return; }
+                var ort = spieler.getLocation();
+                var ziel = welt.plotBei(ort).or(() -> plots.entfernungBei(welt.raster(), ort.getBlockX(), ort.getBlockZ())
+                        .map(PlotEntfernung::id));
+                if (ziel.isEmpty()) { texte.senden(sender, "fehler.auf-weg"); return; }
+                id = ziel.get();
+            } else id = PlotId.lesen(args[2]);
+        }
         catch (IllegalArgumentException e) { texte.senden(sender, "fehler.plot-id"); return; }
+        if (aktion.equals("remove") || aktion.equals("restore")) {
+            if (args.length != 3) { hilfe(sender); return; }
+            if (zensur.beschaeftigt(id)) { texte.senden(sender, "zensur.laeuft"); return; }
+            entfernen.befehl(sender, id, aktion.equals("restore"));
+            return;
+        }
         if (aktion.equals("censor") || aktion.equals("uncensor")) {
             if (args.length > 4 || (args.length == 4 && !args[3].equalsIgnoreCase("on") && !args[3].equalsIgnoreCase("off"))) {
                 hilfe(sender); return;

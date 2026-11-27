@@ -131,7 +131,24 @@ zensur:
   zu-gross: 'Die Zensurwarteschlange oder Chunk-Grenze aus protection.yml wurde erreicht.'
   fehler: '<red>Zensurarbeiten unterbrochen. Vorhandene Sperren und Sicherungen bleiben erhalten. Details im Serverlog; nach Beheben der Ursache erneut ausführen.</red>'
 
+welten:
+  liste: 'Plotwelten: <green><worlds></green>'
+  hilfe: '<green>/plot world [Welt]</green> · <green>/plot worlds</green> · <green>/plot in [Welt] [Unterbefehl …]</green>'
+  unbekannt: '<red>Diese Plotwelt ist nicht registriert. /plot worlds zeigt die verfügbaren Welten.</red>'
+entfernen:
+  start: 'Fläche <yellow><id></yellow> wird bearbeitet. Der Auftrag bleibt bei einer Unterbrechung gespeichert.'
+  laeuft: 'Für diese Fläche laufen bereits Weltarbeiten.'
+  veraendert: '<red>Die Fläche wurde zwischenzeitlich verändert oder ist durch Zensur/Wettbewerb gesperrt.</red>'
+  nicht-entfernt: 'Diese Fläche wurde nicht entfernt.'
+  bereits-entfernt: 'Diese Fläche ist bereits entfernt und bleibt bis /plot admin restore gesperrt.'
+  fertig: 'Fläche <yellow><id></yellow> vollständig entfernt. Besitz, Rollen und Inhalt wurden gelöscht.'
+  wiederhergestellt: 'Fläche <yellow><id></yellow> als freie Standardplots ohne bisherigen Inhalt wiederhergestellt.'
+  fehler: '<red>Weltarbeiten unterbrochen. Die Fläche bleibt gesperrt. Details in der Konsole; denselben Befehl zum Fortsetzen verwenden.</red>'
 moderation:
+  ziel-hilfe: '<green>/plot admin censor [X;Z oder ~] [on|off]</green> · <green>uncensor [X;Z oder ~]</green>. ~ wählt die Fläche an deinem Standort.'
+  remove-hilfe: '<green>/plot admin remove [X;Z oder ~]</green> entfernt die gesamte Fläche bis ins Leere. Inhalt und Besitz gehen dauerhaft verloren.'
+  restore-hilfe: '<green>/plot admin restore [X;Z oder ~]</green> erzeugt freie Standardplots ohne früheren Inhalt.'
+  setup-hilfe: '<green>/plot admin setup</green> prüft die Konfiguration aller registrierten Plotwelten.'
   hilfe: '<green>/plot admin inspect|visit [X;Z]</green> · <green>list [Spieler]</green> · <green>claim [X;Z] [Spieler]</green> · <green>setowner [X;Z] [Spieler] confirm</green> · <green>unclaim [X;Z] confirm</green> (Bauten bleiben erhalten) · <green>role [X;Z] [Aktion] [Spieler]</green> · <green>profile [X;Z] [name|description|category] [Wert]</green> · <green>bypass [on|off]</green> · <green>censor [X;Z] [on|off]</green> · <green>update [check|status|apply confirm]</green>'
   gespeichert: 'Plotverwaltung gespeichert.'
   eintrag: 'Plot <yellow><id></yellow>'
@@ -172,11 +189,14 @@ admin:
   modus-fehlgeschlagen: '<red>Der Spielmodus konnte nicht geändert werden.</red>'
   reload-laeuft: 'Ein Reload läuft bereits. Warte auf dessen Abschluss.'
   reload-erfolg: 'Einstellungen, Nachrichten und Menüs wurden neu geladen. Offene Plotmenüs wurden geschlossen.'
-  reload-raster: '<red>Reload abgelehnt: Das Raster in config/world.yml weicht von der bestehenden Plotwelt ab. Der bisherige Stand bleibt aktiv.</red>'
+  reload-raster: '<red>Reload abgelehnt: Ein Raster in worlds/ oder config/world.yml weicht von einer bestehenden Plotwelt ab. Der bisherige Stand bleibt aktiv.</red>'
   reload-hilfe: '<green>/plot admin reload</green> lädt Einstellungen, Nachrichten und Menüs gemeinsam neu.'
   diagnose-hilfe: '<green>/plot admin diagnostics</green> zeigt Version, Welt und Speicherzustand.'
 
 diagnose:
+  welten: 'Registrierte Plotwelten: <green><worlds></green>'
+  entfernt: 'Entfernte Flächen <yellow><count></yellow> · bis restore unclaimbar'
+  einrichtung: '<green>Alle registrierten Weltkonfigurationen, Nachrichten und Menüs wurden geprüft. Neue Welten werden beim nächsten Pluginstart registriert.</green>'
   version: 'SimplePlots <yellow><version></yellow> · Java <java><newline><gray><server></gray>'
   welt: 'Welt <yellow><world></yellow> · geladen <loaded> · Raster <size> × <size> · Wegbreite <road>'
   daten: 'Plots <yellow><plots></yellow> · Rasterzellen <cells> · Wettbewerbsbeiträge <entries>'

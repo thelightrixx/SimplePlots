@@ -1,6 +1,7 @@
 package de.lightrixx.plot.paper.storage;
 
 import de.lightrixx.plot.model.Plot;
+import de.lightrixx.plot.model.PlotEntfernung;
 import de.lightrixx.plot.model.PlotId;
 import de.lightrixx.plot.model.PlotProfil;
 import de.lightrixx.plot.model.PlotRechte;
@@ -21,7 +22,7 @@ import java.util.Set;
 import java.util.UUID;
 
 public final class PlotYamlSpeicher implements PlotSpeicher {
-    private static final int FORMAT = 3;
+    private static final int FORMAT = 4;
     private static final int MAX_JOURNALEINTRAEGE = 128;
     private final YamlDatei datei;
     private final YamlDatei journal;
@@ -34,6 +35,7 @@ public final class PlotYamlSpeicher implements PlotSpeicher {
     private boolean initialisiert;
     private boolean aktuellesFormat;
     private UUID bestandId;
+    private List<PlotEntfernung> entfernungen = List.of();
 
     public PlotYamlSpeicher(Path pfad) {
         this.datei = new YamlDatei(pfad);
@@ -58,6 +60,7 @@ public final class PlotYamlSpeicher implements PlotSpeicher {
             aktuellerStand = 0;
             aktuellesFormat = false;
             initialisiert = true;
+            entfernungen = List.of();
             return List.of();
         }
         var yaml = vorhanden.get();
@@ -67,26 +70,28 @@ public final class PlotYamlSpeicher implements PlotSpeicher {
             throw new IOException("plots.yml hat kein gültiges Plotdatenformat.");
         }
 
-        long stand = version == FORMAT ? standLesen(yaml, "stand") : 0;
-        UUID kennung = version == FORMAT ? bestandskennung(yaml) : null;
+        long stand = version >= 3 ? standLesen(yaml, "stand") : 0;
+        UUID kennung = version >= 3 ? bestandskennung(yaml) : null;
+        List<PlotEntfernung> geloescht = version >= 4 ? entfernungenLesen(yaml) : List.of();
         Map<PlotId, Plot> grundbestand = plotMap(plotsLesen(sektion, version));
         Map<PlotId, Plot> gesamt = new LinkedHashMap<>(grundbestand);
         long neuerStand = stand;
         var aenderungen = journal.laden();
-        if (version == FORMAT && aenderungen.isEmpty()) {
+        if (version >= 3 && aenderungen.isEmpty()) {
             throw new IOException("Das zugehörige Plot-Änderungsjournal fehlt. Grundbestand und Journal gemeinsam wiederherstellen.");
         }
-        if (aenderungen.isPresent() && version != FORMAT && !leeresStartjournal(aenderungen.get())) {
+        if (aenderungen.isPresent() && version < 3 && !leeresStartjournal(aenderungen.get())) {
             throw new IOException("Plot-Änderungsjournal passt nicht zum älteren Grundbestand.");
         }
-        if (aenderungen.isPresent() && version == FORMAT) {
+        if (aenderungen.isPresent() && version >= 3) {
             var delta = aenderungen.get();
             if (!kennung.equals(bestandskennung(delta))) {
                 throw new IOException("Plot-Änderungsjournal gehört zu einem anderen Datenbestand.");
             }
-            if (!delta.isInt("format") || delta.getInt("format") != 1) {
+            if (!delta.isInt("format") || delta.getInt("format") < 1 || delta.getInt("format") > 2) {
                 throw new IOException("Ungültiges Plot-Änderungsjournal.");
             }
+            var entfernteFlaechen = delta.getInt("format") == 2 ? entfernungenLesen(delta) : List.<PlotEntfernung>of();
             long von = standLesen(delta, "basis");
             long bis = standLesen(delta, "stand");
             if (bis < von || von > stand || (bis > stand && von != stand)
@@ -119,14 +124,16 @@ public final class PlotYamlSpeicher implements PlotSpeicher {
             // Nach einer abgeschlossenen Verdichtung darf das ältere Journal liegen bleiben.
             if (bis > stand) {
                 neuerStand = bis;
+                geloescht = entfernteFlaechen;
             }
         }
         basis = grundbestand;
         zuletzt = gesamt;
         basisStand = stand;
         aktuellerStand = neuerStand;
-        aktuellesFormat = version == FORMAT;
+        aktuellesFormat = version >= 3;
         bestandId = kennung;
+        entfernungen = geloescht;
         initialisiert = true;
         return List.copyOf(gesamt.values());
     }
@@ -198,6 +205,15 @@ public final class PlotYamlSpeicher implements PlotSpeicher {
 
     @Override
     public void speichern(List<Plot> plots) throws IOException {
+        if (!initialisiert) laden();
+        speichern(plots, entfernungen);
+    }
+
+    @Override
+    public List<PlotEntfernung> entfernungen() { return entfernungen; }
+
+    @Override
+    public void speichern(List<Plot> plots, List<PlotEntfernung> entferntNeu) throws IOException {
         if (!initialisiert) {
             laden();
         }
@@ -219,6 +235,7 @@ public final class PlotYamlSpeicher implements PlotSpeicher {
             leer.set("entfernt", List.of());
             journal.speichern(leer);
             var grundbestand = plotsSchreiben(List.copyOf(zuletzt.values()));
+            entfernungenSchreiben(grundbestand, entfernungen);
             grundbestand.set("bestand", kennung.toString());
             grundbestand.set("stand", 1);
             datei.speichern(grundbestand);
@@ -229,7 +246,8 @@ public final class PlotYamlSpeicher implements PlotSpeicher {
             bestandId = kennung;
         }
         var neu = plotMap(plots);
-        if (aktuellesFormat && neu.equals(zuletzt) && List.copyOf(neu.keySet()).equals(List.copyOf(zuletzt.keySet()))) {
+        if (aktuellesFormat && neu.equals(zuletzt) && entferntNeu.equals(entfernungen)
+                && List.copyOf(neu.keySet()).equals(List.copyOf(zuletzt.keySet()))) {
             return;
         }
         long stand = Math.incrementExact(aktuellerStand);
@@ -241,6 +259,7 @@ public final class PlotYamlSpeicher implements PlotSpeicher {
         if (geaendert.size() + entfernt.size() >= MAX_JOURNALEINTRAEGE
                 || !List.copyOf(replay.keySet()).equals(List.copyOf(neu.keySet()))) {
             var yaml = plotsSchreiben(plots);
+            entfernungenSchreiben(yaml, entferntNeu);
             yaml.set("bestand", bestandId.toString());
             yaml.set("format", FORMAT);
             yaml.set("stand", stand);
@@ -250,8 +269,9 @@ public final class PlotYamlSpeicher implements PlotSpeicher {
             aktuellesFormat = true;
         } else {
             var yaml = plotsSchreiben(geaendert);
+            entfernungenSchreiben(yaml, entferntNeu);
             yaml.set("bestand", bestandId.toString());
-            yaml.set("format", 1);
+            yaml.set("format", 2);
             yaml.set("basis", basisStand);
             yaml.set("stand", stand);
             yaml.set("entfernt", entfernt.stream().map(PlotId::toString).toList());
@@ -259,6 +279,36 @@ public final class PlotYamlSpeicher implements PlotSpeicher {
         }
         zuletzt = neu;
         aktuellerStand = stand;
+        entfernungen = List.copyOf(entferntNeu);
+    }
+
+    private static void entfernungenSchreiben(YamlConfiguration yaml, List<PlotEntfernung> entfernt) {
+        var wurzel = yaml.createSection("entfernte-flaechen");
+        for (var eintrag : entfernt) {
+            var teil = wurzel.createSection(eintrag.id().toString());
+            teil.set("zellen", eintrag.zellen().stream().map(PlotId::toString).sorted().toList());
+            teil.set("phase", eintrag.phase().name());
+        }
+    }
+
+    private static List<PlotEntfernung> entfernungenLesen(YamlConfiguration yaml) throws IOException {
+        var wurzel = yaml.getConfigurationSection("entfernte-flaechen");
+        if (wurzel == null) throw new IOException("Entfernte Flächen fehlen im Plotbestand.");
+        var ergebnis = new ArrayList<PlotEntfernung>();
+        try {
+            for (String id : wurzel.getKeys(false)) {
+                var teil = wurzel.getConfigurationSection(id);
+                if (teil == null || !teil.isString("phase")) throw new IllegalArgumentException("Phase fehlt.");
+                var zellen = new HashSet<PlotId>();
+                for (String text : textListe(teil, "zellen")) {
+                    if (!zellen.add(PlotId.lesen(text))) throw new IllegalArgumentException("Doppelte entfernte Zelle.");
+                }
+                ergebnis.add(new PlotEntfernung(PlotId.lesen(id), zellen, PlotEntfernung.Phase.valueOf(teil.getString("phase"))));
+            }
+        } catch (IllegalArgumentException e) {
+            throw new IOException("Ungültige entfernte Plotfläche.", e);
+        }
+        return List.copyOf(ergebnis);
     }
 
     private static YamlConfiguration plotsSchreiben(List<Plot> plots) {

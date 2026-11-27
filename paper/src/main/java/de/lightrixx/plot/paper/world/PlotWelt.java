@@ -33,10 +33,8 @@ import java.util.List;
 import java.util.Optional;
 
 public final class PlotWelt implements Listener {
-    private static final String NAME = "plots";
-    private static final NamespacedKey WELT_KEY = new NamespacedKey("simpleplots", NAME);
     // Welten mit Rasterformat 1 behalten ihre Identität für gespeicherte Spielerpositionen.
-    private static final NamespacedKey ALTER_WELT_KEY = new NamespacedKey("plotsystem", NAME);
+    private static final NamespacedKey ALTER_WELT_KEY = new NamespacedKey("plotsystem", "plots");
     private static final NamespacedKey RUECKKEHR = new NamespacedKey("simpleplots", "rueckkehr");
     private final Server server;
     private final Plugin plugin;
@@ -46,6 +44,7 @@ public final class PlotWelt implements Listener {
     private final PlotWegrand wegrand;
     private final YamlDatei metadaten;
     private final NamespacedKey weltKey;
+    private final String name;
     private Optional<PlotRaster> festesRaster;
 
     public PlotWelt(Plugin plugin, PlotKonfiguration konfiguration, PlotDienst plots, Path pfad) throws IOException {
@@ -56,15 +55,17 @@ public final class PlotWelt implements Listener {
             throw new IOException("Die Hauptwelt minecraft:overworld ist nicht geladen.");
         }
         this.konfiguration = konfiguration;
+        this.name = konfiguration.weltname();
         this.plots = plots;
         this.wegrand = new PlotWegrand(plots, konfiguration);
         this.metadaten = new YamlDatei(pfad);
         var yaml = metadaten.laden();
         festesRaster = yaml.isPresent() ? Optional.of(rasterLesen(yaml.get())) : Optional.empty();
-        if (festesRaster.isEmpty() && plots.anzahlPlots() > 0) {
+        if (festesRaster.isEmpty() && (plots.anzahlPlots() > 0 || !plots.entfernungen().isEmpty())) {
             throw new IOException("Gespeicherte Plots ohne welt.yml gefunden. Weltmetadaten und Plotwelt gemeinsam wiederherstellen.");
         }
-        weltKey = yaml.filter(daten -> daten.getInt("format") == 1).isPresent() ? ALTER_WELT_KEY : WELT_KEY;
+        weltKey = name.equals("plots") && yaml.filter(daten -> daten.getInt("format") == 1).isPresent()
+                ? ALTER_WELT_KEY : new NamespacedKey("simpleplots", name);
         for (Plot plot : plots.alle()) {
             for (PlotId zelle : plot.zellen()) {
                 try {
@@ -125,7 +126,7 @@ public final class PlotWelt implements Listener {
             yaml.set("wegbreite", aktuell.wegbreite());
             metadaten.speichern(yaml);
             festesRaster = Optional.of(aktuell);
-        } else if (plots.anzahlPlots() > 0 && !Files.isDirectory(weltOrdner(weltKey))) {
+        } else if ((plots.anzahlPlots() > 0 || !plots.entfernungen().isEmpty()) && !Files.isDirectory(weltOrdner(weltKey))) {
             throw new IOException("Die Weltdateien für gespeicherte Plots fehlen: " + weltOrdner(weltKey)
                     + ". Plotwelt aus der gemeinsamen Sicherung wiederherstellen.");
         }
@@ -135,7 +136,7 @@ public final class PlotWelt implements Listener {
             welt = WorldCreator.ofKey(weltKey)
                     .environment(World.Environment.NORMAL)
                     .generateStructures(false)
-                    .generator(new PlotGenerator(raster(), konfiguration))
+                    .generator(new PlotGenerator(raster(), konfiguration, plots))
                     .createWorld();
         } catch (RuntimeException e) {
             throw new IOException("Plotwelt " + weltKey + " konnte nicht geladen werden.", e);
@@ -259,10 +260,12 @@ public final class PlotWelt implements Listener {
     }
 
     private void sicherFreierWeltname() throws IOException {
-        if (server.getWorld(NAME) != null) {
-            throw new IOException("Vorhandene Welt " + NAME + " ohne registriertes SimplePlots-Raster.");
+        if (server.getWorld(name) != null) {
+            throw new IOException("Vorhandene Welt " + name + " ohne registriertes SimplePlots-Raster.");
         }
-        for (var key : new NamespacedKey[]{WELT_KEY, ALTER_WELT_KEY}) {
+        var keys = name.equals("plots") ? List.of(new NamespacedKey("simpleplots", name), ALTER_WELT_KEY)
+                : List.of(new NamespacedKey("simpleplots", name));
+        for (var key : keys) {
             if (server.getWorld(key) != null || Files.exists(weltOrdner(key))) {
                 throw new IOException("Vorhandene Welt " + key + " ohne registriertes SimplePlots-Raster.");
             }

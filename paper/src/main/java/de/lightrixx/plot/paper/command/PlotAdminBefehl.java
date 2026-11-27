@@ -5,6 +5,7 @@ import de.lightrixx.plot.paper.PlotBerechtigungen;
 import de.lightrixx.plot.paper.config.PlotKonfiguration;
 import de.lightrixx.plot.paper.config.PlotNachrichten;
 import de.lightrixx.plot.paper.world.PlotWelt;
+import de.lightrixx.plot.paper.world.PlotEntfernen;
 import org.bukkit.GameMode;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -17,7 +18,7 @@ import static net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.unpa
 
 final class PlotAdminBefehl {
     static final List<String> UNTERBEFEHLE = List.of("info", "create", "grid", "limit", "gamemode", "reload", "diagnostics",
-            "update", "bypass", "list", "inspect", "visit", "claim", "unclaim", "setowner", "role", "profile", "censor", "uncensor");
+            "update", "bypass", "list", "inspect", "visit", "claim", "unclaim", "setowner", "role", "profile", "censor", "uncensor", "remove", "restore", "setup");
     static final List<String> MODI = List.of("creative", "survival", "adventure", "spectator");
     private final PlotKonfiguration konfiguration;
     private final PlotWelt welt;
@@ -33,6 +34,7 @@ final class PlotAdminBefehl {
     }
 
     void moderation(PlotModerationBefehl moderation) { this.moderation = moderation; }
+    void entfernen(PlotEntfernen entfernen) { moderation.entfernen(entfernen); }
 
     void ausfuehren(CommandSender sender, String[] args) throws IOException {
         String aktion = args.length == 1 ? "info" : args[1].toLowerCase(Locale.ROOT);
@@ -46,7 +48,7 @@ final class PlotAdminBefehl {
             return;
         }
         switch (aktion) {
-            case "update", "bypass", "list", "inspect", "visit", "claim", "unclaim", "setowner", "role", "profile", "censor", "uncensor" ->
+            case "update", "bypass", "list", "inspect", "visit", "claim", "unclaim", "setowner", "role", "profile", "censor", "uncensor", "remove", "restore" ->
                     moderation.ausfuehren(sender, aktion, args);
             case "info" -> {
                 if (args.length <= 2) {
@@ -66,11 +68,13 @@ final class PlotAdminBefehl {
             case "grid" -> rasterSetzen(sender, args);
             case "limit" -> limitSetzen(sender, args);
             case "gamemode" -> spielmodusSetzen(sender, args);
-            case "reload", "diagnostics" -> {
+            case "reload", "diagnostics", "setup" -> {
                 if (args.length != 2) {
                     hilfe(sender);
                 } else if (aktion.equals("reload")) {
                     betrieb.neuladen(sender);
+                } else if (aktion.equals("setup")) {
+                    betrieb.einrichtung(sender);
                 } else {
                     betrieb.diagnose(sender);
                 }
@@ -94,6 +98,10 @@ final class PlotAdminBefehl {
         }
         if (UNTERBEFEHLE.stream().filter(aktion -> !List.of("info", "create", "grid", "limit", "gamemode", "reload", "diagnostics").contains(aktion))
                 .anyMatch(aktion -> sender.hasPermission(berechtigung(aktion)))) texte.senden(sender, "moderation.hilfe");
+        if (sender.hasPermission("simpleplots.admin.censor")) texte.senden(sender, "moderation.ziel-hilfe");
+        if (sender.hasPermission("simpleplots.admin.remove")) texte.senden(sender, "moderation.remove-hilfe");
+        if (sender.hasPermission("simpleplots.admin.restore")) texte.senden(sender, "moderation.restore-hilfe");
+        if (sender.hasPermission("simpleplots.admin.setup")) texte.senden(sender, "moderation.setup-hilfe");
     }
 
     static List<String> erlaubteUnterbefehle(CommandSender sender) {
@@ -105,7 +113,7 @@ final class PlotAdminBefehl {
             case "reload" -> PlotBerechtigungen.RELOAD;
             case "diagnostics" -> PlotBerechtigungen.DIAGNOSE;
             case "uncensor" -> "simpleplots.admin.censor";
-            case "update", "bypass", "list", "inspect", "visit", "claim", "unclaim", "setowner", "role", "profile", "censor" ->
+            case "update", "bypass", "list", "inspect", "visit", "claim", "unclaim", "setowner", "role", "profile", "censor", "remove", "restore", "setup" ->
                     "simpleplots.admin." + aktion;
             default -> PlotBerechtigungen.ADMIN;
         };

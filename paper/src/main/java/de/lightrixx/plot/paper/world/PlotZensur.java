@@ -73,6 +73,10 @@ public final class PlotZensur implements Listener {
         }
     }
 
+    public boolean beschaeftigt(PlotId id) {
+        return arbeiten.containsKey(plots.finden(id).map(Plot::id).orElse(id));
+    }
+
     public void befehl(CommandSender sender, PlotId id, boolean zensieren) throws IOException {
         Plot plot = plots.finden(id).orElse(null);
         if (plot == null) {
@@ -103,7 +107,7 @@ public final class PlotZensur implements Listener {
             texte.senden(sender, "zensur.zu-gross");
             return;
         }
-        var speicher = new ZensurSpeicher(plugin.getDataFolder().toPath().resolve("zensur"), plot, welt.raster(),
+        var speicher = new ZensurSpeicher(welt.konfiguration().datenordner().resolve("zensur"), plot, welt.raster(),
                 plotwelt.getUID().toString(), plotwelt.getMinHeight(), plotwelt.getMaxHeight());
         var arbeit = new Arbeit(sender, plotwelt, plot, speicher, flaechen, List.copyOf(chunks));
         arbeiten.put(plot.id(), arbeit);
@@ -447,16 +451,20 @@ public final class PlotZensur implements Listener {
     }
 
     static List<Flaeche> flaechen(Plot plot, PlotRaster raster) {
+        return flaechen(plot.zellen(), raster);
+    }
+
+    static List<Flaeche> flaechen(Set<PlotId> zellen, PlotRaster raster) {
         var flaechen = new ArrayList<Flaeche>();
-        for (PlotId zelle : plot.zellen().stream().sorted(java.util.Comparator.comparingInt(PlotId::x).thenComparingInt(PlotId::z)).toList()) {
+        for (PlotId zelle : zellen.stream().sorted(java.util.Comparator.comparingInt(PlotId::x).thenComparingInt(PlotId::z)).toList()) {
             int x = Math.toIntExact((long) zelle.x() * raster.rasterweite());
             int z = Math.toIntExact((long) zelle.z() * raster.rasterweite());
             aufteilen(flaechen, x, z, raster.groesse(), raster.groesse());
-            boolean ost = plot.zellen().contains(zelle.verschoben(1, 0));
-            boolean sued = plot.zellen().contains(zelle.verschoben(0, 1));
+            boolean ost = zellen.contains(zelle.verschoben(1, 0));
+            boolean sued = zellen.contains(zelle.verschoben(0, 1));
             if (ost) aufteilen(flaechen, x + raster.groesse(), z, raster.wegbreite(), raster.groesse());
             if (sued) aufteilen(flaechen, x, z + raster.groesse(), raster.groesse(), raster.wegbreite());
-            if (ost && sued && plot.zellen().contains(zelle.verschoben(1, 1))) {
+            if (ost && sued && zellen.contains(zelle.verschoben(1, 1))) {
                 aufteilen(flaechen, x + raster.groesse(), z + raster.groesse(), raster.wegbreite(), raster.wegbreite());
             }
         }

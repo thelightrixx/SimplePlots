@@ -1,18 +1,19 @@
-# SimplePlots v0.7.0-beta
+# SimplePlots v0.8.0-beta
 
-SimplePlots ergänzt einen Paper-Server um eine separate Survival-Plotwelt mit Claims, Baurechten, Plotgalerie und Bauwettbewerben. Spieler behalten beim Weltwechsel ihr Inventar.
+SimplePlots ergänzt einen Paper-Server um mehrere getrennt konfigurierbare Survival-Plotwelten mit Claims, Baurechten, Plotgalerie und Bauwettbewerben. Spieler behalten beim Weltwechsel ihr Inventar.
 
-v0.7.0-beta ist die erste Beta. Sie korrigiert Merge-Wege und Wegränder, bündelt die reversible Zensur und zeigt Plotinformationen standardmäßig über der Hotbar an. `/plot back` kehrt zum letzten gespeicherten Standort in der Hauptwelt zurück. Neu sind das sichere Aufteilen mit `/plot unlink`, Plot-Biome und `/plot version`.
+v0.8.0-beta ergänzt weltbezogene Einstellungen unter `worlds/<Name>.yml`, die Standortwahl `~` für Verwaltungsbefehle sowie das vollständige Entfernen und leere Wiederherstellen von Plotflächen. Rechtebündel und eine Einrichtungsprüfung führen die passenden Bedienmuster aus PunishSystem fort. SimplePlots bleibt ein Paper-Plugin mit YAML-Speicherung.
 
 Die Projektpflege folgt den gemeinsamen Mustern mit PunishSystem: kommentierte Konfigurationen mit automatischem Abgleich, Versions- und Diagnosebefehle, ein Offline-Handbuch und geprüfte Release-Artefakte. SimplePlots behält seine grüne Kennfarbe und die eigene Plotarchitektur.
 
 ## Handbuch
 
-Lies das [SimplePlots Handbuch](https://thelightrixx.github.io/SimplePlots/) oder öffne [docs/index.html](docs/index.html) direkt im Browser. Die 28 Themen decken Einrichtung, Spielerabläufe, Verwaltung und Betrieb ab. Inhalte, Suche, Schriften und Rasterrechner funktionieren auch offline; für die Lizenzlinks den gesamten Ordner `docs/` mitnehmen.
+Lies das [SimplePlots Handbuch](https://thelightrixx.github.io/SimplePlots/) oder öffne [docs/index.html](docs/index.html) direkt im Browser. Die 29 Themen decken Einrichtung, Spielerabläufe, Verwaltung und Betrieb ab. Inhalte, Suche, Schriften und Rasterrechner funktionieren auch offline; für die Lizenzlinks den gesamten Ordner `docs/` mitnehmen.
 
 | Aufgabe | Einstieg |
 | --- | --- |
 | SimplePlots einrichten oder von PlotSystem wechseln | [Installation](docs/index.html#/installation) |
+| Mehrere Plotwelten einrichten | [Weltkonfiguration](docs/index.html#/welten) |
 | Raster, Plot-IDs und Baugrenzen verstehen | [Plotwelt mit Koordinatenrechner](docs/index.html#/plotwelt) |
 | Einen Plot beanspruchen und Freunde einladen | [Schnellstart](docs/index.html#/schnellstart), [Rollen und Zutritt](docs/index.html#/rollen) |
 | Menüs bedienen oder Bauten veröffentlichen | [Menüs und Rasterkarte](docs/index.html#/menues), [Profile und Galerie](docs/index.html#/galerie) |
@@ -39,9 +40,9 @@ Folia wird nicht unterstützt. Eine Datenbank und zusätzliche Plugins sind nich
 
 Für Preise wird EconomySystem über `softdepend` vor SimplePlots geladen. `wirtschaft.aktiv: true` schaltet die Abbuchung ein, `wirtschaft.preis` legt den Betrag je Rasterzelle fest. Reicht das Guthaben nicht oder fehlt die Anbindung, bleibt der Plot frei und es wird nichts gespeichert. Scheitert die Speicherung nach einer Abbuchung, erstattet SimplePlots den Betrag. Claims der Verwaltung bleiben kostenlos.
 
-Im [Release v0.7.0-beta](https://github.com/thelightrixx/SimplePlots/releases/tag/v0.7.0-beta) findest du die [Plugin-JAR](https://github.com/thelightrixx/SimplePlots/releases/download/v0.7.0-beta/SimplePlots-v0.7.0-beta.jar) und die [SHA-256-Prüfsumme](https://github.com/thelightrixx/SimplePlots/releases/download/v0.7.0-beta/SHA256SUMS.txt).
+Im [Release v0.8.0-beta](https://github.com/thelightrixx/SimplePlots/releases/tag/v0.8.0-beta) findest du die [Plugin-JAR](https://github.com/thelightrixx/SimplePlots/releases/download/v0.8.0-beta/SimplePlots-v0.8.0-beta.jar) und die [SHA-256-Prüfsumme](https://github.com/thelightrixx/SimplePlots/releases/download/v0.8.0-beta/SHA256SUMS.txt).
 
-1. Lade die JAR aus dem Release herunter oder [baue sie selbst](#bauen-und-prüfen). Prüfe beim Download die SHA-256 und kopiere `SimplePlots-v0.7.0-beta.jar` bei gestopptem Server nach `plugins/`.
+1. Lade die JAR aus dem Release herunter oder [baue sie selbst](#bauen-und-prüfen). Prüfe beim Download die SHA-256 und kopiere `SimplePlots-v0.8.0-beta.jar` bei gestopptem Server nach `plugins/`.
 2. Starte Paper und prüfe das Log mit dem grünen SP-Banner und der anschließenden Bereitschaftsmeldung. Die Konfiguration entsteht unter `plugins/SimplePlots/`.
 3. Lege vor der ersten Weltgenerierung bei Bedarf das Raster fest, etwa mit `plot admin grid 48 7` in der Konsole.
 4. Erstelle die Welt mit `plot admin create`. Im Spiel öffnet `/plot world` die Plotwelt; `/plot claim` beansprucht den Plot unter dir.
@@ -66,7 +67,7 @@ Mit `/plot fly on|off` schaltest du Fly auf eigenen Plots; die Standardgrenze li
 
 `/plot biome desert` ändert das Biom des eigenen Claims, etwa für Gras-, Laub- und Wasserfarben oder Wetter. Tab zeigt die registrierten Biome, `off` setzt die Vorgabe auf Ebene zurück. Minecraft speichert Biome in Zellen von 4 × 4 × 4 Blöcken: Nur vollständig zum Claim gehörende Spalten werden geändert; Wege und Nachbarplots bleiben unberührt. Die Änderung wird zuerst gespeichert und anschließend auf geladene Chunks verteilt; ungeladene folgen beim Laden.
 
-`/plot admin censor <X;Z>` sichert den Plot und blendet Bauten sowie Entities aus. Der leere Plot bleibt anschließend mit roten Slabs und Eintrittshinweis begehbar, ist aber für alle gesperrt. `off` stellt den Inhalt wieder her. Die Sicherungen unter `zensur/` gehören zum vollständigen Plugin-Datenbestand. Die Arbeit bündelt bis zu 32 Sicherungsabschnitte pro Speicherauftrag und begrenzt die Weltarbeit standardmäßig auf acht Abschnitte und vier Millisekunden je Tick; ein einzelner Abschnitt wird vollständig beendet und kann das Zeitbudget überschreiten. Währenddessen bleiben Spieler auf den Wegen. Abgeschlossene Zensuren werden beim Neustart nicht erneut aufgebaut.
+`/plot admin censor <X;Z oder ~>` sichert den Plot und blendet Bauten sowie Entities aus. Der leere Plot bleibt anschließend mit roten Slabs und Eintrittshinweis begehbar, ist aber für alle gesperrt. `off` stellt den Inhalt wieder her. Die Sicherungen unter `zensur/` gehören zum vollständigen Plugin-Datenbestand. Die Arbeit bündelt bis zu 32 Sicherungsabschnitte pro Speicherauftrag und begrenzt die Weltarbeit standardmäßig auf acht Abschnitte und vier Millisekunden je Tick; ein einzelner Abschnitt wird vollständig beendet und kann das Zeitbudget überschreiten. Währenddessen bleiben Spieler auf den Wegen. Abgeschlossene Zensuren werden beim Neustart nicht erneut aufgebaut.
 
 `/plot admin update check|status` prüft GitHub-Releases. `apply confirm` lädt eine passende JAR mit SHA-256-Prüfung in Papers Update-Ordner. Paper übernimmt sie beim nächsten normalen Start; das Plugin führt keinen Neustart aus. Der Standardkanal `beta` berücksichtigt Beta-, RC- und stabile Releases; `alpha` zusätzlich Alpha-Versionen, `stable` ausschließlich stabile Releases. Bestehende Kanalwerte bleiben erhalten. Erstprüfungen und Intervall lassen sich in `config/updates.yml` ändern.
 
@@ -75,6 +76,35 @@ Plot- und Wettbewerbsänderungen werden außerhalb des Serverthreads gespeichert
 Beim Wechsel von PlotSystem zuerst den Plugin-Datenordner und die Plotwelt gemeinsam sichern und die alte JAR entfernen. Die [Wechselanleitung](docs/index.html#/installation/wechsel) beschreibt die automatische Datenübernahme. Updates und Sicherungen stehen unter [Betrieb](docs/index.html#/betrieb).
 
 Beim Start und Reload werden fehlende Optionen und aktuelle Standardkommentare in den acht Konfigurationsdateien ergänzt. Eigene Werte, Texte, Listen und Zusatzschlüssel bleiben erhalten. Vor tatsächlichen Änderungen entsteht eine `.bak`-Vorgängersicherung. Leere oder ungültige YAML-Dateien werden gemeldet und bleiben unverändert. `/plot admin diagnostics` zeigt zusätzlich Zensuranzahl und Arbeitsbudget; `/plot version` steht mit dem Basisrecht auch in der Konsole bereit.
+
+## Mehrere Welten und Verwaltung
+
+Beim ersten Start entsteht `worlds/plots.yml`; vorhandene Plotdaten und die Weltidentität bleiben erhalten. Weitere Welten bekommen eine Datei wie `worlds/creative.yml`:
+
+```yaml
+world:
+  raster:
+    plotgroesse: 48
+    wegbreite: 9
+general:
+  claims:
+    pro-spieler: 10
+fly:
+  eigener-plot:
+    hoehe: 80
+```
+
+Die Abschnitte `general`, `world`, `protection`, `fly` und `contests` überschreiben die entsprechenden globalen Vorgaben unter `config/`. Fehlende Werte werden geerbt. Texte, Menülayouts, Updates, Rechtebündel und die Standardwelt bleiben global. Neue Weltdateien werden beim nächsten regulären Pluginstart registriert; `/plot admin reload` übernimmt Änderungen aller registrierten Welten gemeinsam und verwirft den Reload bei einem ungültigen Wert oder geänderten bestehenden Raster.
+
+`/plot world creative` betritt eine Welt, `/plot worlds` zeigt die Namen. Befehle beziehen sich auf die aktuelle Plotwelt, außerhalb davon auf `general.yml: welten.standard` (Vorgabe `plots`). Mit `/plot in creative admin create` lässt sich eine Welt auch aus der Konsole vorbereiten. Claims, Limits, Namen, Galerien und Wettbewerbe sind je Welt getrennt. Zusätzliche Welten speichern unter `data/<Name>/`; `plots` behält die bisherigen Dateien im Plugin-Hauptordner.
+
+`/plot admin remove <X;Z oder ~>` entfernt die ganze Fläche einschließlich interner Merge-Wege, Besitz, Rollen, Profil, Bauten und Entities bis ins Leere. Sie bleibt dauerhaft unclaimbar, auch für Admin-Claims und `/plot auto`. `/plot admin restore <X;Z oder ~>` erzeugt daraus freie Standardplots; früherer Inhalt und Besitz werden nicht zurückgeholt. Öffentliche Wege und Nachbarplots bleiben erhalten. Zensierte Plots und aktive Wettbewerbsbeiträge müssen vorher regulär entsperrt werden. Unterbrochene Arbeiten bleiben gespeichert und werden beim Start fortgesetzt. Die Arbeitsgrenzen stehen in `protection.yml` unter `zensur-*` und gelten auch für Remove/Restore.
+
+`~` wählt die Fläche am Standort, auch bei Censor/Uncensor und anderen Verwaltungsbefehlen. Auf öffentlichen Wegen und in der Konsole wird `~` abgewiesen. Koordinaten verwenden weiterhin Plot-IDs im Format `X;Z`, keine Blockkoordinaten.
+
+Die neuen Einzelrechte sind `simpleplots.admin.remove`, `simpleplots.admin.restore` und `simpleplots.admin.setup`; `simpleplots.admin` enthält sie. Unter `general.yml: rang-buendel` stehen anpassbare Bündel für Spieler, Supporter, Moderatoren und Admins. Zum Beispiel gewährt `simpleplots.rang.moderator` die konfigurierten Moderationsrechte. `/plot admin setup` prüft die registrierten Konfigurationen, `/plot admin diagnostics` ergänzt den ausgewählten Welt- und Entfernungszustand.
+
+Vor dem Update alle Plugin-Daten sowie alle Plotwelten gemeinsam sichern. Plotformate 1 bis 3 bleiben lesbar; neue Änderungen verwenden Format 4 mit atomar gespeicherten Entfernungsaufträgen. `plots.yml` und `plots-aenderungen.yml` gehören je Welt zusammen. Ein Downgrade benötigt den vollständigen Stand vor dem Update.
 
 ## Bauen und prüfen
 
@@ -88,7 +118,7 @@ Der Aufruf funktioniert unabhängig vom aktuellen Arbeitsverzeichnis. Er prüft 
 
 Der Build prüft Versionen und Doku, führt die Werkzeugtests und `mvn -pl paper -am clean verify` aus und kontrolliert die fertige JAR. Unter `dist/` liegen anschließend:
 
-- `SimplePlots-v0.7.0-beta.jar` – installierbares Plugin.
+- `SimplePlots-v0.8.0-beta.jar` – installierbares Plugin.
 - `SHA256SUMS.txt` – SHA-256 der exakt geprüften JAR.
 - `RELEASE_NOTES.md` – Veröffentlichungstext aus dem aktuellen Changelog.
 
@@ -103,7 +133,7 @@ python scripts/check-version.py --jar
 python scripts/prepare-release.py
 ```
 
-Die Maven-Ausgabe bleibt `paper/target/SimplePlots-v0.7.0-beta.jar`. Für gezielte Kerntests genügt `mvn -pl common -am test`. Der vollständige Build führt alle Tests aus; schnelle Maven-Aufrufe für die Entwicklung sind separat möglich.
+Die Maven-Ausgabe bleibt `paper/target/SimplePlots-v0.8.0-beta.jar`. Für gezielte Kerntests genügt `mvn -pl common -am test`. Der vollständige Build führt alle Tests aus; schnelle Maven-Aufrufe für die Entwicklung sind separat möglich.
 
 `mvn -Pcoverage -pl paper -am clean verify` erzeugt zusätzlich JaCoCo-Berichte unter `common/target/site/jacoco/` und `paper/target/site/jacoco/`. Die CI führt diese Messung auf Windows und Linux aus und stellt die Berichte als Artefakte bereit. Die [Prüfbereiche und Grenzen](docs/index.html#/qualitaet/pruefungen) sind im Handbuch beschrieben.
 

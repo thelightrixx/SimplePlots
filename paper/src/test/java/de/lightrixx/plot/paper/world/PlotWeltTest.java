@@ -36,6 +36,28 @@ class PlotWeltTest {
     Path ordner;
 
     @Test
+    void registriertMehrereWeltenMitGetrenntenSchluesselnUndClaims() throws IOException {
+        var basis = new PlotKonfiguration(ordner.resolve("config.yml"), material -> true);
+        var configA = basis.weltenLaden().getFirst();
+        Files.writeString(ordner.resolve("worlds/creative.yml"), "world:\n  raster:\n    plotgroesse: 48\n");
+        var configB = basis.fuerWelt("creative");
+        var hauptwelt = welt(NamespacedKey.minecraft("overworld"), 0, 64, 0);
+        var server = mock(Server.class); when(server.getWorld(NamespacedKey.minecraft("overworld"))).thenReturn(hauptwelt);
+        var plugin = mock(Plugin.class); when(plugin.getServer()).thenReturn(server);
+        var plotsA = new PlotDienst(new PlotYamlSpeicher(configA.datenordner().resolve("plots.yml")), PlotKauf.kostenlos());
+        var plotsB = new PlotDienst(new PlotYamlSpeicher(configB.datenordner().resolve("plots.yml")), PlotKauf.kostenlos());
+        var a = new PlotWelt(plugin, configA, plotsA, configA.datenordner().resolve("welt.yml"));
+        var b = new PlotWelt(plugin, configB, plotsB, configB.datenordner().resolve("welt.yml"));
+        assertEquals(new NamespacedKey("simpleplots", "plots"), a.schluessel());
+        assertEquals(new NamespacedKey("simpleplots", "creative"), b.schluessel());
+        World creative = welt(b.schluessel(), 0, 64, 0);
+        assertFalse(a.istPlotWelt(creative)); assertTrue(b.istPlotWelt(creative));
+        var id = new PlotId(0, 0); UUID besitzer = UUID.randomUUID();
+        plotsA.claim(id, besitzer, 1);
+        assertTrue(plotsB.finden(id).isEmpty()); assertEquals(48, b.raster().groesse());
+    }
+
+    @Test
     void kehrtAuchBeiVorangestellterPlotweltZumSpawnDerHauptweltZurueck() throws IOException {
         World hauptwelt = welt(NamespacedKey.minecraft("overworld"), 120, 75, -34);
         World nether = welt(NamespacedKey.minecraft("the_nether"), 0, 64, 0);

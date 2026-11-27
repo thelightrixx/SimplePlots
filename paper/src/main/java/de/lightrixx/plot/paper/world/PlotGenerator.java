@@ -2,6 +2,7 @@ package de.lightrixx.plot.paper.world;
 
 import de.lightrixx.plot.model.PlotRaster;
 import de.lightrixx.plot.paper.config.PlotKonfiguration;
+import de.lightrixx.plot.service.PlotDienst;
 import org.bukkit.HeightMap;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -19,14 +20,20 @@ public final class PlotGenerator extends ChunkGenerator {
     private static final int ERDSCHICHTEN = 3;
     private final PlotRaster raster;
     private final PlotKonfiguration konfiguration;
+    private final PlotDienst plots;
 
     public PlotGenerator(PlotRaster raster) {
         this(raster, null);
     }
 
     public PlotGenerator(PlotRaster raster, PlotKonfiguration konfiguration) {
+        this(raster, konfiguration, null);
+    }
+
+    public PlotGenerator(PlotRaster raster, PlotKonfiguration konfiguration, PlotDienst plots) {
         this.raster = raster;
         this.konfiguration = konfiguration;
+        this.plots = plots;
     }
 
     @Override
@@ -45,6 +52,9 @@ public final class PlotGenerator extends ChunkGenerator {
             for (int z = 0; z < 16; z++) {
                 boolean weg = raster.istWeg(chunkX * 16 + x, chunkZ * 16 + z);
                 daten.setBlock(x, BODEN_Y, z, weg ? wegMaterial : oberflaeche);
+                if (plots != null && plots.entfernungBei(raster, chunkX * 16 + x, chunkZ * 16 + z).isPresent()) {
+                    daten.setRegion(x, minimum, z, x + 1, BODEN_Y + 1, z + 1, Material.AIR);
+                }
             }
         }
     }

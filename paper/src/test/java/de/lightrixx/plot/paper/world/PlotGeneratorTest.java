@@ -20,6 +20,21 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class PlotGeneratorTest {
     @Test
+    void erzeugtEntfernteZellenAuchInNeuenChunksAlsLeereFlaechen(@TempDir Path ordner) throws IOException {
+        var plots = new de.lightrixx.plot.service.PlotDienst(new de.lightrixx.plot.paper.storage.PlotYamlSpeicher(ordner.resolve("plots.yml")),
+                de.lightrixx.plot.economy.PlotKauf.kostenlos());
+        var id = new de.lightrixx.plot.model.PlotId(0, 0);
+        plots.entfernen(id, java.util.Optional.empty(), ziel -> false);
+        var daten = new TestChunk(-64);
+        var generator = new PlotGenerator(new PlotRaster(2, 1), null, plots);
+        generator.generateNoise(welt(-64), new Random(0), 0, 0, daten.api());
+        assertEquals(Material.AIR, daten.material(0, -64, 0));
+        assertEquals(Material.AIR, daten.material(0, 63, 0));
+        assertEquals(Material.BEDROCK, daten.material(2, -64, 0));
+        assertEquals(Material.STONE_BRICKS, daten.material(2, 63, 0));
+        assertEquals(Material.GRASS_BLOCK, daten.material(3, 63, 0));
+    }
+    @Test
     void verwendetDieKonfiguriertenMaterialienUndErdlagen(@TempDir Path ordner) throws IOException {
         Path alt = ordner.resolve("config.yml");
         Files.writeString(alt, "raster:\n  plotgroesse: 32\n  wegbreite: 7\nclaims:\n  pro-spieler: 3\n");

@@ -4,7 +4,7 @@ main: de.lightrixx.plot.paper.SimplePlots
 api-version: '26.1'
 folia-supported: false
 softdepend: [EconomySystem]
-description: Plotwelt mit Claims, Rollen, Flugregeln und Moderation.
+description: Mehrere Plotwelten mit Claims, Rollen, Flugregeln und Moderation.
 commands:
   plot:
     description: Betritt die Plotwelt oder verwalte deine Plots.
@@ -39,6 +39,9 @@ permissions:
       simpleplots.admin.role: true
       simpleplots.admin.profile: true
       simpleplots.admin.censor: true
+      simpleplots.admin.remove: true
+      simpleplots.admin.restore: true
+      simpleplots.admin.setup: true
       simpleplots.admin.contest: true
       simpleplots.admin.reload: true
       simpleplots.admin.diagnostics: true
@@ -85,6 +88,15 @@ permissions:
     default: op
   simpleplots.admin.contest:
     description: Wettbewerbe verwalten.
+    default: op
+  simpleplots.admin.remove:
+    description: Plotflächen samt Besitz und Inhalt vollständig ins Leere entfernen und sperren.
+    default: op
+  simpleplots.admin.restore:
+    description: Entfernte Flächen als freie Standardplots ohne bisherigen Inhalt wiederherstellen.
+    default: op
+  simpleplots.admin.setup:
+    description: Konfigurationen aller registrierten Plotwelten prüfen.
     default: op
   simpleplots.admin.diagnostics:
     description: Version, Plotwelt und Speicherwarteschlange prüfen.

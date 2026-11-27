@@ -2,6 +2,7 @@ package de.lightrixx.plot.service;
 
 import de.lightrixx.plot.economy.PlotKauf;
 import de.lightrixx.plot.model.Plot;
+import de.lightrixx.plot.model.PlotEntfernung;
 import de.lightrixx.plot.model.PlotId;
 import de.lightrixx.plot.model.PlotProfil;
 import de.lightrixx.plot.model.PlotRaster;
@@ -38,7 +39,11 @@ public final class PlotDienst {
                 throw new IOException("Doppelte Plot-ID " + plot.id());
             }
         }
-        bestand = indexieren(plots);
+        var entfernt = new LinkedHashMap<PlotId, PlotEntfernung>();
+        for (var eintrag : speicher.entfernungen()) {
+            if (entfernt.putIfAbsent(eintrag.id(), eintrag) != null) throw new IOException("Doppelte entfernte Fläche " + eintrag.id());
+        }
+        bestand = indexieren(plots, entfernt);
     }
 
     public Optional<Plot> finden(PlotId id) {
@@ -47,7 +52,9 @@ public final class PlotDienst {
     }
 
     public Optional<PlotId> plotBei(PlotRaster raster, int x, int z) {
-        var zellen = bestand.zellen();
+        var stand = bestand;
+        if (entfernungBei(stand, raster, x, z).isPresent()) return Optional.empty();
+        var zellen = stand.zellen();
         PlotId zelle = raster.zelleBei(x, z);
         PlotId haupt = zellen.get(zelle);
         boolean wegX = raster.istWegachse(x);
@@ -131,7 +138,7 @@ public final class PlotDienst {
             throw new IllegalArgumentException("Das Claim-Limit muss mindestens 1 sein.");
         }
         var aktuell = bestand;
-        if (aktuell.zellen().containsKey(id)) {
+        if (aktuell.zellen().containsKey(id) || aktuell.entfernteZellen().containsKey(id)) {
             return ClaimErgebnis.BELEGT;
         }
         if (aktuell.belegteZellen().getOrDefault(kaeufer.id(), 0L) >= limit) {
@@ -152,21 +159,21 @@ public final class PlotDienst {
             suchRadius = radius;
             for (int x = -radius; x <= radius; x++) {
                 var nord = new PlotId(x, -radius);
-                if (!zellen.containsKey(nord)) {
+                if (!zellen.containsKey(nord) && !bestand.entfernteZellen().containsKey(nord)) {
                     return nord;
                 }
                 var sued = new PlotId(x, radius);
-                if (!zellen.containsKey(sued)) {
+                if (!zellen.containsKey(sued) && !bestand.entfernteZellen().containsKey(sued)) {
                     return sued;
                 }
             }
             for (int z = 1 - radius; z < radius; z++) {
                 var west = new PlotId(-radius, z);
-                if (!zellen.containsKey(west)) {
+                if (!zellen.containsKey(west) && !bestand.entfernteZellen().containsKey(west)) {
                     return west;
                 }
                 var ost = new PlotId(radius, z);
-                if (!zellen.containsKey(ost)) {
+                if (!zellen.containsKey(ost) && !bestand.entfernteZellen().containsKey(ost)) {
                     return ost;
                 }
             }
@@ -342,12 +349,74 @@ public final class PlotDienst {
     }
 
     private void speichern(Map<PlotId, Plot> neu) throws IOException {
-        Bestand index = indexieren(neu);
-        speicher.speichern(List.copyOf(neu.values()));
+        speichern(neu, bestand.entfernt());
+    }
+
+    private void speichern(Map<PlotId, Plot> neu, Map<PlotId, PlotEntfernung> entfernt) throws IOException {
+        Bestand index = indexieren(neu, entfernt);
+        speicher.speichern(List.copyOf(neu.values()), List.copyOf(entfernt.values()));
         bestand = index;
     }
 
-    private static Bestand indexieren(Map<PlotId, Plot> plots) throws IOException {
+    public List<PlotEntfernung> entfernungen() { return List.copyOf(bestand.entfernt().values()); }
+
+    public Optional<PlotEntfernung> entfernung(PlotId zelle) {
+        var stand = bestand;
+        PlotId haupt = stand.entfernteZellen().get(zelle);
+        return haupt == null ? Optional.empty() : Optional.of(stand.entfernt().get(haupt));
+    }
+
+    /** Bezieht ehemalige Innenwege eines Merges mit ein, öffentliche Wege bleiben frei. */
+    public Optional<PlotEntfernung> entfernungBei(PlotRaster raster, int x, int z) {
+        return entfernungBei(bestand, raster, x, z);
+    }
+
+    private static Optional<PlotEntfernung> entfernungBei(Bestand stand, PlotRaster raster, int x, int z) {
+        PlotId zelle = raster.zelleBei(x, z);
+        PlotId haupt = stand.entfernteZellen().get(zelle);
+        if (haupt == null) return Optional.empty();
+        if ((raster.istWegachse(x) && !haupt.equals(stand.entfernteZellen().get(zelle.verschoben(1, 0))))
+                || (raster.istWegachse(z) && !haupt.equals(stand.entfernteZellen().get(zelle.verschoben(0, 1))))
+                || (raster.istWegachse(x) && raster.istWegachse(z)
+                && !haupt.equals(stand.entfernteZellen().get(zelle.verschoben(1, 1))))) return Optional.empty();
+        return Optional.of(stand.entfernt().get(haupt));
+    }
+
+    public synchronized boolean entfernen(PlotId id, Optional<Plot> erwartet, Predicate<PlotId> gesperrt) throws IOException {
+        if (!finden(id).equals(erwartet) || entfernung(id).isPresent()) return false;
+        if (erwartet.filter(plot -> plot.zensiert() || gesperrt.test(plot.id())).isPresent()) return false;
+        var flaeche = erwartet.map(Plot::zellen).orElseGet(() -> java.util.Set.of(id));
+        var eintrag = new PlotEntfernung(erwartet.map(Plot::id).orElse(id), flaeche, PlotEntfernung.Phase.ENTFERNEN);
+        var neu = new LinkedHashMap<>(bestand.plots());
+        neu.remove(eintrag.id());
+        var entfernt = new LinkedHashMap<>(bestand.entfernt());
+        entfernt.put(eintrag.id(), eintrag);
+        speichern(neu, entfernt);
+        return true;
+    }
+
+    public synchronized boolean entfernungsphase(PlotEntfernung erwartet, PlotEntfernung.Phase phase) throws IOException {
+        if (!entfernung(erwartet.id()).filter(erwartet::equals).isPresent()) return false;
+        if (!(erwartet.phase() == PlotEntfernung.Phase.ENTFERNEN && phase == PlotEntfernung.Phase.ENTFERNT)
+                && !(erwartet.phase() == PlotEntfernung.Phase.ENTFERNT && phase == PlotEntfernung.Phase.WIEDERHERSTELLEN)
+                && !(erwartet.phase() == PlotEntfernung.Phase.WIEDERHERSTELLEN && phase == erwartet.phase())) return false;
+        var neu = new LinkedHashMap<>(bestand.entfernt());
+        neu.put(erwartet.id(), erwartet.mitPhase(phase));
+        speichern(bestand.plots(), neu);
+        return true;
+    }
+
+    public synchronized boolean wiederhergestellt(PlotEntfernung erwartet) throws IOException {
+        if (erwartet.phase() != PlotEntfernung.Phase.WIEDERHERSTELLEN
+                || !entfernung(erwartet.id()).filter(erwartet::equals).isPresent()) return false;
+        var neu = new LinkedHashMap<>(bestand.entfernt());
+        neu.remove(erwartet.id());
+        speichern(bestand.plots(), neu);
+        suchRadius = 0;
+        return true;
+    }
+
+    private static Bestand indexieren(Map<PlotId, Plot> plots, Map<PlotId, PlotEntfernung> entfernt) throws IOException {
         var index = new HashMap<PlotId, PlotId>();
         var namen = new HashMap<String, PlotId>();
         var besitzer = new HashMap<UUID, List<Plot>>();
@@ -370,9 +439,16 @@ public final class PlotDienst {
             }
         }
         besitzer.replaceAll((id, liste) -> List.copyOf(liste));
+        var entfernteZellen = new HashMap<PlotId, PlotId>();
+        for (var eintrag : entfernt.values()) {
+            for (PlotId zelle : eintrag.zellen()) {
+                if (index.containsKey(zelle) || entfernteZellen.putIfAbsent(zelle, eintrag.id()) != null)
+                    throw new IOException("Überlappende entfernte Plotzelle " + zelle);
+            }
+        }
         return new Bestand(Collections.unmodifiableMap(new LinkedHashMap<>(plots)), Map.copyOf(index),
                 Map.copyOf(namen), Map.copyOf(besitzer), Map.copyOf(belegt), List.copyOf(galerie),
-                plots.values().stream().anyMatch(Plot::zensiert));
+                plots.values().stream().anyMatch(Plot::zensiert), Map.copyOf(entfernt), Map.copyOf(entfernteZellen));
     }
 
     private static String namenschluessel(String name) {
@@ -380,7 +456,8 @@ public final class PlotDienst {
     }
 
     private record Bestand(Map<PlotId, Plot> plots, Map<PlotId, PlotId> zellen, Map<String, PlotId> namen,
-                           Map<UUID, List<Plot>> besitzer, Map<UUID, Long> belegteZellen, List<Plot> galerie, boolean hatZensiertePlots) {
+                           Map<UUID, List<Plot>> besitzer, Map<UUID, Long> belegteZellen, List<Plot> galerie, boolean hatZensiertePlots,
+                           Map<PlotId, PlotEntfernung> entfernt, Map<PlotId, PlotId> entfernteZellen) {
     }
 
     public enum ClaimErgebnis {

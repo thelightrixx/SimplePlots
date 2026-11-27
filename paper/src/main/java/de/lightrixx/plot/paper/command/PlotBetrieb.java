@@ -27,6 +27,8 @@ public final class PlotBetrieb {
     private final PlotAuftraege auftraege;
     private boolean reloadLaeuft;
     private Runnable nachReload = () -> { };
+    private java.util.List<PlotBetrieb> verbund;
+    private PlotKonfiguration basis;
 
     public PlotBetrieb(JavaPlugin plugin, PlotKonfiguration konfiguration, PlotNachrichten texte,
                       PlotMenueKonfiguration gui, PlotMenue menue, PlotWelt welt, PlotDienst plots,
@@ -48,7 +50,13 @@ public final class PlotBetrieb {
 
     public void nachReload(Runnable auftrag) { nachReload = java.util.Objects.requireNonNull(auftrag); }
 
+    public void verbund(PlotKonfiguration basis, java.util.List<PlotBetrieb> betriebe) {
+        this.basis = java.util.Objects.requireNonNull(basis);
+        this.verbund = java.util.List.copyOf(betriebe);
+    }
+
     public void neuladen(CommandSender sender) {
+        if (verbund != null) { verbundNeuladen(sender); return; }
         if (reloadLaeuft) {
             texte.senden(sender, "admin.reload-laeuft");
             return;
@@ -67,6 +75,44 @@ public final class PlotBetrieb {
         }, () -> reloadLaeuft = false);
     }
 
+    private void verbundNeuladen(CommandSender sender) {
+        if (verbund.stream().anyMatch(PlotBetrieb::reloadLaeuft)) { texte.senden(sender, "admin.reload-laeuft"); return; }
+        verbund.forEach(betrieb -> betrieb.reloadLaeuft = true);
+        auftraege.ausfuehren(sender, "/plot admin reload", () -> {
+            var global = basis.vorbereiten();
+            var einstellungen = new java.util.LinkedHashMap<PlotBetrieb, PlotKonfiguration.Werte>();
+            for (var betrieb : verbund) einstellungen.put(betrieb, betrieb.konfiguration.vorbereiten());
+            String standardwelt = (String) global.optionen().get("general.welten.standard");
+            if (verbund.stream().noneMatch(betrieb -> betrieb.konfiguration.weltname().equals(standardwelt)))
+                throw new IOException("Standardwelt ist nicht registriert; neue Welten benötigen einen Pluginneustart.");
+            return new VerbundReload(global, Map.copyOf(einstellungen), texte.vorbereiten(), gui.vorbereiten());
+        }, neu -> {
+            if (verbund.stream().anyMatch(betrieb -> betrieb.welt.rasterFestgelegt()
+                    && !betrieb.welt.raster().equals(neu.einstellungen().get(betrieb).raster()))) {
+                texte.senden(sender, "admin.reload-raster"); return;
+            }
+            basis.uebernehmen(neu.basis());
+            texte.uebernehmen(neu.texte()); gui.uebernehmen(neu.gui());
+            for (var betrieb : verbund) {
+                betrieb.konfiguration.uebernehmen(neu.einstellungen().get(betrieb));
+                betrieb.welt.konfigurationAktualisieren(); betrieb.menue.schliessen(); betrieb.nachReload.run();
+            }
+            texte.senden(sender, "admin.reload-erfolg");
+        }, () -> verbund.forEach(betrieb -> betrieb.reloadLaeuft = false));
+    }
+
+    public void einrichtung(CommandSender sender) {
+        auftraege.ausfuehren(sender, "/plot admin setup", () -> {
+            if (basis != null) basis.vorbereiten();
+            for (var betrieb : verbund == null ? java.util.List.of(this) : verbund) {
+                var neu = betrieb.vorbereiten();
+                if (betrieb.welt.rasterFestgelegt() && !betrieb.welt.raster().equals(neu.einstellungen().raster()))
+                    throw new IOException("Abweichendes Raster für Welt " + betrieb.konfiguration.weltname());
+            }
+            return true;
+        }, geprueft -> { diagnose(sender); texte.senden(sender, "diagnose.einrichtung"); });
+    }
+
     private Reload vorbereiten() throws IOException {
         return new Reload(konfiguration.vorbereiten(), texte.vorbereiten(), gui.vorbereiten());
     }
@@ -82,6 +128,8 @@ public final class PlotBetrieb {
     public void diagnose(CommandSender sender) {
         var status = auftraege.status();
         version(sender);
+        if (verbund != null) texte.senden(sender, "diagnose.welten", unparsed("worlds", verbund.stream()
+                .map(betrieb -> betrieb.konfiguration.weltname()).sorted().collect(java.util.stream.Collectors.joining(", "))));
         texte.senden(sender, "diagnose.welt", unparsed("world", welt.schluessel().toString()),
                 unparsed("loaded", Boolean.toString(welt.istGeladen())),
                 unparsed("size", Integer.toString(welt.raster().groesse())),
@@ -98,6 +146,7 @@ public final class PlotBetrieb {
                 unparsed("sections", Integer.toString(konfiguration.zahl("protection.zensur-abschnitte-pro-tick"))),
                 unparsed("budget", Integer.toString(konfiguration.zahl("protection.zensur-zeitbudget-millis"))));
         texte.senden(sender, "diagnose.hinweis");
+        texte.senden(sender, "diagnose.entfernt", unparsed("count", Integer.toString(plots.entfernungen().size())));
     }
 
     public void version(CommandSender sender) {
@@ -107,4 +156,6 @@ public final class PlotBetrieb {
 
     record Reload(PlotKonfiguration.Werte einstellungen, Map<String, String> texte, PlotMenueKonfiguration.Daten gui) {
     }
+    private record VerbundReload(PlotKonfiguration.Werte basis, Map<PlotBetrieb, PlotKonfiguration.Werte> einstellungen,
+                                 Map<String, String> texte, PlotMenueKonfiguration.Daten gui) { }
 }

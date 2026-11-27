@@ -142,6 +142,6 @@ class PlotYamlSpeicherTest {
         assertEquals(Set.of(gebannt), neu.rechte().gebannt());
         assertEquals(1, neu.profil().likes().size());
         assertEquals(Optional.of(punkt), neu.profil().besuchspunkt());
-        assertTrue(Files.readString(pfad).startsWith("format: 3"));
+        assertTrue(Files.readString(pfad).startsWith("format: 4"));
     }
 }

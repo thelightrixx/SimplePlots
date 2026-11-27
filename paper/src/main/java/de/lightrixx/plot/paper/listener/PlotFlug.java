@@ -35,6 +35,9 @@ public final class PlotFlug implements Listener {
     private final PlotNachrichten texte;
     private final Map<UUID, Long> fallsicher = new HashMap<>();
     private long ticks;
+    private java.util.function.Predicate<org.bukkit.World> anderePlotwelt = welt -> false;
+
+    public void anderePlotwelten(java.util.function.Predicate<org.bukkit.World> pruefung) { anderePlotwelt = java.util.Objects.requireNonNull(pruefung); }
 
     public PlotFlug(JavaPlugin plugin, PlotWelt welt, PlotDienst plots, PlotNachrichten texte) {
         this.plugin = plugin;
@@ -92,6 +95,7 @@ public final class PlotFlug implements Listener {
     }
 
     public void aktualisieren(Player spieler) {
+        if (anderePlotwelt.test(spieler.getWorld())) return;
         boolean verwaltet = verwaltet(spieler);
         if (!erlaubt(spieler, spieler.getLocation())) {
             if (verwaltet) freigeben(spieler);
@@ -155,6 +159,7 @@ public final class PlotFlug implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void starten(PlayerToggleFlightEvent event) {
+        if (anderePlotwelt.test(event.getPlayer().getWorld())) return;
         if (verwaltet(event.getPlayer()) && event.isFlying()
                 && event.getPlayer().getGameMode() != GameMode.CREATIVE && event.getPlayer().getGameMode() != GameMode.SPECTATOR
                 && !erlaubt(event.getPlayer(), event.getPlayer().getLocation())) {
@@ -164,11 +169,17 @@ public final class PlotFlug implements Listener {
     }
 
     @EventHandler
-    public void beitreten(PlayerJoinEvent event) { freigeben(event.getPlayer()); aktualisieren(event.getPlayer()); }
+    public void beitreten(PlayerJoinEvent event) {
+        if (anderePlotwelt.test(event.getPlayer().getWorld())) return;
+        freigeben(event.getPlayer()); aktualisieren(event.getPlayer());
+    }
     @EventHandler
     public void weltwechsel(PlayerChangedWorldEvent event) { aktualisieren(event.getPlayer()); }
     @EventHandler
-    public void respawn(PlayerPostRespawnEvent event) { freigeben(event.getPlayer()); aktualisieren(event.getPlayer()); }
+    public void respawn(PlayerPostRespawnEvent event) {
+        if (anderePlotwelt.test(event.getPlayer().getWorld())) return;
+        freigeben(event.getPlayer()); aktualisieren(event.getPlayer());
+    }
     @EventHandler
     public void verlassen(PlayerQuitEvent event) { freigeben(event.getPlayer()); fallsicher.remove(event.getPlayer().getUniqueId()); }
 

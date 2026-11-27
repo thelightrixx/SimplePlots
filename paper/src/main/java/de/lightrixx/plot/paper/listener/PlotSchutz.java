@@ -50,7 +50,8 @@ final class PlotSchutz {
         if (!inPlotwelt(ort)) {
             return true;
         }
-        if (beanspruchterPlot(ort).filter(Plot::zensiert).isPresent()) {
+        if (plots.entfernungBei(welt.raster(), ort.getBlockX(), ort.getBlockZ()).isPresent()
+                || beanspruchterPlot(ort).filter(Plot::zensiert).isPresent()) {
             return false;
         }
         if (PlotBerechtigungen.bypassAktiv(spieler)) {
