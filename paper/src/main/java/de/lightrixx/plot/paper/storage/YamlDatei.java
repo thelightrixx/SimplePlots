@@ -62,6 +62,7 @@ public final class YamlDatei {
 
     public void speichern(YamlConfiguration yaml) throws IOException {
         byte[] inhalt = yaml.saveToString().getBytes(StandardCharsets.UTF_8);
+        if (inhalt.length > MAX_ZEICHEN) throw new IOException("YAML-Datei würde größer als 64 MiB; bisheriger Stand und Sicherung bleiben erhalten: " + pfad);
         Files.createDirectories(pfad.getParent());
         if (Files.exists(pfad)) {
             // Eine fehlgeschlagene Sicherung darf den bisherigen Spielstand nicht gefährden.

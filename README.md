@@ -1,4 +1,4 @@
-# SimplePlots v0.10.0
+# SimplePlots v0.10.1
 
 SimplePlots ergänzt Paper um Plotwelten mit öffentlichen Wegen, Claims und Baurechten. Spieler bauen im Survival-Modus mit ihrem eigenen Inventar. Sie können Freunde einladen, Nachbarplots verbinden, Besuchspunkte setzen und an Bauwettbewerben teilnehmen.
 
@@ -27,13 +27,15 @@ Beim Update von v0.8.0-beta oder älter ist der Wechsel zu den neuen JAR-Dateina
 
 `/plot border` zeigt dir für 15 Sekunden die Außengrenze als grüne Partikel. Auch zusammengelegte Flächen und ihre Innenwege werden berücksichtigt. Die Anzeige verändert keine Blöcke und lädt keine Chunks. Dauer und Grenzen stehen unter `navigation` in `config/general.yml`.
 
+Schreibänderungen werden vor dem Ersetzen gegen die Lesegrenze von 64 MiB je YAML-Datei geprüft. Eine zu große Änderung lässt den bisherigen Stand und seine Sicherung erhalten.
+
 ## Nachlesen
 
 Das [Handbuch](https://thelightrixx.github.io/SimplePlots/) enthält [Befehle](docs/index.html#/befehle), [Rechte](docs/index.html#/rechte), [Konfiguration](docs/index.html#/konfiguration) und Hinweise zu Sicherung und Wiederherstellung. `docs/index.html` funktioniert auch offline.
 
 ## Download und eigener Build
 
-Im [Release v0.10.0](https://github.com/thelightrixx/SimplePlots/releases/tag/v0.10.0) findest du die JARs und `SHA256SUMS.txt`. Prüfe den Hash der gewählten Datei vor der Installation.
+Im [Release v0.10.1](https://github.com/thelightrixx/SimplePlots/releases/tag/v0.10.1) findest du die JARs und `SHA256SUMS.txt`. Prüfe den Hash der gewählten Datei vor der Installation.
 
 Zum Bauen brauchst du JDK 25 oder neuer und Python ab 3.10. Unter Windows führt `build_all_jars.bat nobump ci` alle Prüfungen aus und stellt die Ergebnisse in `dist/` bereit. Maven wird gefunden oder als Version 3.9.11 heruntergeladen. Die [Entwicklungsanleitung](docs/index.html#/projektstandard) beschreibt auch den Build unter Linux und macOS. Ein Build erhöht keine Versionsnummer.
 

@@ -561,7 +561,7 @@ details>div{padding:14px 18px 2px}
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16"/><path d="M4 12h16"/><path d="M4 17h16"/></svg>
   </button>
   <button class="brand" id="brand" aria-label="Zur Startseite des Handbuchs"><svg class="mark" viewBox="0 0 28 28" aria-hidden="true"><rect width="28" height="28" rx="7" fill="#187850"/><g fill="none" stroke="white" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M13 5h2v18h-2zM5 13h18v2H5z" fill="white" stroke="none"/><path d="M6 6h5v5H6zm11 0h5v5h-5zM6 17h5v5H6zm11 0h5v5h-5z" fill="white" stroke="none" opacity=".65"/></g></svg>SimplePlots <small>Handbuch</small></button>
-  <span class="ver">v0.10.0</span>
+  <span class="ver">v0.10.1</span>
   <div class="grow"></div>
   <button class="search-btn" id="searchBtn" aria-label="Handbuch durchsuchen">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
@@ -603,7 +603,7 @@ details>div{padding:14px 18px 2px}
       <div class="bs-chat"><em>/plot auto</em><br><b>Plot 0;0 gehört jetzt dir.</b></div>
     </div>
   </div>
-  <p class="doc-meta">Handbuchstand: 28.11.2026 · v0.10.0 · Paper 1.21.8 und 26.1</p>
+  <p class="doc-meta">Handbuchstand: 28.11.2026 · v0.10.1 · Paper 1.21.8 und 26.1</p>
   <h2 data-anchor="aufgaben">Was möchtest du tun?</h2>
   <div class="cards">
     <a class="card" href="#/installation"><b>Zum ersten Mal einrichten</b><span>Plugin installieren, Raster festlegen und Einrichtung prüfen.</span></a>
@@ -635,13 +635,13 @@ details>div{padding:14px 18px 2px}
   </ul>
   <h2 data-anchor="offline">Offline lesen und drucken</h2>
   <p>Öffne <code>docs/index.html</code> direkt im Browser. Inhalte, Suche und Schriften funktionieren ohne Server und Internet. Für die lokal verlinkten Lizenztexte den gesamten Ordner <code>docs/</code> mitnehmen. Externe Downloads und GitHub-Links benötigen eine Verbindung. Die Druckfunktion des Browsers gibt das ganze Handbuch einschließlich aufgeklappter Details aus; darüber kannst du es auch als PDF speichern.</p>
-  <p>Seit v0.10.0 werden stabile Versionen veröffentlicht. Unter <a href="#/qualitaet">Architektur und Prüfungen</a> findest du den Prüfumfang und Hinweise zu Spielertests. Änderungen je Version stehen im <a href="#/changelog">Changelog</a>.</p>
+  <p>Seit v0.10.1 werden stabile Versionen veröffentlicht. Unter <a href="#/qualitaet">Architektur und Prüfungen</a> findest du den Prüfumfang und Hinweise zu Spielertests. Änderungen je Version stehen im <a href="#/changelog">Changelog</a>.</p>
 </section>
 
 <section class="page" data-id="installation" data-group="Start" data-title="Installation">
   <h1>Installation</h1><div class="callout note"><p>Wähle die JAR für Paper/Purpur 1.21.8 mit Java 21 oder für Paper/Purpur 26.1 mit Java 25. Installiere nur eine Variante. Wenn du von PlotSystem wechselst, lies auch die Wechselanleitung auf dieser Seite.</p></div>
   <p class="lead">Für eine neue Installation brauchst du die zu Paper/Purpur 1.21.8 (Java 21) oder 26.1 (Java 25) passende JAR. Wenn du von PlotSystem wechselst, folge der eigenen <a href="#/installation/wechsel">Wechselanleitung</a>.</p>
-    <p>Im <a href="https://github.com/thelightrixx/SimplePlots/releases/tag/v0.10.0">Release v0.10.0</a> findest du die <a href="https://github.com/thelightrixx/SimplePlots/releases/download/v0.10.0/SimplePlots-v0.10.0-paper.jar">Plugin-JAR</a> und die <a href="https://github.com/thelightrixx/SimplePlots/releases/download/v0.10.0/SHA256SUMS.txt">SHA-256-Prüfsumme</a>.</p>
+    <p>Im <a href="https://github.com/thelightrixx/SimplePlots/releases/tag/v0.10.1">Release v0.10.1</a> findest du die <a href="https://github.com/thelightrixx/SimplePlots/releases/download/v0.10.1/SimplePlots-v0.10.1-paper.jar">Plugin-JAR</a> und die <a href="https://github.com/thelightrixx/SimplePlots/releases/download/v0.10.1/SHA256SUMS.txt">SHA-256-Prüfsumme</a>.</p>
   <h2 data-anchor="voraussetzungen">Voraussetzungen</h2>
 <div class="tbl"><table>
   <thead><tr><th scope="col">Einsatz</th><th scope="col">Voraussetzung</th></tr></thead>
@@ -655,7 +655,7 @@ details>div{padding:14px 18px 2px}
   <h2 data-anchor="download-pruefen">Download prüfen</h2>
   <p>Lade die JAR und <code>SHA256SUMS.txt</code> aus demselben Release herunter. Führe den Befehl für dein Betriebssystem im Downloadordner aus. Unter Windows vergleichst du den ausgegebenen Hash vollständig mit dem Eintrag in der Prüfsummendatei; Linux und macOS melden das Ergebnis direkt.</p>
   <h3 data-anchor="windows-powershell">Windows PowerShell</h3>
-<pre data-lang="powershell">Get-FileHash -Algorithm SHA256 -LiteralPath .\SimplePlots-v0.10.0-paper.jar
+<pre data-lang="powershell">Get-FileHash -Algorithm SHA256 -LiteralPath .\SimplePlots-v0.10.1-paper.jar
 Get-Content -LiteralPath .\SHA256SUMS.txt</pre>
   <h3 data-anchor="linux">Linux</h3>
 <pre data-lang="shell">sha256sum -c SHA256SUMS.txt</pre>
@@ -1494,7 +1494,7 @@ kanal: stable</pre>
   <p>Prüfungen lesen Release-Metadaten aus dem SimplePlots-Repository und melden neue Versionen im Log. Sie laden keine JAR herunter. <code>/plot admin update check</code> startet eine manuelle Prüfung; <code>status</code> zeigt installierte, verfügbare und vorbereitete Version.</p>
   <p><code>/plot admin update apply confirm</code> lädt und prüft ein gefundenes Update und legt die JAR für den nächsten normalen Paper-Start bereit. Dabei werden Prüfsumme, Dateigröße und Plugin-Metadaten geprüft. Ein automatischer Neustart findet nicht statt. Sichere Daten und Welt vor dem Austausch; Einzelheiten zum Update-Ordner stehen unter <a href="#/betrieb/ingame-updater">Ingame-Updater</a>.</p>
   <h2 data-anchor="kanal">Warum Stable nichts findet</h2>
-  <p>v0.10.0 ist ein stabiler Release. Der Standardkanal <code>stable</code> berücksichtigt stabile Versionen. <code>beta</code> und <code>alpha</code> bleiben für ältere Installationen lesbar und schließen ebenfalls stabile Updates ein. Entwürfe sowie gleiche und ältere Versionen werden übersprungen.</p>
+  <p>v0.10.1 ist ein stabiler Release. Der Standardkanal <code>stable</code> berücksichtigt stabile Versionen. <code>beta</code> und <code>alpha</code> bleiben für ältere Installationen lesbar und schließen ebenfalls stabile Updates ein. Entwürfe sowie gleiche und ältere Versionen werden übersprungen.</p>
 </section>
 
 <section class="page" data-id="config-messages" data-group="Konfiguration und Rechte" data-title="messages.yml – Texte und Titel">
@@ -1767,10 +1767,15 @@ symbole:
       </tbody>
     </table></div>
 <h2 data-anchor="persoenliche-daten">Persönliche Lesezeichen sichern</h2><p>Lesezeichen stehen im PersistentDataContainer des Spielers unter <code>simpleplots:lesezeichen_&lt;Weltname&gt;</code>. Sie werden mit den normalen Minecraft-Spielerdaten gespeichert. Nimm daher auch <code>playerdata</code> in die Sicherung auf. Die Plotdateien enthalten diese persönlichen Ziele nicht. Ein defekter Lesezeichenbestand wird gemeldet und nicht überschrieben.</p>
+<h2 data-anchor="dateigroesse">Größenbegrenzte Dateien</h2><p>Die YAML-Dateien dürfen je Datei höchstens 64 MiB UTF-8-Daten enthalten. Diese Grenze wird auch vor einer Änderung geprüft. Ein zu großer neuer Stand wird abgewiesen, bevor Hauptdatei oder Sicherung ersetzt werden; der aktive Stand bleibt erhalten. Die Zahl der Zeichen allein genügt dafür nicht, weil Umlaute und andere Unicode-Zeichen mehrere Bytes brauchen können.</p>
 </section>
 
 <section class="page" id="changelogVersions" data-id="changelog" data-group="Betrieb" data-title="Changelog">
   <h1>Changelog</h1><div class="command-tools" role="search" aria-label="Versionen filtern"><label for="changelogFilter">Versionen filtern</label><div class="command-filter-row"><input id="changelogFilter" type="search" placeholder="Name, Stichwort oder Version" autocomplete="off" spellcheck="false" aria-controls="changelogVersions" aria-describedby="changelogFilterHint"><button type="button" id="changelogReset">Zurücksetzen</button></div><p id="changelogFilterHint">Mehrere Wörter grenzen die Treffer ein.</p><p id="changelogCount" role="status"></p></div><p id="changelogEmpty" class="empty" hidden>Keine passenden Treffer. Filter zurücksetzen.</p>
+<h2 data-anchor="v0-10-1">v0.10.1</h2>
+<p><time datetime="2026-11-28">28.11.2026</time> · Stabile Version</p>
+<ul><li>YAML-Änderungen werden vor dem Dateiaustausch gegen dieselbe UTF-8-Größengrenze wie beim Laden geprüft. Zu große Änderungen lassen Daten, aktive Zustände und die Vorgängersicherung erhalten.</li><li>Regressionstests prüfen Umlaute, die unveränderte Sicherung und das erneute Laden nach einer abgewiesenen Änderung.</li></ul>
+<p><strong>Update:</strong> Die passende JAR bei gestopptem Server ersetzen. Dateien und Konfiguration bleiben erhalten. Die Lesegrenze von 64 MiB je YAML-Datei gilt jetzt auch vor dem Schreiben. Bei einer bereits zu großen Datei zuerst die Logmeldung prüfen und eine passende Sicherung vergleichen.</p>
 <h2 data-anchor="v0-10-0">v0.10.0</h2>
 <p><time datetime="2026-11-28">28.11.2026</time> · Stabile Version</p>
 <ul><li>Persönliche Plot-Lesezeichen je Welt, mit Namen und Prüfung von Welt, Besitzer, Zutritt und Zensur vor dem Besuch.</li><li>Private Grenzpartikel zeigen die Außenkanten zusammengelegter Flächen einschließlich übernommener Innenwege; öffentliche Wegekreuzungen bleiben ausgespart.</li><li>Dauer, Reichweite, Punktabstand und gleichzeitige Anzeigen sind begrenzt und konfigurierbar. Anzeigen enden bei Rechteverlust, Weltwechsel, Plotänderung, Verlassen und Abschalten.</li></ul>
