@@ -311,3 +311,18 @@ menue:
   wettbewerb-leer: '<gray>Hier erscheinen die eingereichten Plots.</gray>'
   thema: '<gold><theme></gold>'
   stimmen: '<yellow>Stimmen <count></yellow>'
+
+navigation:
+  hilfe: '<green>/plot bookmark list|add <Name>|go <Name>|remove <Name></green> · <green>/plot border [Sekunden|off]</green>'
+  name: 'Verwende 1–32 Buchstaben, Zahlen, Leerzeichen, _ oder - als Lesezeichennamen.'
+  liste: '<green>Deine Lesezeichen in <world>: <count></green>'
+  eintrag: '<yellow><name></yellow> · Plot <id> · /plot bookmark go <name>'
+  fehlt: 'Dieses Lesezeichen gibt es nicht. /plot bookmark list zeigt deine Namen.'
+  veraltet: 'Das Ziel ist nicht mehr verfügbar, hat einen anderen Besitzer oder ist für dich gesperrt. Prüfe den Plot und lege das Lesezeichen bei Bedarf neu an.'
+  ort: 'Stell dich auf einen zugänglichen, beanspruchten Plot in dieser Plotwelt.'
+  limit: 'Dein Lesezeichenlimit für diese Welt ist erreicht. Mit /plot bookmark remove <Name> kannst du einen Platz freimachen.'
+  gemerkt: 'Plot als <yellow><name></yellow> gemerkt. Ein vorhandenes Lesezeichen dieses Namens wurde ersetzt.'
+  entfernt: 'Lesezeichen <yellow><name></yellow> entfernt.'
+  grenze-an: '<green>Plotgrenze für <seconds> Sekunden eingeblendet.</green> Die Partikel liegen auf deiner Höhe; bei großen Flächen entlang der Grenze gehen.'
+  grenze-aus: 'Grenzanzeige beendet.'
+  grenze-limit: 'Grenzanzeige nicht gestartet. Dauer außerhalb des eingestellten Bereichs, zu viele gleichzeitige Anzeigen oder mehr als 10.000 Rasterzellen. Die Vorgaben stehen unter navigation in config/general.yml.'

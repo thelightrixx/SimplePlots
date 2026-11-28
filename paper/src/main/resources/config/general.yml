@@ -40,3 +40,13 @@ betreten:
   einblenden-millis: 250
   anzeigen-millis: 2000
   ausblenden-millis: 500
+
+navigation:
+  # Persönliche Lesezeichen je Spieler und Plotwelt; gespeichert in den Spielerdaten.
+  lesezeichen-limit: 12
+  # /plot border zeigt nur diesem Spieler Partikel an. Es werden keine Chunks geladen.
+  grenzen-sekunden: 15
+  grenzen-max-sekunden: 60
+  grenzen-max-spieler: 32
+  grenzen-reichweite: 32
+  grenzen-punktabstand: 4

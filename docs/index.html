@@ -561,7 +561,7 @@ details>div{padding:14px 18px 2px}
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16"/><path d="M4 12h16"/><path d="M4 17h16"/></svg>
   </button>
   <button class="brand" id="brand" aria-label="Zur Startseite des Handbuchs"><svg class="mark" viewBox="0 0 28 28" aria-hidden="true"><rect width="28" height="28" rx="7" fill="#187850"/><g fill="none" stroke="white" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M13 5h2v18h-2zM5 13h18v2H5z" fill="white" stroke="none"/><path d="M6 6h5v5H6zm11 0h5v5h-5zM6 17h5v5H6zm11 0h5v5h-5z" fill="white" stroke="none" opacity=".65"/></g></svg>SimplePlots <small>Handbuch</small></button>
-  <span class="ver">v0.9.0</span>
+  <span class="ver">v0.10.0</span>
   <div class="grow"></div>
   <button class="search-btn" id="searchBtn" aria-label="Handbuch durchsuchen">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
@@ -603,7 +603,7 @@ details>div{padding:14px 18px 2px}
       <div class="bs-chat"><em>/plot auto</em><br><b>Plot 0;0 gehört jetzt dir.</b></div>
     </div>
   </div>
-  <p class="doc-meta">Handbuchstand: 28.11.2026 · v0.9.0 · Paper 1.21.8 und 26.1</p>
+  <p class="doc-meta">Handbuchstand: 28.11.2026 · v0.10.0 · Paper 1.21.8 und 26.1</p>
   <h2 data-anchor="aufgaben">Was möchtest du tun?</h2>
   <div class="cards">
     <a class="card" href="#/installation"><b>Zum ersten Mal einrichten</b><span>Plugin installieren, Raster festlegen und Einrichtung prüfen.</span></a>
@@ -635,13 +635,13 @@ details>div{padding:14px 18px 2px}
   </ul>
   <h2 data-anchor="offline">Offline lesen und drucken</h2>
   <p>Öffne <code>docs/index.html</code> direkt im Browser. Inhalte, Suche und Schriften funktionieren ohne Server und Internet. Für die lokal verlinkten Lizenztexte den gesamten Ordner <code>docs/</code> mitnehmen. Externe Downloads und GitHub-Links benötigen eine Verbindung. Die Druckfunktion des Browsers gibt das ganze Handbuch einschließlich aufgeklappter Details aus; darüber kannst du es auch als PDF speichern.</p>
-  <p>Seit v0.9.0 werden stabile Versionen veröffentlicht. Unter <a href="#/qualitaet">Architektur und Prüfungen</a> findest du den Prüfumfang und Hinweise zu Spielertests. Änderungen je Version stehen im <a href="#/changelog">Changelog</a>.</p>
+  <p>Seit v0.10.0 werden stabile Versionen veröffentlicht. Unter <a href="#/qualitaet">Architektur und Prüfungen</a> findest du den Prüfumfang und Hinweise zu Spielertests. Änderungen je Version stehen im <a href="#/changelog">Changelog</a>.</p>
 </section>
 
 <section class="page" data-id="installation" data-group="Start" data-title="Installation">
   <h1>Installation</h1><div class="callout note"><p>Wähle die JAR für Paper/Purpur 1.21.8 mit Java 21 oder für Paper/Purpur 26.1 mit Java 25. Installiere nur eine Variante. Wenn du von PlotSystem wechselst, lies auch die Wechselanleitung auf dieser Seite.</p></div>
   <p class="lead">Für eine neue Installation brauchst du die zu Paper/Purpur 1.21.8 (Java 21) oder 26.1 (Java 25) passende JAR. Wenn du von PlotSystem wechselst, folge der eigenen <a href="#/installation/wechsel">Wechselanleitung</a>.</p>
-    <p>Im <a href="https://github.com/thelightrixx/SimplePlots/releases/tag/v0.9.0">Release v0.9.0</a> findest du die <a href="https://github.com/thelightrixx/SimplePlots/releases/download/v0.9.0/SimplePlots-v0.9.0-paper.jar">Plugin-JAR</a> und die <a href="https://github.com/thelightrixx/SimplePlots/releases/download/v0.9.0/SHA256SUMS.txt">SHA-256-Prüfsumme</a>.</p>
+    <p>Im <a href="https://github.com/thelightrixx/SimplePlots/releases/tag/v0.10.0">Release v0.10.0</a> findest du die <a href="https://github.com/thelightrixx/SimplePlots/releases/download/v0.10.0/SimplePlots-v0.10.0-paper.jar">Plugin-JAR</a> und die <a href="https://github.com/thelightrixx/SimplePlots/releases/download/v0.10.0/SHA256SUMS.txt">SHA-256-Prüfsumme</a>.</p>
   <h2 data-anchor="voraussetzungen">Voraussetzungen</h2>
 <div class="tbl"><table>
   <thead><tr><th scope="col">Einsatz</th><th scope="col">Voraussetzung</th></tr></thead>
@@ -655,7 +655,7 @@ details>div{padding:14px 18px 2px}
   <h2 data-anchor="download-pruefen">Download prüfen</h2>
   <p>Lade die JAR und <code>SHA256SUMS.txt</code> aus demselben Release herunter. Führe den Befehl für dein Betriebssystem im Downloadordner aus. Unter Windows vergleichst du den ausgegebenen Hash vollständig mit dem Eintrag in der Prüfsummendatei; Linux und macOS melden das Ergebnis direkt.</p>
   <h3 data-anchor="windows-powershell">Windows PowerShell</h3>
-<pre data-lang="powershell">Get-FileHash -Algorithm SHA256 -LiteralPath .\SimplePlots-v0.9.0-paper.jar
+<pre data-lang="powershell">Get-FileHash -Algorithm SHA256 -LiteralPath .\SimplePlots-v0.10.0-paper.jar
 Get-Content -LiteralPath .\SHA256SUMS.txt</pre>
   <h3 data-anchor="linux">Linux</h3>
 <pre data-lang="shell">sha256sum -c SHA256SUMS.txt</pre>
@@ -755,6 +755,10 @@ Get-Content -LiteralPath .\SHA256SUMS.txt</pre>
     <li><a href="#/flug">Auf Wegen oder dem eigenen Plot fliegen</a>.</li>
     <li><a href="#/wettbewerbe">An einem Bauwettbewerb teilnehmen</a>.</li>
   </ul>
+<h2 data-anchor="lesezeichen-und-grenzen">Besuchsziele merken und Grenzen sehen</h2><pre>/plot bookmark add Schönes Haus
+/plot bookmark list
+/plot bookmark go Schönes Haus
+/plot border</pre><p>Ein Lesezeichen merkt den Claim und seinen Besitzer. Nach Merge oder Split wird die gespeicherte Rasterzelle neu aufgelöst. Ein Eigentümerwechsel, eine andere Weltkennung, ein entfernter Plot oder fehlender Zutritt macht den Besuch ungültig. Lege das Lesezeichen nach einer bewussten Prüfung neu an.</p><p>Die Grenzpartikel siehst nur du. Sie liegen auf deiner aktuellen Höhe und erscheinen innerhalb der eingestellten Reichweite. Bei großen Flächen gehe am Rand entlang. <code>/plot border off</code> beendet die Anzeige. Öffentliche Wegekreuzungen zählen auch bei L-förmigen Claims nicht zum Baugebiet.</p>
 </section>
 
 <section class="page" data-id="rollen" data-group="Spielen" data-title="Rollen und Zutritt">
@@ -1003,7 +1007,7 @@ Get-Content -LiteralPath .\SHA256SUMS.txt</pre>
         <tr><td><code>/plot home [Nr]</code>, <code>/plot visit &lt;Spieler&gt; [Nr]</code></td><td>Einen eigenen oder fremden Plot besuchen. Ohne Nummer gilt der erste Claim des Besitzers.</td><td>Kein Zusatzrecht · Spiel. <a href="#/galerie/besuchen">Besuchsziele</a>.</td></tr>
         <tr><td><code>/plot visit &lt;X;Z&gt;</code>, <code>/plot visit #&lt;Name&gt;</code></td><td>Plot über Raster-ID oder Profilnamen besuchen.</td><td>Kein Zusatzrecht · Spiel. <a href="#/galerie/besuchen">Besuchsziele</a>.</td></tr>
         <tr><td><code>/plot sethome [off]</code></td><td>Am eigenen Standort einen Besuchspunkt setzen oder mit <code>off</code> entfernen.</td><td><code>manage</code> · Spiel, eigener Plot. <a href="#/galerie/besuchspunkt">Sicherer Besuchspunkt</a>.</td></tr>
-      </tbody>
+      <tr><td><code>/plot bookmark list</code></td><td>Lesezeichen dieser Welt anzeigen.</td><td><code>simpleplots.bookmark</code></td></tr><tr><td><code>/plot bookmark add|go|remove &lt;Name&gt;</code></td><td>Aktuellen Claim merken, sicher besuchen oder Lesezeichen entfernen.</td><td><code>simpleplots.bookmark</code></td></tr><tr><td><code>/plot border [Sekunden|off]</code></td><td>Private Außengrenze anzeigen oder beenden.</td><td><code>simpleplots.border</code></td></tr></tbody>
     </table></div>
     <h2 data-anchor="rollen">Rollen und Zutritt</h2>
     <p>Stehe auf deinem eigenen Plot. Gib einen dem Server bekannten Spielernamen oder die UUID an.</p>
@@ -1105,7 +1109,7 @@ Get-Content -LiteralPath .\SHA256SUMS.txt</pre>
         <tr><td><code>simpleplots.admin.bypass</code></td><td>Operatoren</td><td>Eigenen Bypass für Bauen und Zutritt schalten. Zensur und Wettbewerbssperren bleiben wirksam.</td></tr>
         <tr><td><code>simpleplots.admin.update</code></td><td>Operatoren und Konsole</td><td>Update-Status, Prüfung und bestätigten Download erlauben.</td></tr>
         <tr><td><code>simpleplots.admin.contest</code></td><td>Operatoren und Konsole</td><td>Wettbewerbe verwalten, ohne alle übrigen Adminrechte zu vergeben.</td></tr>
-      </tbody>
+      <tr><td><code>simpleplots.bookmark</code></td><td>Alle Spieler</td><td>Persönliche Lesezeichen; zusätzlich simpleplots.use.</td></tr><tr><td><code>simpleplots.border</code></td><td>Alle Spieler</td><td>Private Grenzanzeige; zusätzlich simpleplots.use.</td></tr></tbody>
     </table></div>
   <h2 data-anchor="rang-buendel">Konfigurierbare Rechtebündel</h2>
   <p><code>config/general.yml: rang-buendel</code> enthält die Gruppen <code>spieler</code>, <code>supporter</code>, <code>moderator</code> und <code>admin</code>. In LuckPerms zum Beispiel <code>simpleplots.rang.moderator</code> vergeben; Bukkit vererbt die zugehörige Liste von Einzelrechten. Moderator enthält Einsicht, Besuche, Rollen, Profile, Zensur und Diagnose. Remove/Restore gehören ausschließlich zum Adminbündel. Eigene Gruppen und ausdrücklich leere Listen sind möglich; Bündel dürfen keine anderen Bündel enthalten. Änderungen werden beim gemeinsamen Reload aktiviert. Explizite negative Einzelrechte werden durch das normale Paper-Permissionsystem ausgewertet.</p>
@@ -1204,6 +1208,7 @@ symbole:
   <p>Neuinstallationen erzeugen globale Vorgaben unter <code>config/</code> und die erste Weltkonfiguration unter <code>worlds/plots.yml</code>. Bei einer Übernahme werden Raster und Claim-Limit aus der alten <code>config.yml</code> gelesen. Alte <code>messages.yml</code> und <code>gui.yml</code> werden übernommen, wenn die Zieldateien noch unveränderte Standards enthalten. Bereits angepasste Zieldateien behalten Vorrang.</p>
   <p>Nach erfolgreicher Prüfung werden alte <code>config.yml</code>, <code>messages.yml</code> und <code>gui.yml</code> samt vorhandenen Vorgängersicherungen unter <code>config/altbestand/</code> archiviert. Das Archiv ist keine aktive Konfiguration. Vergleiche bei Bedarf deine alten Anpassungen mit den neuen Dateien. Ungültige Altdateien und Archivkonflikte werden gemeldet, ohne die Originale zu überschreiben.</p>
   <p>Die ursprüngliche Welt <code>plots</code> behält Spielstände wie <code>plots.yml</code>, <code>plots-aenderungen.yml</code>, <code>welt.yml</code> und <code>wettbewerb.yml</code> im Plugin-Hauptordner. Weitere Welten speichern unter <code>data/&lt;Name&gt;/</code>. Ein teilweise verlorener Konfigurationsordner muss aus einer passenden Sicherung ergänzt werden; fehlende Dateien nicht mit Spielständen verwechseln.</p>
+<h2 data-anchor="navigation">Persönliche Ziele und Grenzanzeige</h2><p><code>navigation</code> in <code>config/general.yml</code> legt Lesezeichenlimit, Dauer, Reichweite, Punktabstand und gleichzeitige Anzeigen fest. Vorgaben: zwölf Lesezeichen je Spieler und Welt, 15 Sekunden Anzeige, höchstens 60 Sekunden und 32 Spieler. Eine Anzeige verwendet höchstens 128 Punkte mit je zwei Partikeln pro halber Sekunde; Flächen über 10.000 Rasterzellen werden dafür abgewiesen.</p><p>Alle Anzeigen teilen einen Taktgeber. Weltwechsel, Rechteverlust, Verlassen und Pluginstopp räumen sie auf. Änderungen am angezeigten Plot beenden die alte Anzeige ebenfalls. Die Geometrie enthält nur Außenkanten, einschließlich der verbindenden Innenwege.</p>
 </section>
 
 <section class="page" data-id="welten" data-group="Konfiguration und Rechte" data-title="worlds/ – einzelne Plotwelten">
@@ -1300,8 +1305,8 @@ profil:
 # plugin nennt das Bukkit-Plugin, zeitlimit-millis begrenzt den Zugriff auf dessen Speicher.
 wirtschaft:
   aktiv: false
-  plugin: 'EconomySystem'
-  preis: '250.00'
+  plugin: &#x27;EconomySystem&#x27;
+  preis: &#x27;250.00&#x27;
   zeitlimit-millis: 5000
 
 betreten:
@@ -1312,7 +1317,17 @@ betreten:
   titel: true
   einblenden-millis: 250
   anzeigen-millis: 2000
-  ausblenden-millis: 500</pre>
+  ausblenden-millis: 500
+
+navigation:
+  # Persönliche Lesezeichen je Spieler und Plotwelt; gespeichert in den Spielerdaten.
+  lesezeichen-limit: 12
+  # /plot border zeigt nur diesem Spieler Partikel an. Es werden keine Chunks geladen.
+  grenzen-sekunden: 15
+  grenzen-max-sekunden: 60
+  grenzen-max-spieler: 32
+  grenzen-reichweite: 32
+  grenzen-punktabstand: 4</pre>
   <h2 data-anchor="wirtschaft">Claim-Preise über EconomySystem</h2>
   <p>Mit <code>wirtschaft.aktiv: true</code> bucht SimplePlots den Preis je Rasterzelle über die öffentliche Plugin-Schnittstelle von EconomySystem ab. Vault ist weder installiert noch erforderlich. EconomySystem wird über <code>softdepend</code> vor SimplePlots geladen; <code>wirtschaft.plugin</code> nennt seinen Plugin-Namen. Preis und Aktivierung gelten ab dem nächsten <code>/plot admin reload</code>.</p>
   <ul>
@@ -1479,7 +1494,7 @@ kanal: stable</pre>
   <p>Prüfungen lesen Release-Metadaten aus dem SimplePlots-Repository und melden neue Versionen im Log. Sie laden keine JAR herunter. <code>/plot admin update check</code> startet eine manuelle Prüfung; <code>status</code> zeigt installierte, verfügbare und vorbereitete Version.</p>
   <p><code>/plot admin update apply confirm</code> lädt und prüft ein gefundenes Update und legt die JAR für den nächsten normalen Paper-Start bereit. Dabei werden Prüfsumme, Dateigröße und Plugin-Metadaten geprüft. Ein automatischer Neustart findet nicht statt. Sichere Daten und Welt vor dem Austausch; Einzelheiten zum Update-Ordner stehen unter <a href="#/betrieb/ingame-updater">Ingame-Updater</a>.</p>
   <h2 data-anchor="kanal">Warum Stable nichts findet</h2>
-  <p>v0.9.0 ist ein stabiler Release. Der Standardkanal <code>stable</code> berücksichtigt stabile Versionen. <code>beta</code> und <code>alpha</code> bleiben für ältere Installationen lesbar und schließen ebenfalls stabile Updates ein. Entwürfe sowie gleiche und ältere Versionen werden übersprungen.</p>
+  <p>v0.10.0 ist ein stabiler Release. Der Standardkanal <code>stable</code> berücksichtigt stabile Versionen. <code>beta</code> und <code>alpha</code> bleiben für ältere Installationen lesbar und schließen ebenfalls stabile Updates ein. Entwürfe sowie gleiche und ältere Versionen werden übersprungen.</p>
 </section>
 
 <section class="page" data-id="config-messages" data-group="Konfiguration und Rechte" data-title="messages.yml – Texte und Titel">
@@ -1751,10 +1766,15 @@ symbole:
         <tr><td>Doppelte YAML-Schlüssel, verkürzte UUIDs oder doppelte Rollen-/Zelleneinträge.</td><td>Die im Log genannte Datei bei gestopptem Server prüfen. Ungültige Daten werden abgewiesen und bleiben zur Prüfung erhalten.</td></tr>
       </tbody>
     </table></div>
+<h2 data-anchor="persoenliche-daten">Persönliche Lesezeichen sichern</h2><p>Lesezeichen stehen im PersistentDataContainer des Spielers unter <code>simpleplots:lesezeichen_&lt;Weltname&gt;</code>. Sie werden mit den normalen Minecraft-Spielerdaten gespeichert. Nimm daher auch <code>playerdata</code> in die Sicherung auf. Die Plotdateien enthalten diese persönlichen Ziele nicht. Ein defekter Lesezeichenbestand wird gemeldet und nicht überschrieben.</p>
 </section>
 
 <section class="page" id="changelogVersions" data-id="changelog" data-group="Betrieb" data-title="Changelog">
   <h1>Changelog</h1><div class="command-tools" role="search" aria-label="Versionen filtern"><label for="changelogFilter">Versionen filtern</label><div class="command-filter-row"><input id="changelogFilter" type="search" placeholder="Name, Stichwort oder Version" autocomplete="off" spellcheck="false" aria-controls="changelogVersions" aria-describedby="changelogFilterHint"><button type="button" id="changelogReset">Zurücksetzen</button></div><p id="changelogFilterHint">Mehrere Wörter grenzen die Treffer ein.</p><p id="changelogCount" role="status"></p></div><p id="changelogEmpty" class="empty" hidden>Keine passenden Treffer. Filter zurücksetzen.</p>
+<h2 data-anchor="v0-10-0">v0.10.0</h2>
+<p><time datetime="2026-11-28">28.11.2026</time> · Stabile Version</p>
+<ul><li>Persönliche Plot-Lesezeichen je Welt, mit Namen und Prüfung von Welt, Besitzer, Zutritt und Zensur vor dem Besuch.</li><li>Private Grenzpartikel zeigen die Außenkanten zusammengelegter Flächen einschließlich übernommener Innenwege; öffentliche Wegekreuzungen bleiben ausgespart.</li><li>Dauer, Reichweite, Punktabstand und gleichzeitige Anzeigen sind begrenzt und konfigurierbar. Anzeigen enden bei Rechteverlust, Weltwechsel, Plotänderung, Verlassen und Abschalten.</li></ul>
+<p><strong>Update:</strong> Fehlende navigation-Einstellungen werden in config/general.yml ergänzt; eigene Werte bleiben erhalten. Lesezeichen liegen in den Minecraft-Spielerdaten und gehören daher zusätzlich zur Sicherung von playerdata. Plotformat 3, Journale, Bauten und vorhandene Welteinstellungen bleiben unverändert.</p>
 <h2 data-anchor="v0-9-0">v0.9.0</h2>
 <p><time datetime="2026-11-28">28.11.2026</time> · Stabile Version</p>
 <ul><li>Erste stabile Version ohne Beta-Zusatz.</li><li>Zusätzliche JAR für Paper 1.21.8; die moderne JAR wird gegen Paper 26.1 gebaut.</li><li>Der Updater wählt die zur laufenden Plattform passende Datei.</li><li>Gemeinsame Build-, Handbuch- und Release-Werkzeuge. Vorhandene Plotdaten, Weltdateien und Konfigurationen bleiben erhalten.</li></ul>
@@ -1894,7 +1914,7 @@ symbole:
 <div class="tbl"><table>
   <thead><tr><th scope="col">Symptom</th><th scope="col">Prüfung und nächster Schritt</th></tr></thead>
   <tbody>
-    <tr><td>Plugin lädt nicht oder meldet inkompatible Klassen.</td><td>Paper für Minecraft 26.1.2 und Java 25 prüfen. Die installierbare Paper-JAR verwenden; keine Common-JAR. Nur eine SimplePlots- beziehungsweise PlotSystem-Plugin-JAR laden.</td></tr>
+    <tr><td>Plugin lädt nicht oder meldet inkompatible Klassen.</td><td>Paper 1.21.8 mit Java 21 oder Paper 26.1 mit Java 25 und die dazu passende JAR prüfen. Die installierbare Paper-JAR verwenden; keine Common-JAR. Nur eine SimplePlots- beziehungsweise PlotSystem-Plugin-JAR laden.</td></tr>
     <tr><td>PlotSystem ist noch geladen oder zwei Datenordner sind befüllt.</td><td>Server stoppen und beide Bestände sichern. Die <a href="#/installation/wechsel">Wechselanleitung</a> abgleichen; keinen der Ordner ungeprüft überschreiben.</td></tr>
     <tr><td>Konfigurationsordner unvollständig.</td><td>Die im Log genannten fehlenden Dateien unter <code>config/</code> aus der Sicherung ergänzen. Ein teilweise vorhandener Satz wird nicht blind neu aufgebaut.</td></tr>
     <tr><td>Vorhandene Claims ohne Weltmetadaten oder Weltdateien.</td><td><code>welt.yml</code> und die dazugehörige Plotwelt aus derselben Sicherung wiederherstellen. Keine leere Ersatzwelt erzeugen.</td></tr>

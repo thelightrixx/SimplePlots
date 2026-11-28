@@ -64,6 +64,7 @@ public final class PlotBefehl implements TabExecutor {
     private final WettbewerbDienst wettbewerbe;
     private final Wirtschaft wirtschaft;
     private final PlotBetrieb betrieb;
+    private final PlotNavigation navigation;
     private PlotFlug flug;
 
     public PlotBefehl(Server server, Logger log, PlotDienst plots, PlotWelt welt,
@@ -84,7 +85,10 @@ public final class PlotBefehl implements TabExecutor {
         this.verwaltung = new PlotVerwaltungBefehl(plots, welt, texte, wettbewerbe, auftraege);
         this.wettbewerb = new PlotWettbewerbBefehl(wettbewerbe, plots, menue, texte, auftraege, konfiguration);
         this.uebertragung = new PlotUebertragung(plots, welt, wettbewerbe, auftraege, texte, menue);
+        this.navigation = new PlotNavigation(plots, welt, konfiguration, texte, this::zumPlot, log);
     }
+
+    public void grenzen(de.lightrixx.plot.paper.world.PlotGrenzen grenzen) { navigation.grenzen(grenzen); }
 
     public void funktionen(PlotFlug flug, PlotUpdater updater, PlotZensur zensur) {
         this.flug = flug;
@@ -132,6 +136,7 @@ public final class PlotBefehl implements TabExecutor {
             return;
         }
         switch (aktion) {
+            case "bookmark", "border" -> navigation.ausfuehren(spieler, aktion, args);
             case "fly" -> flug.befehl(spieler, args);
             case "transfer", "accept", "decline" -> uebertragung.ausfuehren(spieler, aktion, args);
             case "world" -> {
@@ -200,6 +205,7 @@ public final class PlotBefehl implements TabExecutor {
 
     private void hilfe(CommandSender sender) {
         texte.senden(sender, "hilfe.reise");
+        if (sender instanceof Player && (sender.hasPermission("simpleplots.bookmark") || sender.hasPermission("simpleplots.border"))) texte.senden(sender, "navigation.hilfe");
         texte.senden(sender, "hilfe.galerie");
         if (sender instanceof Player) texte.senden(sender, "hilfe.neu");
         if (sender.hasPermission(CLAIM)) {
@@ -491,6 +497,7 @@ public final class PlotBefehl implements TabExecutor {
             return List.of();
         }
         String aktion = args[0].toLowerCase(Locale.ROOT);
+        if (sender instanceof Player player && args.length >= 2 && List.of("bookmark", "border").contains(aktion)) return navigation.vorschlaege(player, args);
         if (args.length == 1) {
             return passende(unterbefehle(sender), aktion);
         }
@@ -598,6 +605,8 @@ public final class PlotBefehl implements TabExecutor {
         befehle.add("version");
         if (sender instanceof Player) {
             befehle.addAll(BESUCHSBEFEHLE);
+            if (sender.hasPermission("simpleplots.bookmark")) befehle.add("bookmark");
+            if (sender.hasPermission("simpleplots.border")) befehle.add("border");
             if (sender.hasPermission(CLAIM)) {
                 befehle.addAll(List.of("claim", "auto"));
             }

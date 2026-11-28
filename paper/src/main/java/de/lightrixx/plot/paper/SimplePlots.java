@@ -44,6 +44,7 @@ public final class SimplePlots extends JavaPlugin {
     private final List<PlotFlug> fluege = new ArrayList<>();
     private final List<PlotEntfernen> entfernungen = new ArrayList<>();
     private PlotUpdater updater;
+    private de.lightrixx.plot.paper.world.PlotGrenzen grenzen;
 
     @Override
     public void onEnable() {
@@ -66,6 +67,8 @@ public final class SimplePlots extends JavaPlugin {
             var rechte = new PlotRangBuendel(pluginManager);
             rechte.uebernehmen(konfiguration.werte());
             auftraege = new PlotAuftraege(this, texte);
+            grenzen = new de.lightrixx.plot.paper.world.PlotGrenzen(this);
+            pluginManager.registerEvents(grenzen, this);
             updater = new PlotUpdater(this, konfiguration, texte, datenordner.getParent().resolve(getFile().getName()));
             var kontexte = new LinkedHashMap<String, PlotWeltenBefehl.Kontext>();
             var betriebe = new ArrayList<PlotBetrieb>();
@@ -106,6 +109,7 @@ public final class SimplePlots extends JavaPlugin {
                 var befehl = new PlotBefehl(getServer(), getSLF4JLogger(), plots, welt, config, texte, menue, wettbewerbe,
                         auftraege, betrieb, wirtschaft);
                 befehl.funktionen(flug, updater, zensur, entfernen);
+                befehl.grenzen(grenzen);
                 kontexte.put(config.weltname(), new PlotWeltenBefehl.Kontext(welt, befehl));
                 getSLF4JLogger().info("Plotwelt {} bereit: {} Plots mit {} Rasterzellen, {} entfernte Flächen.",
                         config.weltname(), plots.anzahlPlots(), plots.anzahlZellen(), plots.entfernungen().size());
@@ -135,6 +139,7 @@ public final class SimplePlots extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        if (grenzen != null) grenzen.beenden();
         fluege.forEach(PlotFlug::beenden);
         entfernungen.forEach(PlotEntfernen::beenden);
         if (updater != null) updater.beenden();

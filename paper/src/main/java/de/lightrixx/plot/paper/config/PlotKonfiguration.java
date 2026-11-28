@@ -241,6 +241,7 @@ public final class PlotKonfiguration {
         basis.set("raster.wegbreite", optionen.get("world.raster.wegbreite"));
         basis.set("claims.pro-spieler", optionen.get("general.claims.pro-spieler"));
         var werte = rasterUndLimit(basis);
+        if ((int) optionen.get("general.navigation.grenzen-sekunden") > (int) optionen.get("general.navigation.grenzen-max-sekunden")) throw new IOException("navigation.grenzen-sekunden darf die Höchstdauer nicht überschreiten.");
         return new Werte(werte.raster(), werte.claimLimit(), optionen);
     }
 
@@ -254,6 +255,10 @@ public final class PlotKonfiguration {
                 case "fly.pruefintervall-ticks", "world.rand-chunks-pro-tick" -> 100;
                 case "updates.intervall-minuten" -> 10080;
                 case "general.wirtschaft.zeitlimit-millis" -> 30000;
+                case "general.navigation.lesezeichen-limit" -> 100;
+                case "general.navigation.grenzen-sekunden", "general.navigation.grenzen-max-sekunden" -> 60;
+                case "general.navigation.grenzen-reichweite", "general.navigation.grenzen-max-spieler" -> 64;
+                case "general.navigation.grenzen-punktabstand" -> 16;
                 case "protection.zensur-abschnitte-pro-tick" -> 32;
                 case "protection.zensur-zeitbudget-millis" -> 20;
                 default -> Integer.MAX_VALUE;

@@ -11,6 +11,12 @@ commands:
     usage: /plot help
     aliases: [p]
 permissions:
+  simpleplots.bookmark:
+    description: Persönliche Plot-Lesezeichen verwalten und besuchen.
+    default: true
+  simpleplots.border:
+    description: Die Plotgrenze vorübergehend als private Partikel sehen.
+    default: true
   simpleplots.use:
     description: Basisrecht für /plot.
     default: true
