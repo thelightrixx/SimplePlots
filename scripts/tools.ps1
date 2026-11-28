@@ -1,4 +1,4 @@
-# Gemeinsame Werkzeuge fuer Build und lokalen Paper-Testserver (PowerShell 5.1+).
+﻿# Gemeinsame Werkzeuge für Build und lokalen Paper-Testserver (PowerShell 5.1+).
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 $SimplePlotsProjekt = [IO.Path]::GetFullPath((Split-Path -Parent $PSScriptRoot))
@@ -62,15 +62,15 @@ function Receive-SimplePlotsFile {
         [Parameter(Mandatory)][uri]$Uri,
         [Parameter(Mandatory)][string]$Ziel,
         [Parameter(Mandatory)][ValidateSet('SHA256', 'SHA512')][string]$Algorithmus,
-        [Parameter(Mandatory)][string]$Pruefsumme
+        [Parameter(Mandatory)][string]$Prüfsumme
     )
-    $Laenge = if ($Algorithmus -eq 'SHA256') { 64 } else { 128 }
-    if ($Uri.Scheme -ne 'https' -or $Pruefsumme -notmatch "^[a-fA-F0-9]{$Laenge}$") {
+    $Länge = if ($Algorithmus -eq 'SHA256') { 64 } else { 128 }
+    if ($Uri.Scheme -ne 'https' -or $Prüfsumme -notmatch "^[a-fA-F0-9]{$Länge}$") {
         throw 'Download erfordert HTTPS und eine gueltige Pruefsumme.'
     }
     if (Test-Path -LiteralPath $Ziel -PathType Leaf) {
-        if ((Get-SimplePlotsHash $Ziel $Algorithmus) -ieq $Pruefsumme) { return }
-        throw "Pruefsumme der vorhandenen Datei stimmt nicht: $Ziel. Datei pruefen und manuell entfernen."
+        if ((Get-SimplePlotsHash $Ziel $Algorithmus) -ieq $Prüfsumme) { return }
+        throw "Prüfsumme der vorhandenen Datei stimmt nicht: $Ziel. Datei pruefen und manuell entfernen."
     }
     $Ordner = Split-Path -Parent $Ziel
     New-Item -ItemType Directory -Path $Ordner -Force | Out-Null
@@ -78,8 +78,8 @@ function Receive-SimplePlotsFile {
     try {
         Invoke-WebRequest -Uri $Uri -OutFile $Temp -UseBasicParsing -TimeoutSec 300 `
             -UserAgent 'SimplePlots-dev (https://github.com/thelightrixx/SimplePlots)'
-        if ((Get-SimplePlotsHash $Temp $Algorithmus) -ine $Pruefsumme) {
-            throw "Pruefsumme fuer $Uri stimmt nicht. Download wird verworfen."
+        if ((Get-SimplePlotsHash $Temp $Algorithmus) -ine $Prüfsumme) {
+            throw "Prüfsumme für $Uri stimmt nicht. Download wird verworfen."
         }
         Move-Item -LiteralPath $Temp -Destination $Ziel
     } finally {

@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Bereitet einen lokalen Paper-Testserver vor und startet ihn auf 127.0.0.1.
 .EXAMPLE
