@@ -41,7 +41,7 @@ public final class GithubUpdates {
     public Optional<Release> pruefen(String installiert, String kanal) throws IOException {
         String json = new String(abruf.laden(URI.create("https://api.github.com/repos/" + REPO + "/releases?per_page=30"),
                 2 * 1024 * 1024), StandardCharsets.UTF_8);
-        return auswerten(json, installiert, kanal);
+        return auswerten(json, installiert, kanal, minecraft);
     }
 
     static Optional<Release> auswerten(String json, String installiert, boolean vorab) throws IOException {
@@ -49,6 +49,10 @@ public final class GithubUpdates {
     }
 
     static Optional<Release> auswerten(String json, String installiert, String kanal) throws IOException {
+        return auswerten(json, installiert, kanal, "26.1.2");
+    }
+
+    static Optional<Release> auswerten(String json, String installiert, String kanal, String minecraft) throws IOException {
         if (!List.of("stable", "beta", "alpha").contains(kanal)) throw new IOException("Ungültiger Update-Kanal.");
         boolean vorab = !kanal.equals("stable");
         var optionen = new LoaderOptions();
@@ -73,8 +77,12 @@ public final class GithubUpdates {
                 if (kanal.equals("beta") && !vergleich.vorab().isEmpty()
                         && !List.of("beta", "rc").contains(vergleich.vorab().getFirst())) continue;
                 if (!(release.get("assets") instanceof List<?> assets)) throw new IOException("Release-Dateien fehlen.");
-                String name = "SimplePlots-" + version + ".jar";
+                String name = "SimplePlots-" + version + (minecraft.startsWith("1.21") ? "-paper-1.21.jar" : "-paper.jar");
                 Map<?, ?> jar = asset(assets, name), sums = asset(assets, "SHA256SUMS.txt");
+                if (jar == null && !minecraft.startsWith("1.21")) {
+                    name = "SimplePlots-" + version + ".jar";
+                    jar = asset(assets, name);
+                }
                 if (jar == null || sums == null) continue;
                 if (!(jar.get("size") instanceof Number groesse) || groesse.longValue() < 1 || groesse.longValue() > MAX_JAR) {
                     throw new IOException("Unzulässige JAR-Größe.");

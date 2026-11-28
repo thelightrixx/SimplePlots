@@ -1,0 +1,17 @@
+{
+  "name": "SimplePlots",
+  "repository": "thelightrixx/SimplePlots",
+  "reference": "PunishSystem",
+  "javaRelease": 21,
+  "buildJdk": 25,
+  "artifacts": [
+    {
+      "module": "paper",
+      "metadata": "plugin.yml"
+    },
+    {
+      "module": "paper-1.21",
+      "metadata": "plugin.yml"
+    }
+  ]
+}

@@ -1,42 +1,25 @@
-# Verhaltenspruefungen fuer die gemeinsam verwendeten Build-Werkzeuge, ohne Netzwerk.
-. (Join-Path $PSScriptRoot 'tools.ps1')
-$Ordner = Join-Path $SimplePlotsProjekt ('.tools/test-tools-' + [guid]::NewGuid().ToString('N'))
-New-Item -ItemType Directory -Path $Ordner -Force | Out-Null
-$Datei = Join-Path $Ordner 'cache.bin'
-
-function Assert-Fehler {
-    param([scriptblock]$Aktion, [string]$Erwartet)
-    try { & $Aktion } catch {
-        if ($_.Exception.Message -like "*$Erwartet*") { return }
-        throw "Falscher Fehler: $($_.Exception.Message)"
-    }
-    throw "Erwarteter Fehler fehlt: $Erwartet"
+#Requires -Version 5.1
+$ErrorActionPreference = 'Stop'
+Set-StrictMode -Version Latest
+$tokens = $null
+$parseErrors = $null
+$ast = [Management.Automation.Language.Parser]::ParseFile((Join-Path $PSScriptRoot 'build.ps1'), [ref]$tokens, [ref]$parseErrors)
+if ($parseErrors.Count) { throw 'Build script has syntax errors.' }
+$probeBody = @'
+[pscustomobject]@{ MavenPath = $MavenPath; Arguments = @($MavenArguments); Coverage = $Coverage.IsPresent }
+'@
+$probe = [scriptblock]::Create($ast.ParamBlock.Extent.Text + [Environment]::NewLine + $probeBody)
+$legacy = & $probe 'nobump' 'ci'
+if ($legacy.MavenPath -ne '' -or $legacy.Arguments.Count -ne 2 -or
+    $legacy.Arguments[0] -ne 'nobump' -or $legacy.Arguments[1] -ne 'ci') {
+    throw 'Legacy BAT arguments must not bind to MavenPath.'
 }
-
-try {
-    Get-ChildItem -LiteralPath $PSScriptRoot -Filter '*.ps1' | ForEach-Object {
-        $Tokens = $null
-        $Fehler = $null
-        [Management.Automation.Language.Parser]::ParseFile($_.FullName, [ref]$Tokens, [ref]$Fehler) | Out-Null
-        if ($Fehler.Count -gt 0) { throw "PowerShell-Syntax ungueltig: $($_.Name): $Fehler" }
-    }
-    [IO.File]::WriteAllText($Datei, 'SimplePlots cache')
-    $Sha = Get-SimplePlotsHash $Datei SHA256
-    Receive-SimplePlotsFile -Uri 'https://example.invalid/cache' -Ziel $Datei -Algorithmus SHA256 -Pruefsumme $Sha
-    Assert-Fehler { Receive-SimplePlotsFile -Uri 'http://example.invalid/cache' -Ziel $Datei -Algorithmus SHA256 -Pruefsumme $Sha } 'HTTPS'
-    Assert-Fehler { Receive-SimplePlotsFile -Uri 'https://example.invalid/cache' -Ziel $Datei -Algorithmus SHA256 -Pruefsumme 'kaputt' } 'Pruefsumme'
-    [IO.File]::WriteAllText($Datei, 'beschaedigter Cache')
-    Assert-Fehler { Receive-SimplePlotsFile -Uri 'https://example.invalid/cache' -Ziel $Datei -Algorithmus SHA256 -Pruefsumme $Sha } 'vorhandenen Datei'
-    if ([IO.File]::ReadAllText($Datei) -ne 'beschaedigter Cache') { throw 'Beschaedigter Cache wurde veraendert.' }
-    Push-Location $Ordner
-    try {
-        if ((Get-SimplePlotsVersion) -notmatch '^v[0-9]') { throw 'Projektwurzel haengt vom Arbeitsverzeichnis ab.' }
-    } finally { Pop-Location }
-    Get-SimplePlotsJavaHome | Out-Null
-    Get-SimplePlotsPython | Out-Null
-    Write-Host 'PowerShell-Werkzeuge: Syntax, Cache, Pruefsummen, Projektpfad und Laufzeiten erfolgreich geprueft.'
-} finally {
-    Remove-Item -LiteralPath $Datei -Force -ErrorAction SilentlyContinue
-    # Nur die oben erzeugte, nicht rekursiv geloeschte temporaere Datei/Verzeichnis.
-    Remove-Item -LiteralPath $Ordner -ErrorAction SilentlyContinue
+$named = & $probe -MavenPath 'C:\tools\mvn.cmd' -Coverage 'nobump' 'ci'
+if ($named.MavenPath -ne 'C:\tools\mvn.cmd' -or !$named.Coverage -or $named.Arguments.Count -ne 2) {
+    throw 'Named MavenPath/Coverage and remaining arguments must stay independent.'
 }
+$empty = & $probe
+if ($empty.MavenPath -ne '' -or $empty.Arguments.Count -ne 0) {
+    throw 'The default build must select Maven automatically.'
+}
+Write-Host 'PowerShell build argument regression checks passed (3 cases).'

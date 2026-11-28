@@ -1,7 +1,7 @@
 name: SimplePlots
-version: ${project.version}
+version: '${project.version}'
 main: de.lightrixx.plot.paper.SimplePlots
-api-version: '26.1'
+api-version: '${api.version}'
 folia-supported: false
 softdepend: [EconomySystem]
 description: Mehrere Plotwelten mit Claims, Rollen, Flugregeln und Moderation.
@@ -103,3 +103,6 @@ permissions:
     default: op
     children:
       simpleplots.use: true
+
+authors: [lightrixx]
+website: https://thelightrixx.github.io/SimplePlots/

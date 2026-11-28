@@ -7,7 +7,7 @@ import de.lightrixx.plot.model.PlotRaster;
 import de.lightrixx.plot.paper.config.PlotKonfiguration;
 import de.lightrixx.plot.paper.storage.YamlDatei;
 import de.lightrixx.plot.service.PlotDienst;
-import org.bukkit.GameRules;
+import de.lightrixx.plot.paper.PaperPlattform;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -144,12 +144,7 @@ public final class PlotWelt implements Listener {
         if (welt == null || !istPlotWelt(welt)) {
             throw new IOException("Paper konnte die Plotwelt " + weltKey + " nicht laden.");
         }
-        welt.setGameRule(GameRules.PVP, false);
-        welt.setGameRule(GameRules.SPAWN_MOBS, false);
-        welt.setGameRule(GameRules.MOB_GRIEFING, false);
-        welt.setGameRule(GameRules.TNT_EXPLODES, false);
-        welt.setGameRule(GameRules.PROJECTILES_CAN_BREAK_BLOCKS, false);
-        welt.setGameRule(GameRules.ALLOW_ENTERING_NETHER_USING_PORTALS, false);
+        PaperPlattform.konfiguriere(welt);
         return welt;
     }
 

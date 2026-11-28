@@ -45,6 +45,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerTakeLecternBookEvent;
 import org.bukkit.event.player.PlayerUnleashEntityEvent;
 import org.bukkit.event.vehicle.VehicleDamageEvent;
+import de.lightrixx.plot.paper.PaperPlattform;
 import org.bukkit.inventory.BlockInventoryHolder;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
@@ -310,9 +311,7 @@ public final class PlotBauListener implements Listener {
         if (!schutz.inPlotwelt(ort)) {
             return;
         }
-        var quelle = event.getDamageSource();
-        var typ = quelle == null ? null : quelle.getDamageType().getKey();
-        if ((typ != null && EXPLOSIONEN.contains(typ)) || angriffGesperrt(event.getAttacker(), ort)) {
+        if (PaperPlattform.istExplosion(event) || angriffGesperrt(event.getAttacker(), ort)) {
             event.setCancelled(true);
         }
     }

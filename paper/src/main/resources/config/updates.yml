@@ -4,4 +4,4 @@ beim-start-pruefen: true
 intervall-minuten: 60
 # beta bezieht Beta-, RC- und stabile Releases ein; alpha zusätzlich Alpha-Versionen.
 # stable berücksichtigt ausschließlich stabile Releases. Eigene Werte bleiben erhalten.
-kanal: beta
+kanal: stable

@@ -189,7 +189,7 @@ class PlotKonfigurationTest {
     @Test
     void validiertNeueAnzeigeUpdateKanaeleUndZensurBudgets() throws IOException {
         var config = laden();
-        assertEquals("beta", config.text("updates.kanal"));
+        assertEquals("stable", config.text("updates.kanal"));
         for (String kanal : new String[]{"alpha", "beta", "stable"}) {
             Files.writeString(ordner.resolve("config/updates.yml"), "kanal: " + kanal + "\n");
             assertEquals(kanal, config.vorbereiten().optionen().get("updates.kanal"));

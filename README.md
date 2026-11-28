@@ -1,4 +1,34 @@
-# SimplePlots v0.8.0-beta
+# SimplePlots v0.9.0
+
+Plotwelten mit Claims, Rollen, Galerie, Wettbewerben und reversibler Moderation.
+
+## Handbuch
+
+Lies das [SimplePlots Handbuch](https://thelightrixx.github.io/SimplePlots/) oder öffne [docs/index.html](docs/index.html) direkt im Browser. Navigation, Suche, Farbschema, Schriften und Druckansicht funktionieren offline.
+
+| Aufgabe | Einstieg |
+|---|---|
+| Plugin einrichten | [Installation](docs/index.html#/installation) |
+| Erste Schritte | [Schnellstart](docs/index.html#/schnellstart) |
+| Syntax und Beispiele | [Befehle](docs/index.html#/befehle) |
+| Betrieb und Sicherungen | [Betrieb](docs/index.html#/betrieb) |
+| Änderungen nachlesen | [Changelog](docs/index.html#/changelog) |
+| Bauen oder veröffentlichen | [Projektstandard](docs/index.html#/projektstandard) |
+
+Mit Strg+K oder / durchsuchst du das Handbuch. Abschnittslinks führen direkt zur passenden Stelle. Die Druckansicht enthält das gesamte Handbuch mit geöffneten Details.
+
+## Voraussetzungen und JARs
+
+Das [Release v0.9.0](https://github.com/thelightrixx/SimplePlots/releases/tag/v0.9.0) enthält alle passenden JARs und SHA256SUMS.txt.
+
+| Einsatzort | Voraussetzung | Variante |
+|---|---|---|
+| Backend | Paper/Purpur 1.21.8, Java 21 | paper-1.21 |
+| Backend | Paper/Purpur 26.1, Java 25 | paper |
+
+Genau eine passende Paper-JAR installieren. Beide Varianten enthalten dieselben Funktionen; sie werden getrennt gegen ihre jeweilige API gebaut. Vor Updates Datenordner und Welten sichern, alte JAR ersetzen und regulär neu starten. Folia wird nicht unterstützt.
+
+## Funktionen und bestehende Betriebshinweise
 
 SimplePlots ergänzt einen Paper-Server um mehrere getrennt konfigurierbare Survival-Plotwelten mit Claims, Baurechten, Plotgalerie und Bauwettbewerben. Spieler behalten beim Weltwechsel ihr Inventar.
 
@@ -6,7 +36,7 @@ v0.8.0-beta ergänzt weltbezogene Einstellungen unter `worlds/<Name>.yml`, die S
 
 Die Projektpflege folgt den gemeinsamen Mustern mit PunishSystem: kommentierte Konfigurationen mit automatischem Abgleich, Versions- und Diagnosebefehle, ein Offline-Handbuch und geprüfte Release-Artefakte. SimplePlots behält seine grüne Kennfarbe und die eigene Plotarchitektur.
 
-## Handbuch
+### Handbuch
 
 Lies das [SimplePlots Handbuch](https://thelightrixx.github.io/SimplePlots/) oder öffne [docs/index.html](docs/index.html) direkt im Browser. Die 29 Themen decken Einrichtung, Spielerabläufe, Verwaltung und Betrieb ab. Inhalte, Suche, Schriften und Rasterrechner funktionieren auch offline; für die Lizenzlinks den gesamten Ordner `docs/` mitnehmen.
 
@@ -28,7 +58,7 @@ Lies das [SimplePlots Handbuch](https://thelightrixx.github.io/SimplePlots/) ode
 
 Mit `Strg+K` (macOS: `⌘+K`) oder `/` durchsuchst du das Handbuch einschließlich Befehlen, Permissions und Konfigurationsschlüsseln. Abschnittslinks an Überschriften führen direkt zur passenden Stelle. Die Druckfunktion des Browsers gibt das vollständige Handbuch aus und erlaubt das Speichern als PDF.
 
-## Voraussetzungen und Installation
+### Voraussetzungen und Installation
 
 | Einsatz | Voraussetzung |
 | --- | --- |
@@ -77,7 +107,7 @@ Beim Wechsel von PlotSystem zuerst den Plugin-Datenordner und die Plotwelt gemei
 
 Beim Start und Reload werden fehlende Optionen und aktuelle Standardkommentare in den acht Konfigurationsdateien ergänzt. Eigene Werte, Texte, Listen und Zusatzschlüssel bleiben erhalten. Vor tatsächlichen Änderungen entsteht eine `.bak`-Vorgängersicherung. Leere oder ungültige YAML-Dateien werden gemeldet und bleiben unverändert. `/plot admin diagnostics` zeigt zusätzlich Zensuranzahl und Arbeitsbudget; `/plot version` steht mit dem Basisrecht auch in der Konsole bereit.
 
-## Mehrere Welten und Verwaltung
+### Mehrere Welten und Verwaltung
 
 Beim ersten Start entsteht `worlds/plots.yml`; vorhandene Plotdaten und die Weltidentität bleiben erhalten. Weitere Welten bekommen eine Datei wie `worlds/creative.yml`:
 
@@ -106,7 +136,7 @@ Die neuen Einzelrechte sind `simpleplots.admin.remove`, `simpleplots.admin.resto
 
 Vor dem Update alle Plugin-Daten sowie alle Plotwelten gemeinsam sichern. Plotformate 1 bis 3 bleiben lesbar; neue Änderungen verwenden Format 4 mit atomar gespeicherten Entfernungsaufträgen. `plots.yml` und `plots-aenderungen.yml` gehören je Welt zusammen. Ein Downgrade benötigt den vollständigen Stand vor dem Update.
 
-## Bauen und prüfen
+### Bauen und prüfen
 
 Unter Windows:
 
@@ -137,7 +167,7 @@ Die Maven-Ausgabe bleibt `paper/target/SimplePlots-v0.8.0-beta.jar`. Für geziel
 
 `mvn -Pcoverage -pl paper -am clean verify` erzeugt zusätzlich JaCoCo-Berichte unter `common/target/site/jacoco/` und `paper/target/site/jacoco/`. Die CI führt diese Messung auf Windows und Linux aus und stellt die Berichte als Artefakte bereit. Die [Prüfbereiche und Grenzen](docs/index.html#/qualitaet/pruefungen) sind im Handbuch beschrieben.
 
-## Lokal auf Paper testen
+### Lokal auf Paper testen
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/dev-test.ps1 -PrepareOnly
@@ -153,7 +183,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/dev-test.ps1 -NoBuil
 
 `-NoBuild` verwendet die bereits geprüfte JAR. `-Ram 3G`, `-ServerPort 25586` und `-OfflineMode` konfigurieren den ersten Start; spätere Änderungen erfolgen in `test-server/server.properties`. Beende den Server mit `stop`. Teste anschließend anhand der [Prüfschritte](docs/index.html#/entwicklung/laufzeittest) auch Weltwechsel, Claims, Rechte und einen Neustart.
 
-## Projektordner
+### Projektordner
 
 | Pfad | Zweck |
 | --- | --- |
@@ -171,6 +201,29 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts/dev-test.ps1 -NoBuil
 
 `.editorconfig` und `.gitattributes` legen UTF-8 und Zeilenenden fest. `AGENTS.md`, IDE-Einstellungen, Secrets und erzeugte Dateien bleiben lokal. Zur Versionspflege und Veröffentlichung siehe [Entwicklung](docs/index.html#/entwicklung/versionen).
 
-## Lizenz
+### Lizenz
 
 Plugin und Quellcode stehen unter der [MIT-Lizenz](LICENSE). Die eingebetteten Dokumentationsschriften JetBrains Mono und Poppins stehen jeweils unter der SIL Open Font License 1.1; die vollständigen Hinweise liegen unter [docs/licenses/](docs/licenses/).
+
+## Entwicklung und Veröffentlichungen
+
+Aufbau und Abläufe folgen PunishSystem: gemeinsamer Kern in common/, Plattformadapter in eigenen Modulen, deutsches Offline-Handbuch unter docs/ und Werkzeuge unter scripts/. Fachlich notwendige Zusatzmodule bleiben erhalten.
+
+```powershell
+build_all_jars.bat nobump ci
+# Alternativ mit vorhandenem Maven:
+mvn -B -ntp clean verify
+python scripts/check-version.py
+python scripts/check-docs.py
+python scripts/prepare-release.py
+```
+
+Build: JDK 25 oder neuer, Maven 3.9.11 und Python 3.10 oder neuer. Java-Bytecode: Release 21. Geprüfte JARs, Release-Text und Prüfsummen liegen unter dist/. Gewöhnliche Builds ändern keine Version.
+
+Versionen heißen vMajor.Minor.Patch. Patch ist die Vorgabe für Korrekturen und kleine Erweiterungen, Minor für umfassende Änderungen. Mit scripts/bump-build.ps1 ausdrücklich erhöhen, danach README, Handbuch und Changelog aktualisieren. GitHub Actions prüft main unter Windows und Linux; nach erfolgreichem Build und Pages-Deployment erstellt ein passender Versions-Tag den stabilen Release.
+
+Kompilierung und automatisierte Tests ersetzen keine Spielertests auf beiden Servervarianten. Bestehende Daten, Rechte, Plugin-Abhängigkeiten und Updatepfade vor dem Produktiveinsatz auf einer getrennten Testinstanz prüfen.
+
+## Lizenz
+
+Plugin und Quellcode stehen unter der [MIT-Lizenz](LICENSE). Die Handbuchgestaltung stammt aus PunishSystem; ihre MIT-Lizenz und die eingebetteten Schriftlizenzen bleiben erhalten.

@@ -54,7 +54,7 @@ try {
         throw 'Weitere SimplePlots-/PlotSystem-JARs in test-server/plugins gefunden. Doppelte Plugins zuerst manuell entfernen.'
     }
     $Version = Get-SimplePlotsVersion
-    Copy-Item -LiteralPath (Join-Path $SimplePlotsProjekt "paper/target/SimplePlots-$Version.jar") `
+    Copy-Item -LiteralPath (Join-Path $SimplePlotsProjekt "paper/target/SimplePlots-$Version-paper.jar") `
         -Destination (Join-Path $Plugins 'SimplePlots.jar') -Force
     $Properties = Join-Path $ServerOrdner 'server.properties'
     if (!(Test-Path -LiteralPath $Properties)) {
