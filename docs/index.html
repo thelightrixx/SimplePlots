@@ -29,7 +29,7 @@ SOFTWARE.
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>SimplePlots Handbuch</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2028%2028%22%3E%3Crect%20width%3D%2228%22%20height%3D%2228%22%20rx%3D%227%22%20fill%3D%22%23187850%22%2F%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22white%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M13%205h2v18h-2zM5%2013h18v2H5z%22%20fill%3D%22white%22%20stroke%3D%22none%22%2F%3E%3Cpath%20d%3D%22M6%206h5v5H6zm11%200h5v5h-5zM6%2017h5v5H6zm11%200h5v5h-5z%22%20fill%3D%22white%22%20stroke%3D%22none%22%20opacity%3D%22.65%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E">
-<meta name="description" content="Plotwelten mit Claims, Rollen, Galerie, Wettbewerben und reversibler Moderation. Deutsches Offline-Handbuch.">
+<meta name="description" content="SimplePlots gibt deinem Server Plotwelten mit Claims und öffentlichen Wegen. Hier erfährst du, wie du die Welten einrichtest, Plots verwaltest und die gespeicherten Bauten sicherst. Deutsches Offline-Handbuch.">
 <script>
 (function(){try{var t=localStorage.getItem(document.documentElement.getAttribute('data-project') + '-theme')||'system';var d=t==='dark'||(t==='system'&&matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.setAttribute('data-theme',d?'dark':'light');document.documentElement.setAttribute('data-pref',t);}catch(e){}})();
 </script>
@@ -324,6 +324,7 @@ details>div{padding:14px 18px 2px}
 .hero-art .bs-chat i{font-style:normal;color:#7a7a7a}
 .hero-art .bs-chat em{font-style:normal;color:#ff5555}
 .hero-art .bs-chat b{font-weight:400;color:#fff}
+.hero-art .project-emblem{display:block;width:112px;height:112px;margin:16px auto}
 @container (min-width:560px){
   .hero{grid-template-columns:minmax(0,1fr) 244px;gap:28px}
 }
@@ -581,16 +582,16 @@ details>div{padding:14px 18px 2px}
 
 <!-- =============================== START =============================== -->
 
-<section class="page" data-id="ueberblick" data-group="Start" data-title="Überblick und Wegweiser">
-  <h1>SimplePlots Handbuch</h1>
-  <p class="lead">SimplePlots gibt deinem Server Plotwelten mit Claims und öffentlichen Wegen. Hier erfährst du, wie du die Welten einrichtest, Plots verwaltest und die gespeicherten Bauten sicherst.</p>
+<section class="page" data-id="ueberblick" data-anchor-aliases="aufgaben:was-moechtest-du-tun lesereihenfolge:" data-group="Start" data-title="Überblick und Wegweiser">
+<h1>SimplePlots Handbuch</h1>
+<p class="lead">SimplePlots gibt deinem Server Plotwelten mit Claims und öffentlichen Wegen. Hier erfährst du, wie du die Welten einrichtest, Plots verwaltest und die gespeicherten Bauten sicherst.</p>
 <div class="hero">
     <div class="hero-copy">
       <p>In der Voreinstellung ist jede Plotfläche 32 × 32 Blöcke groß. Dazwischen liegen sieben Blöcke breite Wege; jeder Spieler kann drei Rasterzellen beanspruchen.</p>
       <p>Gebaut wird im Survival-Modus mit den eigenen Materialien. Das Beanspruchen eines Plots kostet standardmäßig nichts; optional zieht SimplePlots einen Preis je Rasterzelle direkt über EconomySystem ein.</p>
       <div class="hero-actions">
         <a class="hero-action primary" href="#/installation">Installation starten</a>
-        <a class="hero-action" href="#/schnellstart">Ersten Plot beanspruchen</a>
+        <a class="hero-action" href="#/schnellstart">Erste Schritte</a>
       </div>
     </div>
     <div class="hero-art" role="img" aria-label="Schema einer Plotwelt: vier Plotflächen, getrennt durch öffentliche Wege. Plot 0;0 gehört Alex.">
@@ -603,39 +604,53 @@ details>div{padding:14px 18px 2px}
       <div class="bs-chat"><em>/plot auto</em><br><b>Plot 0;0 gehört jetzt dir.</b></div>
     </div>
   </div>
-  <p class="doc-meta">Handbuchstand: 28.11.2026 · v0.10.1 · Paper 1.21.8 und 26.1</p>
-  <h2 data-anchor="aufgaben">Was möchtest du tun?</h2>
-  <div class="cards">
-    <a class="card" href="#/installation"><b>Zum ersten Mal einrichten</b><span>Plugin installieren, Raster festlegen und Einrichtung prüfen.</span></a>
-    <a class="card" href="#/schnellstart"><b>Einen Plot beanspruchen</b><span>Bauen, Freunde einladen und den eigenen Plot wiederfinden.</span></a>
-    <a class="card" href="#/befehle"><b>Einen Befehl nachschlagen</b><span>Syntax, Aliase, Rechte, Ausführungsort und Anleitungen finden.</span></a>
-    <a class="card" href="#/konfiguration"><b>Eine Einstellung ändern</b><span>Alle acht Dateien mit Standardwerten, Grenzen und Beispielen.</span></a>
-    <a class="card" href="#/betrieb"><b>Aktualisieren oder sichern</b><span>Update vorbereiten und Welt und Spielstände gemeinsam erhalten.</span></a>
-    <a class="card" href="#/fehlerbehebung"><b>Ein Problem lösen</b><span>Ursachen eingrenzen und passende Lösungen finden.</span></a>
-  </div>
-  <div class="callout"><div><span class="ttl">Navigation und Suche</span><p>Links stehen die Themen nach Aufgaben. Rechts findest du die Abschnitte der aktuellen Seite; auf schmalen Bildschirmen stehen sie unter der Einleitung. <kbd>Strg</kbd> + <kbd>K</kbd>, auf macOS <kbd>⌘</kbd> + <kbd>K</kbd>, oder <kbd>/</kbd> öffnet die Suche. Das <strong>#</strong> an einer Überschrift verlinkt den Abschnitt. Die <a href="#/befehle">Befehlsreferenz</a> hat zusätzlich einen eigenen Filter.</p></div></div>
-  <h2 data-anchor="funktionen">Was SimplePlots kann</h2>
+<p class="doc-meta">Handbuchstand: <time datetime="2026-11-28">28.11.2026</time> · v0.10.1 · Paper/Purpur</p>
+<!-- SHARED:overview-cards -->
+<h2 data-anchor="was-moechtest-du-tun">Was möchtest du tun?</h2>
+<div class="cards">
+  <a class="card" href="#/installation"><b>Zum ersten Mal einrichten</b><span>Voraussetzungen, passende JARs und den ersten Start prüfen.</span></a>
+  <a class="card" href="#/schnellstart"><b>Die ersten Schritte machen</b><span>Ein Beispiel durchspielen und das Ergebnis im Spiel prüfen.</span></a>
+  <a class="card" href="#/befehle"><b>Einen Befehl nachschlagen</b><span>Syntax, Rechte, Aliase und Beispiele finden.</span></a>
+  <a class="card" href="#/config-uebersicht"><b>Eine Einstellung ändern</b><span>Die zuständige Datei und die richtige Übernahme der Änderung finden.</span></a>
+  <a class="card" href="#/betrieb"><b>Aktualisieren oder sichern</b><span>Updates vorbereiten, Daten sichern und einen Stand wiederherstellen.</span></a>
+  <a class="card" href="#/fehlerbehebung"><b>Ein Problem lösen</b><span>Symptome eingrenzen und die passende Prüfung durchführen.</span></a>
+</div>
+<!-- /SHARED:overview-cards -->
+<!-- SHARED:navigation-help -->
+<h2 data-anchor="navigation-und-suche">Navigation und Suche</h2>
+<p>Links stehen die Themen nach Aufgaben. Öffne eine Gruppe, um ihre Kapitel zu sehen. Rechts findest du die Abschnitte der aktuellen Seite; auf schmalen Bildschirmen stehen sie unter der Einleitung. Die Menütaste öffnet dort die Navigation.</p>
+<p>Mit <kbd>Strg</kbd> + <kbd>K</kbd>, auf macOS <kbd>⌘</kbd> + <kbd>K</kbd>, oder <kbd>/</kbd> öffnest du die Suche. Sie findet auch Befehle, Berechtigungen und Konfigurationsschlüssel. <kbd>Esc</kbd> schließt sie. Das <code>#</code> an einer Überschrift verlinkt direkt auf den Abschnitt.</p>
+<p>Die <a href="#/befehle">Befehlsreferenz</a> und der <a href="#/changelog">Changelog</a> haben eigene Filter. Der Farbschalter in der Kopfzeile wechselt zwischen System, Hell und Dunkel.</p>
+<!-- /SHARED:navigation-help -->
+<h2 data-anchor="funktionen">Was SimplePlots kann</h2>
+<ul>
+  <li><strong>Plotwelten:</strong> <a href="#/plotwelt">Claims mit öffentlichen Wegen und dem normalen Survival-Inventar nutzen.</a></li>
+  <li><strong>Zusammen bauen:</strong> <a href="#/rollen">Freunde einladen, Nachbarplots verbinden und Flächen übertragen.</a></li>
+  <li><strong>Entdecken:</strong> <a href="#/galerie">Profile, Galerie, Besuchspunkte, Lesezeichen und Bauwettbewerbe verwenden.</a></li>
+</ul>
+<!-- SHARED:wayfinder -->
+<h2 data-anchor="wo-finde-ich-was">Wo finde ich was?</h2>
 <div class="tbl"><table>
-  <thead><tr><th scope="col">Bereich</th><th scope="col">Funktion und Anleitung</th></tr></thead>
+  <thead><tr><th scope="col">Aufgabe</th><th scope="col">Einstieg</th></tr></thead>
   <tbody>
-    <tr><td>Plotwelt</td><td><a href="#/plotwelt">Festes Raster, öffentliche Wege und Survival mit dem normalen Spielerinventar.</a></td></tr>
-    <tr><td>Claims und Rollen</td><td><a href="#/rollen">Eigentum, dauerhafte Baurechte, Bauhelfer während der Online-Zeit und Lagerzugriff.</a></td></tr>
-    <tr><td>Entdecken</td><td><a href="#/galerie">Profile, sichere Besuchspunkte, Kategorien und Likes.</a></td></tr>
-    <tr><td>Größere Flächen</td><td><a href="#/grundstuecke">Eigene Nachbarplots verbinden und Plots per Angebot übertragen.</a></td></tr>
-    <tr><td>Flug</td><td><a href="#/flug">Wege-Fly, begrenztes eigenes Plot-Fly und Adminflug.</a></td></tr>
-    <tr><td>Bauwettbewerbe</td><td><a href="#/wettbewerbe">Bauphase, eingefrorene Beiträge, Abstimmung und Ergebnisse.</a></td></tr>
-    <tr><td>Administration</td><td><a href="#/moderation">Gezielte Verwaltungsrechte, Bypass und reversible Plotzensur.</a></td></tr>
+    <tr><td>Einrichten</td><td><a href="#/installation">Installation</a> und <a href="#/schnellstart">Schnellstart</a>.</td></tr>
+    <tr><td>Nachschlagen</td><td><a href="#/befehle">Befehlsreferenz</a>, <a href="#/rechte">Berechtigungen</a> und <a href="#/config-uebersicht">Dateien und Zuständigkeiten</a>.</td></tr>
+    <tr><td>Betreiben</td><td><a href="#/speicher">Speicherung und Sicherungen</a>, <a href="#/betrieb">Betrieb und Updates</a> und <a href="#/changelog">Changelog</a>.</td></tr>
+    <tr><td>Hilfe finden</td><td><a href="#/fehlerbehebung">Fehlerbehebung</a> und <a href="#/faq">häufige Fragen</a>.</td></tr>
+    <tr><td>Am Projekt arbeiten</td><td><a href="#/projektstandard">Entwicklung</a> und <a href="#/lizenz">Lizenzen</a>.</td></tr>
   </tbody>
 </table></div>
-  <h2 data-anchor="lesereihenfolge">Einstieg nach Aufgabe</h2>
-  <ul>
-    <li><strong>Administration:</strong> <a href="#/installation">installieren</a>, <a href="#/plotwelt">Raster verstehen</a>, <a href="#/rechte">Rechte vergeben</a>, <a href="#/konfiguration">Konfiguration pflegen</a>, <a href="#/betrieb/sicherungen">Sicherung einrichten</a>.</li>
-    <li><strong>Spieler:</strong> <a href="#/schnellstart">ersten Plot beanspruchen</a>, <a href="#/rollen">Freunde einladen</a>, <a href="#/menues">Menüs bedienen</a>, <a href="#/galerie">Bauten veröffentlichen</a>.</li>
-    <li><strong>Entwicklung:</strong> <a href="#/qualitaet">Architektur und Grenzen</a>, <a href="#/entwicklung">Build und Laufzeitprüfung</a>.</li>
-  </ul>
-  <h2 data-anchor="offline">Offline lesen und drucken</h2>
-  <p>Öffne <code>docs/index.html</code> direkt im Browser. Inhalte, Suche und Schriften funktionieren ohne Server und Internet. Für die lokal verlinkten Lizenztexte den gesamten Ordner <code>docs/</code> mitnehmen. Externe Downloads und GitHub-Links benötigen eine Verbindung. Die Druckfunktion des Browsers gibt das ganze Handbuch einschließlich aufgeklappter Details aus; darüber kannst du es auch als PDF speichern.</p>
-  <p>Seit v0.10.1 werden stabile Versionen veröffentlicht. Unter <a href="#/qualitaet">Architektur und Prüfungen</a> findest du den Prüfumfang und Hinweise zu Spielertests. Änderungen je Version stehen im <a href="#/changelog">Changelog</a>.</p>
+<h2 data-anchor="einstieg-nach-aufgabe">Einstieg nach Aufgabe</h2>
+<ul>
+  <li><strong>Administration:</strong> <a href="#/installation">installieren und prüfen</a> → <a href="#/rechte">Rechte vergeben</a> → <a href="#/config-uebersicht">Einstellungen pflegen</a> → <a href="#/betrieb">Updates und Sicherungen vorbereiten</a>.</li>
+  <li><strong>Benutzung:</strong> <a href="#/schnellstart">ein Beispiel durchspielen</a> → <a href="#/befehle">Befehle nachschlagen</a> → <a href="#/faq">offene Fragen klären</a>.</li>
+</ul>
+<!-- /SHARED:wayfinder -->
+<!-- SHARED:offline-help -->
+<h2 data-anchor="offline">Offline lesen und drucken</h2>
+<p>Öffne <code>docs/index.html</code> direkt im Browser. Inhalte, Suche, Schriften und interaktive Beispiele sind in der Datei enthalten und funktionieren ohne Server oder Internet. Beispiele führen keine Befehle auf deinem Server aus. Downloads, GitHub und externe Referenzen benötigen eine Verbindung.</p>
+<p>Die Druckfunktion des Browsers gibt das ganze Handbuch aus, öffnet Detailabschnitte und hebt aktive Befehls- und Changelogfilter für den Druck auf. Über den Druckdialog kannst du das Handbuch als PDF speichern. Die Filtereinstellungen werden nach dem Druck wiederhergestellt.</p>
+<!-- /SHARED:offline-help -->
 </section>
 
 <section class="page" data-id="installation" data-group="Start" data-title="Installation">
@@ -652,16 +667,20 @@ details>div{padding:14px 18px 2px}
     <tr><td>Eigener Build</td><td>JDK 25 oder neuer, Maven 3.9.11 und Python 3.10 oder neuer; unter Windows PowerShell 5.1 oder 7.</td></tr>
   </tbody>
 </table></div>
-  <h2 data-anchor="download-pruefen">Download prüfen</h2>
-  <p>Lade die JAR und <code>SHA256SUMS.txt</code> aus demselben Release herunter. Führe den Befehl für dein Betriebssystem im Downloadordner aus. Unter Windows vergleichst du den ausgegebenen Hash vollständig mit dem Eintrag in der Prüfsummendatei; Linux und macOS melden das Ergebnis direkt.</p>
-  <h3 data-anchor="windows-powershell">Windows PowerShell</h3>
+  <h2 data-anchor="download-pruefen">Downloads mit SHA-256 prüfen</h2>
+<p>Lade die gewählte JAR und <a href="https://github.com/thelightrixx/SimplePlots/releases/download/v0.10.1/SHA256SUMS.txt"><code>SHA256SUMS.txt</code></a> aus demselben Release in einen eigenen Downloadordner. Die Liste enthält alle Plattform-JARs und das Quellarchiv. Prüfe den Eintrag des genauen Dateinamens, den du installieren willst.</p>
+<p>Führe im Downloadordner den Befehl für dein Betriebssystem aus. Die Beispiele verwenden <code>SimplePlots-v0.10.1-paper.jar</code>; ersetze den Dateinamen durch die gewählte Plattformvariante. Vergleiche den vollständigen ausgegebenen Hash mit dem zugehörigen Eintrag in <code>SHA256SUMS.txt</code>.</p>
+<h3 data-anchor="windows-powershell">Windows PowerShell</h3>
 <pre data-lang="powershell">Get-FileHash -Algorithm SHA256 -LiteralPath .\SimplePlots-v0.10.1-paper.jar
 Get-Content -LiteralPath .\SHA256SUMS.txt</pre>
-  <h3 data-anchor="linux">Linux</h3>
-<pre data-lang="shell">sha256sum -c SHA256SUMS.txt</pre>
-  <h3 data-anchor="macos">macOS</h3>
-<pre data-lang="shell">shasum -a 256 -c SHA256SUMS.txt</pre>
-    <h2 data-anchor="neu">Neuen Server einrichten</h2>
+<h3 data-anchor="linux">Linux</h3>
+<pre data-lang="shell">sha256sum SimplePlots-v0.10.1-paper.jar
+cat SHA256SUMS.txt</pre>
+<h3 data-anchor="macos">macOS</h3>
+<pre data-lang="shell">shasum -a 256 SimplePlots-v0.10.1-paper.jar
+cat SHA256SUMS.txt</pre>
+<p>Installiere die Datei erst, wenn ihr Hash genau übereinstimmt. Prüfsummen erkennen abweichende Dateien; die Liste muss aus derselben vertrauenswürdigen Release-Quelle stammen.</p>
+<h2 data-anchor="neu">Neuen Server einrichten</h2>
     <ol>
       <li>Lade die JAR aus dem Release herunter oder <a href="#/entwicklung/bauen">baue sie selbst</a>. Prüfe beim Download die SHA-256 und kopiere die zu deinem Server passende JAR bei gestopptem Server nach <code>plugins/</code>.</li>
       <li>Starte Paper und kontrolliere das Log auf Startfehler. Das grüne SP-Banner nennt Pluginname, Version, Autor und Serverplattform; anschließend bestätigt die Bereitschaftsmeldung den erfolgreichen Plugin-Start.</li>
@@ -684,7 +703,44 @@ Get-Content -LiteralPath .\SHA256SUMS.txt</pre>
     <li>Mit <code>/plot back</code> zum letzten gespeicherten Hauptwelt-Standort und mit <code>/plot home</code> zurückreisen. Das normale Inventar bleibt erhalten.</li>
     <li>Den Server regulär stoppen und erneut starten. Mit <code>/plot list</code> und <code>/plot info</code> den erhaltenen Claim prüfen.</li>
   </ol>
-  <p>Für bestehende SimplePlots-Installationen gilt die <a href="#/betrieb/update">Update-Anleitung</a>. Alte Konfigurationsdateien werden unter <a href="#/konfiguration/altbestand">Konfigurationsübernahme</a> erläutert. Bei einem Fehler zuerst <a href="#/fehlerbehebung">Fehlerbehebung</a> lesen.</p>
+  <p>Für bestehende SimplePlots-Installationen gilt die <a href="#/betrieb/update">Update-Anleitung</a>. Alte Konfigurationsdateien werden unter <a href="#/config-uebersicht/altbestand">Konfigurationsübernahme</a> erläutert. Bei einem Fehler zuerst <a href="#/fehlerbehebung">Fehlerbehebung</a> lesen.</p>
+</section>
+
+<section class="page" data-id="schnellstart" data-group="Start" data-title="Schnellstart">
+  <h1>Schnellstart</h1>
+  <p class="lead">Mit den normalen Spielerrechten kannst du einen Plot beanspruchen, darauf bauen und Freunde einladen. Führe diese Schritte im Spiel aus.</p>
+<h2 data-anchor="claim">Beanspruchen und bauen</h2>
+  <ol>
+    <li>Führe <code>/plot auto</code> aus. Der Befehl sucht einen freien Plot, beansprucht ihn und teleportiert dich nach erfolgreicher Speicherung dorthin. Ein zusätzliches <code>/plot claim</code> ist nicht nötig.</li>
+    <li>Prüfe mit <code>/plot info</code> den Besitzer. Mit <code>/plot list</code> findest du deine Plotnummern. Normalerweise darfst du drei Rasterzellen besitzen.</li>
+    <li>Baue mit deinen eigenen Materialien. Du kannst den Boden auf deinem Claim bearbeiten und unterirdisch bis <code>Y=-63</code> abbauen.</li>
+    <li>Reise mit <code>/plot back</code> zum gespeicherten Hauptwelt-Standort und mit <code>/plot home</code> zurück. Dein Inventar bleibt erhalten.</li>
+  </ol>
+  <p>Wenn du dir den Platz selbst aussuchen möchtest, betrete mit <code>/plot world</code> die Plotwelt, gehe auf eine freie Fläche, prüfe <code>/plot info</code> und beanspruche genau diesen Platz mit <code>/plot claim</code>. Auf einem öffentlichen Weg ist kein Claim möglich.</p>
+  <h2 data-anchor="freunde">Freunde einladen</h2>
+<pre data-lang="shell">/plot trust Alex
+/plot info</pre>
+  <p>Stehe dabei auf deinem eigenen Plot. Alex darf anschließend dauerhaft bauen und Container benutzen. Mit <code>/plot untrust Alex</code> entziehst du diese Rolle. Ein Spielername muss dem Server bekannt sein; alternativ funktionieren vollständige Spieler-UUIDs.</p>
+  <p>Soll Alex nur bauen dürfen, während du online bist, verwende <code>/plot add Alex</code>. Für Zugriff auf Kisten, Fässer und Shulkerkisten ohne Baurechte gibt es <code>/plot storage Alex</code>. Beide Rollen können keine weiteren Mitglieder verwalten. Mehr zu diesen Rechten und ihrer Entfernung steht in der <a href="#/rollen/vergleich">Rollenübersicht</a>.</p>
+  <h2 data-anchor="galerie">In der Galerie veröffentlichen</h2>
+<pre data-lang="shell">/plot profile name Gewächshaus
+/plot profile description Öffentlicher Garten mit Aussicht
+/plot profile category farm
+/plot sethome
+/plot discover farm popular</pre>
+  <p>Führe die Profilbefehle und <code>sethome</code> auf deinem eigenen Plot aus. Wähle für den Besuchspunkt einen sicheren Standplatz mit tragendem Boden und freiem Platz. Andere Spieler besuchen deinen Plot mit <code>/plot visit #Gewächshaus</code> und vergeben dort mit <code>/plot like</code> ein Like.</p>
+  <h2 data-anchor="weiter">Wie geht es weiter?</h2>
+  <ul>
+    <li><a href="#/menues">Menüs und Rasterkarte</a> statt Befehle verwenden.</li>
+    <li><a href="#/galerie">Kategorien, Besuchspunkte und Likes</a> genauer einrichten.</li>
+    <li><a href="#/grundstuecke">Nachbarplots zusammenlegen oder einen Plot übertragen</a>.</li>
+    <li><a href="#/flug">Auf Wegen oder dem eigenen Plot fliegen</a>.</li>
+    <li><a href="#/wettbewerbe">An einem Bauwettbewerb teilnehmen</a>.</li>
+  </ul>
+<h2 data-anchor="lesezeichen-und-grenzen">Besuchsziele merken und Grenzen sehen</h2><pre>/plot bookmark add Schönes Haus
+/plot bookmark list
+/plot bookmark go Schönes Haus
+/plot border</pre><p>Ein Lesezeichen merkt den Claim und seinen Besitzer. Nach Merge oder Split wird die gespeicherte Rasterzelle neu aufgelöst. Ein Eigentümerwechsel, eine andere Weltkennung, ein entfernter Plot oder fehlender Zutritt macht den Besuch ungültig. Lege das Lesezeichen nach einer bewussten Prüfung neu an.</p><p>Die Grenzpartikel siehst nur du. Sie liegen auf deiner aktuellen Höhe und erscheinen innerhalb der eingestellten Reichweite. Bei großen Flächen gehe am Rand entlang. <code>/plot border off</code> beendet die Anzeige. Öffentliche Wegekreuzungen zählen auch bei L-förmigen Claims nicht zum Baugebiet.</p>
 </section>
 
 <section class="page" data-id="plotwelt" data-group="Start" data-title="Plotwelt und Raster">
@@ -722,43 +778,6 @@ Get-Content -LiteralPath .\SHA256SUMS.txt</pre>
   <h2 data-anchor="reisen">Weltwechsel und Spielmodus</h2>
   <p><code>/plot world</code> führt zum Plotwelt-Spawn, <code>/plot home [Nr]</code> zu einem eigenen Claim und <code>/plot back</code> aus der Plotwelt zum letzten gespeicherten Standort in der Hauptwelt <code>minecraft:overworld</code>. Position und Blickrichtung werden pro Spieler beim Verlassen der Hauptwelt gespeichert und bleiben über Neustarts erhalten. Ohne gültigen Ort oder außerhalb der aktuellen Weltgrenze wird der Hauptwelt-Spawn verwendet. Vor dem Update liegende Aufenthalte können nicht nachträglich ermittelt werden. Inventar und Materialien sind dieselben wie in der Hauptwelt.</p>
   <p>Für normale Spieler gilt Survival. Mit <code>simpleplots.admin</code> sind auch Creative, Adventure und Spectator erlaubt. Ein mit <code>/plot admin gamemode</code> geänderter Modus wird beim Verlassen der Plotwelt auf Survival zurückgesetzt. Das Inventar wird dabei nicht getrennt.</p>
-</section>
-
-<section class="page" data-id="schnellstart" data-group="Spielen" data-title="Dein erster Plot">
-  <h1>Dein erster Plot</h1>
-  <p class="lead">Mit den normalen Spielerrechten kannst du einen Plot beanspruchen, darauf bauen und Freunde einladen. Führe diese Schritte im Spiel aus.</p>
-<h2 data-anchor="claim">Beanspruchen und bauen</h2>
-  <ol>
-    <li>Führe <code>/plot auto</code> aus. Der Befehl sucht einen freien Plot, beansprucht ihn und teleportiert dich nach erfolgreicher Speicherung dorthin. Ein zusätzliches <code>/plot claim</code> ist nicht nötig.</li>
-    <li>Prüfe mit <code>/plot info</code> den Besitzer. Mit <code>/plot list</code> findest du deine Plotnummern. Normalerweise darfst du drei Rasterzellen besitzen.</li>
-    <li>Baue mit deinen eigenen Materialien. Du kannst den Boden auf deinem Claim bearbeiten und unterirdisch bis <code>Y=-63</code> abbauen.</li>
-    <li>Reise mit <code>/plot back</code> zum gespeicherten Hauptwelt-Standort und mit <code>/plot home</code> zurück. Dein Inventar bleibt erhalten.</li>
-  </ol>
-  <p>Wenn du dir den Platz selbst aussuchen möchtest, betrete mit <code>/plot world</code> die Plotwelt, gehe auf eine freie Fläche, prüfe <code>/plot info</code> und beanspruche genau diesen Platz mit <code>/plot claim</code>. Auf einem öffentlichen Weg ist kein Claim möglich.</p>
-  <h2 data-anchor="freunde">Freunde einladen</h2>
-<pre data-lang="shell">/plot trust Alex
-/plot info</pre>
-  <p>Stehe dabei auf deinem eigenen Plot. Alex darf anschließend dauerhaft bauen und Container benutzen. Mit <code>/plot untrust Alex</code> entziehst du diese Rolle. Ein Spielername muss dem Server bekannt sein; alternativ funktionieren vollständige Spieler-UUIDs.</p>
-  <p>Soll Alex nur bauen dürfen, während du online bist, verwende <code>/plot add Alex</code>. Für Zugriff auf Kisten, Fässer und Shulkerkisten ohne Baurechte gibt es <code>/plot storage Alex</code>. Beide Rollen können keine weiteren Mitglieder verwalten. Mehr zu diesen Rechten und ihrer Entfernung steht in der <a href="#/rollen/vergleich">Rollenübersicht</a>.</p>
-  <h2 data-anchor="galerie">In der Galerie veröffentlichen</h2>
-<pre data-lang="shell">/plot profile name Gewächshaus
-/plot profile description Öffentlicher Garten mit Aussicht
-/plot profile category farm
-/plot sethome
-/plot discover farm popular</pre>
-  <p>Führe die Profilbefehle und <code>sethome</code> auf deinem eigenen Plot aus. Wähle für den Besuchspunkt einen sicheren Standplatz mit tragendem Boden und freiem Platz. Andere Spieler besuchen deinen Plot mit <code>/plot visit #Gewächshaus</code> und vergeben dort mit <code>/plot like</code> ein Like.</p>
-  <h2 data-anchor="weiter">Wie geht es weiter?</h2>
-  <ul>
-    <li><a href="#/menues">Menüs und Rasterkarte</a> statt Befehle verwenden.</li>
-    <li><a href="#/galerie">Kategorien, Besuchspunkte und Likes</a> genauer einrichten.</li>
-    <li><a href="#/grundstuecke">Nachbarplots zusammenlegen oder einen Plot übertragen</a>.</li>
-    <li><a href="#/flug">Auf Wegen oder dem eigenen Plot fliegen</a>.</li>
-    <li><a href="#/wettbewerbe">An einem Bauwettbewerb teilnehmen</a>.</li>
-  </ul>
-<h2 data-anchor="lesezeichen-und-grenzen">Besuchsziele merken und Grenzen sehen</h2><pre>/plot bookmark add Schönes Haus
-/plot bookmark list
-/plot bookmark go Schönes Haus
-/plot border</pre><p>Ein Lesezeichen merkt den Claim und seinen Besitzer. Nach Merge oder Split wird die gespeicherte Rasterzelle neu aufgelöst. Ein Eigentümerwechsel, eine andere Weltkennung, ein entfernter Plot oder fehlender Zutritt macht den Besuch ungültig. Lege das Lesezeichen nach einer bewussten Prüfung neu an.</p><p>Die Grenzpartikel siehst nur du. Sie liegen auf deiner aktuellen Höhe und erscheinen innerhalb der eingestellten Reichweite. Bei großen Flächen gehe am Rand entlang. <code>/plot border off</code> beendet die Anzeige. Öffentliche Wegekreuzungen zählen auch bei L-förmigen Claims nicht zum Baugebiet.</p>
 </section>
 
 <section class="page" data-id="rollen" data-group="Spielen" data-title="Rollen und Zutritt">
@@ -986,8 +1005,71 @@ Get-Content -LiteralPath .\SHA256SUMS.txt</pre>
   <p><a href="#/config-contests">contests.yml</a> steuert die Funktion und die maximale Beitragszahl. Deaktivieren beendet einen bestehenden Wettbewerb nicht automatisch. Das Zurückziehen eigener Beiträge bleibt in der Bauphase möglich; für Phasenverwaltung die Funktion wieder einschalten.</p>
 </section>
 
-<section class="page" data-id="befehle" data-group="Nachschlagen" data-title="Befehlsreferenz">
-  <h1>Befehlsreferenz</h1><div class="command-tools" role="search" aria-label="Befehle filtern"><label for="commandFilter">Befehle filtern</label><div class="command-filter-row"><input id="commandFilter" type="search" placeholder="Name, Stichwort oder Version" autocomplete="off" spellcheck="false" aria-controls="commandIndex" aria-describedby="commandFilterHint"><button type="button" id="commandReset">Zurücksetzen</button></div><p id="commandFilterHint">Mehrere Wörter grenzen die Treffer ein.</p><p id="commandCount" role="status"></p></div><p id="commandEmpty" class="empty" hidden>Keine passenden Treffer. Filter zurücksetzen.</p>
+<section class="page" data-id="moderation" data-group="Administration" data-title="Plotverwaltung und Zensur">
+  <h1>Plotverwaltung und Zensur</h1>
+  <p class="lead">Die Raster-ID bezeichnet den Claim, den du prüfen oder verwalten möchtest. Freigabe, Besitzerwechsel und Zensur haben unterschiedliche Folgen; wähle den passenden Adminbefehl.</p>
+<h2 data-anchor="pruefen">Besitz und Zustand prüfen</h2>
+<pre data-lang="shell">/plot admin list Alex
+/plot admin inspect 0;0
+/plot admin visit 0;0</pre>
+  <p><code>list</code> zeigt die sichtbaren Claims eines Besitzers. Zensierte Claims sind daraus ausgeblendet; <code>inspect</code> prüft über eine bekannte Raster-ID Besitzer-UUID, Zellenzahl und Zensurstatus. <code>visit</code> bringt einen Spieler auf den öffentlichen Weg vor dem Claim. Listen und Prüfung funktionieren auch in der Konsole.</p>
+  <p>Alle Befehle benötigen das Basisrecht <code>simpleplots.use</code> und das passende Einzelrecht, beispielsweise <code>simpleplots.admin.inspect</code>. Das Sammelrecht <code>simpleplots.admin</code> enthält die Admin-Einzelrechte. Für <code>visit</code> ist ein Spieler nötig.</p>
+  <h2 data-anchor="besitzer">Zuweisen, übertragen und freigeben</h2>
+<div class="tbl"><table>
+  <thead><tr><th scope="col">Befehl</th><th scope="col">Voraussetzung und Folge</th></tr></thead>
+  <tbody>
+    <tr><td><code>/plot admin claim 0;0 Alex</code></td><td>Weist eine freie Zelle unabhängig vom Claim-Limit zu. Erstellt bei Bedarf die Plotwelt; dafür muss das Raster bereits stimmen.</td></tr>
+    <tr><td><code>/plot admin setowner 0;0 Alex confirm</code></td><td>Ändert den Besitzer des ganzen Claims ohne Angebot und ohne Claim-Limitprüfung. Rollen, Banns, Besucherfreigaben und Likes werden zurückgesetzt; Bauten und Profil bleiben.</td></tr>
+    <tr><td><code>/plot admin unclaim 0;0 confirm</code></td><td>Gibt den ganzen Claim einschließlich verbundener Zellen frei. Die Bauten bleiben in der Welt. Ein späterer neuer Claim kann diese Fläche beanspruchen.</td></tr>
+  </tbody>
+</table></div>
+  <p>Bei bekannten Namen oder vollständigen UUIDs ist auch die Verwaltung von Offline-Spielern möglich. Aktive Wettbewerbsbeiträge und zensierte Claims lassen sich nicht direkt übertragen oder freigeben. <code>unclaim</code> lässt die Bauten stehen. Für einen leeren Neuanfang die Fläche mit <a href="#/moderation/entfernen">remove entfernen und mit restore als freie Standardplots erzeugen</a>. Frühere Inhalte werden dabei nicht zurückgeholt; dafür ist eine passende Sicherung erforderlich.</p>
+  <h2 data-anchor="rollen">Fremde Rollen und Profile verwalten</h2>
+<pre data-lang="shell">/plot admin role 0;0 trust Alex
+/plot admin profile 0;0 description Öffentlicher Garten</pre>
+  <p>Gültige Rollenaktionen sind <code>trust</code>, <code>untrust</code>, <code>add</code>, <code>unadd</code>, <code>storage</code>, <code>unstore</code>, <code>deny</code> und <code>undeny</code>. Als Profilfelder gelten <code>name</code>, <code>description</code> und <code>category</code>. Die Regeln für Textlängen, Namen und Kategorien bleiben bestehen. <code>description -</code> entfernt eine Beschreibung, <code>category off</code> den Galerieeintrag.</p>
+  <h2 data-anchor="bypass">Admin-Bypass gezielt ausschalten</h2>
+<pre data-lang="shell">/plot admin bypass off</pre>
+  <p>Mit <code>simpleplots.admin.bypass</code> ist der Bypass standardmäßig aktiv, solange er nicht ausgeschaltet wurde. Er erlaubt administrativen Zutritt trotz Bann und Bauzugriff außerhalb gesperrter Flächen. Mit <code>off</code> gelten die normalen Plotrechte; die Wahl wird am Spieler gespeichert. <code>/plot admin bypass on</code> schaltet ihn wieder ein.</p>
+  <p>Der Bypass hebt Zensur und Wettbewerbssperren nicht auf und macht dich nicht zum Besitzer. Für Tests der Spielerrechte verwende Survival ohne Bypass oder einen zweiten Spieler. Adminflug ist davon unabhängig; siehe <a href="#/flug">Flug und Spielmodi</a>.</p>
+  <h2 data-anchor="zensur">Plot reversibel zensieren</h2>
+  <ol>
+    <li>Welt und gesamten Plugin-Datenordner sichern. Den Claim mit <code>/plot admin inspect 0;0</code> prüfen.</li>
+    <li><code>/plot admin censor 0;0</code> ausführen. Der gesamte Claim einschließlich interner Merge-Wege wird gesperrt.</li>
+    <li>Die Abschlussmeldung abwarten. Das Plugin sichert Blöcke, Block-Entity-Daten und Entities unter <code>zensur/</code>, bevor Weltinhalte abschnittsweise ersetzt werden.</li>
+    <li>Danach erscheint die Fläche leer mit roten Randstufen. Sie bleibt begehbar und zeigt einen Hinweis. Änderungen sind auch für Besitzer und Admins gesperrt.</li>
+  </ol>
+  <p>Zensierte Claims verschwinden aus Galerie, Besitzerlisten, Namenssuche, Rasterkarte und Wettbewerbsansichten. Das ist eine Inhaltsausblendung mit erhaltenem Anspruch, keine Freigabe. Standardmäßig erfasst ein Auftrag höchstens 256 Chunks; die Grenze steht in <a href="#/config-protection">protection.yml</a>.</p>
+  <h2 data-anchor="wiederherstellen">Zensur aufheben</h2>
+<pre data-lang="shell">/plot admin censor 0;0 off</pre>
+  <p><code>/plot admin uncensor 0;0</code> ist die Kurzform. Das Plugin stellt die gesicherten Blöcke und Entities wieder her und entsperrt den Claim erst danach. Während Sicherung und Wiederherstellung bleiben Spieler auf den Wegen. Mehrere Aufträge werden nacheinander bearbeitet. Originaldaten bleiben nach einer Wiederherstellung erhalten.</p>
+  <h2 data-anchor="unterbrechung">Unterbrechung und fehlende Originale</h2>
+  <p>Unterbrochene Arbeiten werden beim Neustart fortgesetzt. Nach einem Speicherfehler bleiben Sperren und bestätigte Sicherungen erhalten. Ursache im Log beheben und den gewünschten Befehl erneut ausführen. Beschädigte oder fehlende Originaldateien nicht durch leere Dateien ersetzen oder löschen. Nutze eine gemeinsame Sicherung von Welt und Plugin-Daten.</p>
+  <p>Ein älteres Plugin kann Zensursperren übergehen. Für einen Downgrade deshalb den vollständigen Stand vor dem entsprechenden Update zurücksichern, einschließlich Welt und Daten. Einzelne Originalabschnitte ersetzen keine vollständige Betriebssicherung.</p>
+  <h2 data-anchor="entfernen">Flächen entfernen und leer wiederherstellen</h2>
+<pre data-lang="shell">/plot admin remove ~
+/plot admin restore 0;0
+/plot in creative admin remove -1;2</pre>
+  <p><code>remove</code> löscht die gesamte Fläche bis zum unteren Weltrand: Claim, Rollen, Profil, Blöcke, Block-Entity-Daten und Entities. Bei einem Merge gehören alle verbundenen Zellen und deren ehemaligen Innenwege dazu. Öffentliche Außenwege und Nachbarplots bleiben erhalten. Auch bislang freie Rasterzellen lassen sich entfernen. Die Fläche verschwindet aus allen Plotindizes und bleibt für <code>claim</code>, Admin-Claims und <code>auto</code> gesperrt. Ein Admin-Bypass hebt diese Sperre nicht auf.</p>
+  <p><code>restore</code> erzeugt Standardboden, leere Luft darüber und bei einem früheren Merge wieder die regulären öffentlichen Innenwege. Die einzelnen Plots sind danach frei. Früherer Inhalt, Profile und Eigentum werden nicht zurückgeholt; für reversible Inhalte <code>censor</code> und <code>uncensor</code> verwenden. Zensierte Plots oder aktive Wettbewerbsbeiträge lassen sich erst nach regulärer Entsperrung entfernen.</p>
+  <p>Der Auftrag wird atomar zusammen mit dem Plotbestand gespeichert, bevor die Welt geändert wird. Weltarbeiten laufen abschnittsweise innerhalb der Budgets aus <code>protection.yml: zensur-*</code>. Erst nach erfolgreicher Weltspeicherung wird der Arbeitsabschluss gespeichert; bis dahin bleibt die Fläche gesperrt. Nach einer Unterbrechung wird beim nächsten Pluginstart fortgesetzt. Der ursprüngliche Befehl startet einen abgebrochenen Arbeitsschritt erneut. Bei noch nicht abgeschlossener Entfernung muss diese zuerst fertig werden, bevor eine leere Wiederherstellung möglich ist.</p>
+  <p><code>~</code> wählt bei <code>censor</code>, <code>uncensor</code>, <code>remove</code>, <code>restore</code> und weiteren Verwaltungsbefehlen die Fläche am Standort. Bei Merges wird die Haupt-ID aufgelöst. In der Konsole, in fremden Welten und auf öffentlichen Wegen wird die Standortwahl abgewiesen. <code>X;Z</code> bleibt eine Plot-ID und bezeichnet keine Blockkoordinaten.</p>
+</section>
+
+<section class="page" data-id="befehle" data-group="Befehlsreferenz" data-title="Befehlsreferenz">
+  <h1>Befehlsreferenz</h1>
+<!-- SHARED:command-syntax -->
+<h2 data-anchor="lesehilfe-zur-syntax">Lesehilfe zur Syntax</h2>
+<div class="tbl"><table>
+  <thead><tr><th scope="col">Schreibweise</th><th scope="col">Bedeutung</th></tr></thead>
+  <tbody>
+    <tr><td><code>&lt;Wert&gt;</code></td><td>Pflichtangabe. Ersetze den Platzhalter durch den passenden Wert.</td></tr>
+    <tr><td><code>[Wert]</code></td><td>Optionale Angabe. Ohne sie gilt die beim Befehl beschriebene Vorgabe.</td></tr>
+    <tr><td><code>a|b</code></td><td>Wähle eine der angegebenen Alternativen.</td></tr>
+  </tbody>
+</table></div>
+<p>Klammern und senkrechte Striche werden nicht mitgetippt. Im Spiel beginnt ein Befehl mit <code>/</code>; in der Serverkonsole lässt du den Schrägstrich weg. Ob die Konsole einen Befehl ausführen kann, steht bei seiner Beschreibung. Verwende für Spielerargumente den echten Minecraft-Namen, sofern der Befehl nichts anderes beschreibt.</p>
+<!-- /SHARED:command-syntax --><div class="command-tools" role="search" aria-label="Befehle filtern"><label for="commandFilter">Befehle filtern</label><div class="command-filter-row"><input id="commandFilter" type="search" placeholder="Name, Stichwort oder Version" autocomplete="off" spellcheck="false" aria-controls="commandIndex" aria-describedby="commandFilterHint"><button type="button" id="commandReset">Zurücksetzen</button></div><p id="commandFilterHint">Mehrere Wörter grenzen die Treffer ein.</p><p id="commandCount" role="status"></p></div><p id="commandEmpty" class="empty" hidden>Keine passenden Treffer. Filter zurücksetzen.</p>
   <p class="lead"><code>/plot</code> und <code>/plot help</code> öffnen die Hilfe. <code>/p</code> ist der Hauptalias. Eckige Klammern kennzeichnen optionale Angaben.</p>
   <h2 data-anchor="syntax">Syntax, Rechte und Ausführungsort</h2>
   <p><code>&lt;Wert&gt;</code> ist eine Pflichtangabe, <code>[Wert]</code> ist optional, <code>on|off</code> nennt Alternativen. Die Klammern selbst werden nicht eingegeben. Profilnamen und Beschreibungen dürfen Leerzeichen enthalten; es sind keine Anführungszeichen nötig. Eine Plot-ID wie <code>0;0</code> enthält genau ein Semikolon und bezeichnet eine Rasterzelle.</p>
@@ -1070,7 +1152,7 @@ Get-Content -LiteralPath .\SHA256SUMS.txt</pre>
         <tr><td><code>/plot admin info</code>, <code>/plot admin create</code></td><td>Raster anzeigen oder die Plotwelt erstellen. Beide Befehle funktionieren auch in der Konsole.</td><td><code>admin</code> · Spiel und Konsole. <a href="#/plotwelt/festlegen">Welt vorbereiten</a>.</td></tr>
         <tr><td><code>/plot admin grid &lt;Größe&gt; &lt;Wegbreite&gt;</code>, <code>/plot admin limit &lt;Anzahl&gt;</code></td><td>Raster vor der ersten Generierung festlegen oder Claim-Limit ändern.</td><td><code>admin</code> · Spiel und Konsole. <a href="#/plotwelt/festlegen">Raster festlegen</a>.</td></tr>
         <tr><td><code>/plot admin gamemode &lt;creative|survival|adventure|spectator&gt;</code></td><td>Als Admin innerhalb der Plotwelt einen der vier Spielmodi wählen.</td><td><code>admin</code> · Spiel in der Plotwelt. <a href="#/flug/adminmodi">Spielmodi</a>.</td></tr>
-        <tr><td><code>/plot admin reload</code></td><td>Einstellungen, Nachrichten und Menüs gemeinsam prüfen und neu laden. Spielstände und Welt werden dabei nicht neu geladen.</td><td><code>admin.reload</code> · Spiel und Konsole. <a href="#/konfiguration/anwenden">Konfiguration übernehmen</a>.</td></tr>
+        <tr><td><code>/plot admin reload</code></td><td>Einstellungen, Nachrichten und Menüs gemeinsam prüfen und neu laden. Spielstände und Welt werden dabei nicht neu geladen.</td><td><code>admin.reload</code> · Spiel und Konsole. <a href="#/config-uebersicht/anwenden">Konfiguration übernehmen</a>.</td></tr>
         <tr><td><code>/plot admin diagnostics</code></td><td>Version, Java, Welt, Plotbestand und Speicherwarteschlange anzeigen. Auch in der Konsole verfügbar.</td><td><code>admin.diagnostics</code> · Spiel und Konsole. <a href="#/betrieb/diagnose">Diagnose</a>.</td></tr>
         <tr><td><code>/plot admin list &lt;Spieler&gt;</code>, <code>/plot admin inspect &lt;X;Z&gt;</code>, <code>/plot admin visit &lt;X;Z&gt;</code></td><td>Plots eines Besitzers auflisten, Eigentümer und Zensurstatus prüfen oder zum öffentlichen Weg vor dem Plot reisen.</td><td>Je <code>admin.list</code>, <code>admin.inspect</code>, <code>admin.visit</code> · list/inspect auch Konsole; visit nur Spiel. <a href="#/moderation/pruefen">Plot prüfen</a>.</td></tr>
         <tr><td><code>/plot admin claim &lt;X;Z&gt; &lt;Spieler&gt;</code></td><td>Einen freien Plot unabhängig vom Claim-Limit zuweisen. Erstellt bei Bedarf zuvor die Plotwelt.</td><td><code>admin.claim</code> · Spiel und Konsole. <a href="#/moderation/besitzer">Plot zuweisen</a>.</td></tr>
@@ -1085,52 +1167,8 @@ Get-Content -LiteralPath .\SHA256SUMS.txt</pre>
     </table></div>
 </section>
 
-<section class="page" data-id="rechte" data-group="Konfiguration und Rechte" data-title="Berechtigungen">
-  <h1>Berechtigungen</h1>
-  <p class="lead">Permissions erlauben Plugin-Befehle. Plotrollen bestimmen, wer auf einem einzelnen Claim bauen oder auf Lager zugreifen darf.</p>
-  <p>Für jede Befehlsausführung wird zuerst <code>simpleplots.use</code> geprüft. Die übrigen Spielerrechte vergeben kein Eigentum an einem fremden Plot. Rollen regeln den Zugriff pro Claim; siehe <a href="#/rollen/vergleich">Rollenvergleich</a>.</p>
-    <h2 data-anchor="permissions">Server-Permissions</h2>
-    <div class="tbl"><table>
-      <thead><tr><th scope="col">Permission</th><th scope="col">Standard</th><th scope="col">Funktion</th></tr></thead>
-      <tbody>
-        <tr><td><code>simpleplots.use</code></td><td>Alle Spieler</td><td>Basisrecht für <code>/plot</code>.</td></tr>
-        <tr><td><code>simpleplots.claim</code></td><td>Alle Spieler</td><td>Plots mit <code>claim</code> oder <code>auto</code> beanspruchen.</td></tr>
-        <tr><td><code>simpleplots.manage</code></td><td>Alle Spieler</td><td>Eigene Plots, Profile und Rollen verwalten.</td></tr>
-        <tr><td><code>simpleplots.fly</code></td><td>Alle Spieler</td><td>Eigenes Plot-Fly schalten. Wege-Fly ist unabhängig davon für alle verfügbar.</td></tr>
-        <tr><td><code>simpleplots.admin</code></td><td>Operatoren und Konsole</td><td>Raster, Claim-Limit und Wettbewerbe verwalten, alle Spielmodi nutzen und überall in der Plotwelt fliegen. Die übrigen SimplePlots-Permissions sind eingeschlossen.</td></tr>
-        <tr><td><code>simpleplots.admin.reload</code></td><td>Operatoren und Konsole</td><td>Den Konfigurations-Reload ausführen. Kann mit dem enthaltenen Basisrecht einzeln vergeben werden.</td></tr>
-        <tr><td><code>simpleplots.admin.diagnostics</code></td><td>Operatoren und Konsole</td><td>Die Diagnose ausführen. Kann mit dem enthaltenen Basisrecht einzeln vergeben werden.</td></tr>
-        <tr><td><code>simpleplots.admin.list</code>, <code>simpleplots.admin.inspect</code>, <code>simpleplots.admin.visit</code></td><td>Operatoren und Konsole</td><td>Besitzerlisten, Prüfung oder Reise zum Plotweg einzeln freigeben.</td></tr>
-        <tr><td><code>simpleplots.admin.claim</code>, <code>simpleplots.admin.unclaim</code>, <code>simpleplots.admin.setowner</code></td><td>Operatoren und Konsole</td><td>Zuweisung, Freigabe oder direkten Besitzerwechsel erlauben.</td></tr>
-        <tr><td><code>simpleplots.admin.role</code>, <code>simpleplots.admin.profile</code></td><td>Operatoren und Konsole</td><td>Fremde Rollen beziehungsweise Profile verwalten.</td></tr>
-        <tr><td><code>simpleplots.admin.remove</code>, <code>simpleplots.admin.restore</code></td><td>Operatoren und Konsole</td><td>Flächen dauerhaft entfernen beziehungsweise als freie Standardplots erzeugen.</td></tr>
-        <tr><td><code>simpleplots.admin.setup</code></td><td>Operatoren und Konsole</td><td>Die Einrichtung aller registrierten Weltkonfigurationen prüfen.</td></tr>
-        <tr><td><code>simpleplots.admin.censor</code></td><td>Operatoren und Konsole</td><td>Zensur und Wiederherstellung ausführen.</td></tr>
-        <tr><td><code>simpleplots.admin.bypass</code></td><td>Operatoren</td><td>Eigenen Bypass für Bauen und Zutritt schalten. Zensur und Wettbewerbssperren bleiben wirksam.</td></tr>
-        <tr><td><code>simpleplots.admin.update</code></td><td>Operatoren und Konsole</td><td>Update-Status, Prüfung und bestätigten Download erlauben.</td></tr>
-        <tr><td><code>simpleplots.admin.contest</code></td><td>Operatoren und Konsole</td><td>Wettbewerbe verwalten, ohne alle übrigen Adminrechte zu vergeben.</td></tr>
-      <tr><td><code>simpleplots.bookmark</code></td><td>Alle Spieler</td><td>Persönliche Lesezeichen; zusätzlich simpleplots.use.</td></tr><tr><td><code>simpleplots.border</code></td><td>Alle Spieler</td><td>Private Grenzanzeige; zusätzlich simpleplots.use.</td></tr></tbody>
-    </table></div>
-  <h2 data-anchor="rang-buendel">Konfigurierbare Rechtebündel</h2>
-  <p><code>config/general.yml: rang-buendel</code> enthält die Gruppen <code>spieler</code>, <code>supporter</code>, <code>moderator</code> und <code>admin</code>. In LuckPerms zum Beispiel <code>simpleplots.rang.moderator</code> vergeben; Bukkit vererbt die zugehörige Liste von Einzelrechten. Moderator enthält Einsicht, Besuche, Rollen, Profile, Zensur und Diagnose. Remove/Restore gehören ausschließlich zum Adminbündel. Eigene Gruppen und ausdrücklich leere Listen sind möglich; Bündel dürfen keine anderen Bündel enthalten. Änderungen werden beim gemeinsamen Reload aktiviert. Explizite negative Einzelrechte werden durch das normale Paper-Permissionsystem ausgewertet.</p>
-    <h2 data-anchor="plotschutz">Plotschutz</h2>
-    <p>Neue Plotflächen haben Gras auf <code>Y=63</code>, drei Erdlagen auf <code>Y=60–62</code> und Stein darunter. Nur am unteren Weltrand auf <code>Y=-64</code> liegt Bedrock. Auf beanspruchten Plots können Besitzer und Spieler mit Baurechten ab <code>Y=-63</code> bauen und abbauen. Das schließt den Grasboden und dessen Bearbeitung mit Hacke oder Schaufel ein. Sichere Besuchspunkte sind auch unterirdisch möglich.</p>
-    <p>Steinziegelstufen markieren die Wegränder. Der Boden öffentlicher Wege und unbeanspruchter Flächen sowie die unterste Bedrockschicht bleiben geschützt. PvP und natürliches Mob-Spawning sind deaktiviert. Explosionen verursachen in der Plotwelt weder Schäden noch Rückstoß; geladene Respawnanker können dort nicht gezündet werden. Flüssigkeiten, Kolben und andere Mechaniken bleiben auch unterirdisch innerhalb der Plotgrenzen.</p>
-    <p>Admins mit eingeschaltetem Bypass können trotz Plotbann eintreten und die Rollen mit <code>/plot info</code> einsehen. Außerhalb zensierter Plots und gesperrter Wettbewerbsflächen dürfen sie auf fremden Plots bauen und Container benutzen sowie öffentliche Wege oberhalb des Wegbodens bearbeiten. Mit <code>simpleplots.admin</code> sind alle vier Spielmodi in der Plotwelt erlaubt. Wer einen Modus über <code>/plot admin gamemode</code> wechselt, kehrt beim Verlassen der Plotwelt zu Survival zurück.</p>
-    <p>LuckPerms ist keine Voraussetzung. Plotbesitz und Plotrollen werden über UUIDs geprüft. Die Befehlsrechte nutzen das normale Paper-Permissionsystem.</p>
-  <h2 data-anchor="delegieren">Adminaufgaben einzeln vergeben</h2>
-  <p>Für reine Prüfaufgaben genügen <code>simpleplots.use</code>, <code>simpleplots.admin.inspect</code> und bei Bedarf <code>simpleplots.admin.diagnostics</code>. Für Reload und Diagnose ist das Basisrecht bereits als Kindrecht enthalten; andere Einzelrechte benötigen es zusätzlich. Das vollständige <code>simpleplots.admin</code> gewährt auch Spielmoduswechsel, Adminflug und die übrigen Adminrechte.</p>
-  <p>Beispiel für eine vorhandene LuckPerms-Gruppe <code>plotteam</code>, eingegeben in der Serverkonsole:</p>
-<pre data-lang="shell">lp group plotteam permission set simpleplots.use true
-lp group plotteam permission set simpleplots.admin.inspect true
-lp group plotteam permission set simpleplots.admin.diagnostics true</pre>
-  <p>Diese optionalen Befehle setzen ein installiertes LuckPerms und die vorhandene Gruppe voraus; die Syntax beschreibt die <a href="https://luckperms.net/wiki/Permission-Commands">LuckPerms-Befehlsreferenz</a>. Sie vergeben keine Plotrolle. Prüfe die effektiven Rechte einschließlich geerbter Rechte und Operatorstatus. Eine Gruppe mit bereits geerbtem <code>simpleplots.admin</code> wird durch dieses Beispiel nicht auf Prüfaufgaben eingeschränkt.</p>
-  <h2 data-anchor="test">Rechte testen</h2>
-  <p>Für einen normalen Spieler Survival verwenden und Admin-Bypass ausschalten. Eigentum und Rollen mit <code>/plot info</code> kontrollieren. Nach einer gespeicherten Änderung mit einem zweiten Spieler testen. In einem Wettbewerb oder einer zensierten Fläche greifen zusätzliche Sperren, die auch der Bypass nicht aufhebt.</p>
-</section>
-
-<section class="page" data-id="konfiguration" data-group="Konfiguration und Rechte" data-title="Dateien und Einstellungen">
-  <h1>Dateien und Einstellungen</h1>
+<section class="page" data-id="config-uebersicht" data-aliases="konfiguration" data-group="Konfiguration und Rechte" data-title="Dateien und Zuständigkeiten">
+  <h1>Dateien und Zuständigkeiten</h1>
   <p class="lead">Die Einstellungen und Spielstände liegen unter <code>plugins/SimplePlots/</code>. Texte, Menüs und die einzelnen Funktionsbereiche haben eigene Dateien.</p>
   <h2 data-anchor="wegweiser">Welche Einstellung suchst du?</h2>
 <div class="tbl"><table>
@@ -1209,6 +1247,50 @@ symbole:
   <p>Nach erfolgreicher Prüfung werden alte <code>config.yml</code>, <code>messages.yml</code> und <code>gui.yml</code> samt vorhandenen Vorgängersicherungen unter <code>config/altbestand/</code> archiviert. Das Archiv ist keine aktive Konfiguration. Vergleiche bei Bedarf deine alten Anpassungen mit den neuen Dateien. Ungültige Altdateien und Archivkonflikte werden gemeldet, ohne die Originale zu überschreiben.</p>
   <p>Die ursprüngliche Welt <code>plots</code> behält Spielstände wie <code>plots.yml</code>, <code>plots-aenderungen.yml</code>, <code>welt.yml</code> und <code>wettbewerb.yml</code> im Plugin-Hauptordner. Weitere Welten speichern unter <code>data/&lt;Name&gt;/</code>. Ein teilweise verlorener Konfigurationsordner muss aus einer passenden Sicherung ergänzt werden; fehlende Dateien nicht mit Spielständen verwechseln.</p>
 <h2 data-anchor="navigation">Persönliche Ziele und Grenzanzeige</h2><p><code>navigation</code> in <code>config/general.yml</code> legt Lesezeichenlimit, Dauer, Reichweite, Punktabstand und gleichzeitige Anzeigen fest. Vorgaben: zwölf Lesezeichen je Spieler und Welt, 15 Sekunden Anzeige, höchstens 60 Sekunden und 32 Spieler. Eine Anzeige verwendet höchstens 128 Punkte mit je zwei Partikeln pro halber Sekunde; Flächen über 10.000 Rasterzellen werden dafür abgewiesen.</p><p>Alle Anzeigen teilen einen Taktgeber. Weltwechsel, Rechteverlust, Verlassen und Pluginstopp räumen sie auf. Änderungen am angezeigten Plot beenden die alte Anzeige ebenfalls. Die Geometrie enthält nur Außenkanten, einschließlich der verbindenden Innenwege.</p>
+</section>
+
+<section class="page" data-id="rechte" data-group="Konfiguration und Rechte" data-title="Berechtigungen">
+  <h1>Berechtigungen</h1>
+  <p class="lead">Berechtigungen erlauben Plugin-Befehle. Plotrollen bestimmen, wer auf einem einzelnen Claim bauen oder auf Lager zugreifen darf.</p>
+  <p>Für jede Befehlsausführung wird zuerst <code>simpleplots.use</code> geprüft. Die übrigen Spielerrechte vergeben kein Eigentum an einem fremden Plot. Rollen regeln den Zugriff pro Claim; siehe <a href="#/rollen/vergleich">Rollenvergleich</a>.</p>
+    <h2 data-anchor="permissions">Server-Berechtigungen</h2>
+    <div class="tbl"><table>
+      <thead><tr><th scope="col">Berechtigung</th><th scope="col">Standard</th><th scope="col">Funktion</th></tr></thead>
+      <tbody>
+        <tr><td><code>simpleplots.use</code></td><td>Alle Spieler</td><td>Basisrecht für <code>/plot</code>.</td></tr>
+        <tr><td><code>simpleplots.claim</code></td><td>Alle Spieler</td><td>Plots mit <code>claim</code> oder <code>auto</code> beanspruchen.</td></tr>
+        <tr><td><code>simpleplots.manage</code></td><td>Alle Spieler</td><td>Eigene Plots, Profile und Rollen verwalten.</td></tr>
+        <tr><td><code>simpleplots.fly</code></td><td>Alle Spieler</td><td>Eigenes Plot-Fly schalten. Wege-Fly ist unabhängig davon für alle verfügbar.</td></tr>
+        <tr><td><code>simpleplots.admin</code></td><td>Operatoren und Konsole</td><td>Raster, Claim-Limit und Wettbewerbe verwalten, alle Spielmodi nutzen und überall in der Plotwelt fliegen. Die übrigen SimplePlots-Berechtigungen sind eingeschlossen.</td></tr>
+        <tr><td><code>simpleplots.admin.reload</code></td><td>Operatoren und Konsole</td><td>Den Konfigurations-Reload ausführen. Kann mit dem enthaltenen Basisrecht einzeln vergeben werden.</td></tr>
+        <tr><td><code>simpleplots.admin.diagnostics</code></td><td>Operatoren und Konsole</td><td>Die Diagnose ausführen. Kann mit dem enthaltenen Basisrecht einzeln vergeben werden.</td></tr>
+        <tr><td><code>simpleplots.admin.list</code>, <code>simpleplots.admin.inspect</code>, <code>simpleplots.admin.visit</code></td><td>Operatoren und Konsole</td><td>Besitzerlisten, Prüfung oder Reise zum Plotweg einzeln freigeben.</td></tr>
+        <tr><td><code>simpleplots.admin.claim</code>, <code>simpleplots.admin.unclaim</code>, <code>simpleplots.admin.setowner</code></td><td>Operatoren und Konsole</td><td>Zuweisung, Freigabe oder direkten Besitzerwechsel erlauben.</td></tr>
+        <tr><td><code>simpleplots.admin.role</code>, <code>simpleplots.admin.profile</code></td><td>Operatoren und Konsole</td><td>Fremde Rollen beziehungsweise Profile verwalten.</td></tr>
+        <tr><td><code>simpleplots.admin.remove</code>, <code>simpleplots.admin.restore</code></td><td>Operatoren und Konsole</td><td>Flächen dauerhaft entfernen beziehungsweise als freie Standardplots erzeugen.</td></tr>
+        <tr><td><code>simpleplots.admin.setup</code></td><td>Operatoren und Konsole</td><td>Die Einrichtung aller registrierten Weltkonfigurationen prüfen.</td></tr>
+        <tr><td><code>simpleplots.admin.censor</code></td><td>Operatoren und Konsole</td><td>Zensur und Wiederherstellung ausführen.</td></tr>
+        <tr><td><code>simpleplots.admin.bypass</code></td><td>Operatoren</td><td>Eigenen Bypass für Bauen und Zutritt schalten. Zensur und Wettbewerbssperren bleiben wirksam.</td></tr>
+        <tr><td><code>simpleplots.admin.update</code></td><td>Operatoren und Konsole</td><td>Update-Status, Prüfung und bestätigten Download erlauben.</td></tr>
+        <tr><td><code>simpleplots.admin.contest</code></td><td>Operatoren und Konsole</td><td>Wettbewerbe verwalten, ohne alle übrigen Adminrechte zu vergeben.</td></tr>
+      <tr><td><code>simpleplots.bookmark</code></td><td>Alle Spieler</td><td>Persönliche Lesezeichen; zusätzlich simpleplots.use.</td></tr><tr><td><code>simpleplots.border</code></td><td>Alle Spieler</td><td>Private Grenzanzeige; zusätzlich simpleplots.use.</td></tr></tbody>
+    </table></div>
+  <h2 data-anchor="rang-buendel">Konfigurierbare Rechtebündel</h2>
+  <p><code>config/general.yml: rang-buendel</code> enthält die Gruppen <code>spieler</code>, <code>supporter</code>, <code>moderator</code> und <code>admin</code>. In LuckPerms zum Beispiel <code>simpleplots.rang.moderator</code> vergeben; Bukkit vererbt die zugehörige Liste von Einzelrechten. Moderator enthält Einsicht, Besuche, Rollen, Profile, Zensur und Diagnose. Remove/Restore gehören ausschließlich zum Adminbündel. Eigene Gruppen und ausdrücklich leere Listen sind möglich; Bündel dürfen keine anderen Bündel enthalten. Änderungen werden beim gemeinsamen Reload aktiviert. Explizite negative Einzelrechte werden durch das normale Paper-Permissionsystem ausgewertet.</p>
+    <h2 data-anchor="plotschutz">Plotschutz</h2>
+    <p>Neue Plotflächen haben Gras auf <code>Y=63</code>, drei Erdlagen auf <code>Y=60–62</code> und Stein darunter. Nur am unteren Weltrand auf <code>Y=-64</code> liegt Bedrock. Auf beanspruchten Plots können Besitzer und Spieler mit Baurechten ab <code>Y=-63</code> bauen und abbauen. Das schließt den Grasboden und dessen Bearbeitung mit Hacke oder Schaufel ein. Sichere Besuchspunkte sind auch unterirdisch möglich.</p>
+    <p>Steinziegelstufen markieren die Wegränder. Der Boden öffentlicher Wege und unbeanspruchter Flächen sowie die unterste Bedrockschicht bleiben geschützt. PvP und natürliches Mob-Spawning sind deaktiviert. Explosionen verursachen in der Plotwelt weder Schäden noch Rückstoß; geladene Respawnanker können dort nicht gezündet werden. Flüssigkeiten, Kolben und andere Mechaniken bleiben auch unterirdisch innerhalb der Plotgrenzen.</p>
+    <p>Admins mit eingeschaltetem Bypass können trotz Plotbann eintreten und die Rollen mit <code>/plot info</code> einsehen. Außerhalb zensierter Plots und gesperrter Wettbewerbsflächen dürfen sie auf fremden Plots bauen und Container benutzen sowie öffentliche Wege oberhalb des Wegbodens bearbeiten. Mit <code>simpleplots.admin</code> sind alle vier Spielmodi in der Plotwelt erlaubt. Wer einen Modus über <code>/plot admin gamemode</code> wechselt, kehrt beim Verlassen der Plotwelt zu Survival zurück.</p>
+    <p>LuckPerms ist keine Voraussetzung. Plotbesitz und Plotrollen werden über UUIDs geprüft. Die Befehlsrechte nutzen das normale Paper-Permissionsystem.</p>
+  <h2 data-anchor="delegieren">Adminaufgaben einzeln vergeben</h2>
+  <p>Für reine Prüfaufgaben genügen <code>simpleplots.use</code>, <code>simpleplots.admin.inspect</code> und bei Bedarf <code>simpleplots.admin.diagnostics</code>. Für Reload und Diagnose ist das Basisrecht bereits als Kindrecht enthalten; andere Einzelrechte benötigen es zusätzlich. Das vollständige <code>simpleplots.admin</code> gewährt auch Spielmoduswechsel, Adminflug und die übrigen Adminrechte.</p>
+  <p>Beispiel für eine vorhandene LuckPerms-Gruppe <code>plotteam</code>, eingegeben in der Serverkonsole:</p>
+<pre data-lang="shell">lp group plotteam permission set simpleplots.use true
+lp group plotteam permission set simpleplots.admin.inspect true
+lp group plotteam permission set simpleplots.admin.diagnostics true</pre>
+  <p>Diese optionalen Befehle setzen ein installiertes LuckPerms und die vorhandene Gruppe voraus; die Syntax beschreibt die <a href="https://luckperms.net/wiki/Permission-Commands">LuckPerms-Befehlsreferenz</a>. Sie vergeben keine Plotrolle. Prüfe die effektiven Rechte einschließlich geerbter Rechte und Operatorstatus. Eine Gruppe mit bereits geerbtem <code>simpleplots.admin</code> wird durch dieses Beispiel nicht auf Prüfaufgaben eingeschränkt.</p>
+  <h2 data-anchor="test">Rechte testen</h2>
+  <p>Für einen normalen Spieler Survival verwenden und Admin-Bypass ausschalten. Eigentum und Rollen mit <code>/plot info</code> kontrollieren. Nach einer gespeicherten Änderung mit einem zweiten Spieler testen. In einem Wettbewerb oder einer zensierten Fläche greifen zusätzliche Sperren, die auch der Bypass nicht aufhebt.</p>
 </section>
 
 <section class="page" data-id="welten" data-group="Konfiguration und Rechte" data-title="worlds/ – einzelne Plotwelten">
@@ -1546,7 +1628,7 @@ betreten:
     <li><code>/plot admin reload</code> ausführen und die Rückmeldung abwarten. Ungültige YAML-Typen oder MiniMessage-Ausdrücke verhindern die Übernahme des gesamten Konfigurationssatzes.</li>
     <li>Die bearbeitete Nachricht gezielt auslösen, etwa einen Plot betreten oder ein Menü öffnen. Darstellung und eingefügte Werte prüfen.</li>
   </ol>
-  <p>Menüplätze, Zeilen und Materialien gehören in <a href="#/config-gui">gui.yml</a>. Ein geänderter Nachrichtentext ändert weder eine Permission noch eine Schutzregel.</p>
+  <p>Menüplätze, Zeilen und Materialien gehören in <a href="#/config-gui">gui.yml</a>. Ein geänderter Nachrichtentext ändert weder eine Berechtigung noch eine Schutzregel.</p>
 </section>
 
 <section class="page" data-id="config-gui" data-group="Konfiguration und Rechte" data-title="gui.yml – Menülayout">
@@ -1669,59 +1751,19 @@ symbole:
   <p>Zum Bedienen der Ansichten siehe <a href="#/menues">Menüs und Rasterkarte</a>; für deren Beschriftungen siehe <a href="#/config-messages">messages.yml</a>.</p>
 </section>
 
-<section class="page" data-id="moderation" data-group="Administration" data-title="Plotverwaltung und Zensur">
-  <h1>Plotverwaltung und Zensur</h1>
-  <p class="lead">Die Raster-ID bezeichnet den Claim, den du prüfen oder verwalten möchtest. Freigabe, Besitzerwechsel und Zensur haben unterschiedliche Folgen; wähle den passenden Adminbefehl.</p>
-<h2 data-anchor="pruefen">Besitz und Zustand prüfen</h2>
-<pre data-lang="shell">/plot admin list Alex
-/plot admin inspect 0;0
-/plot admin visit 0;0</pre>
-  <p><code>list</code> zeigt die sichtbaren Claims eines Besitzers. Zensierte Claims sind daraus ausgeblendet; <code>inspect</code> prüft über eine bekannte Raster-ID Besitzer-UUID, Zellenzahl und Zensurstatus. <code>visit</code> bringt einen Spieler auf den öffentlichen Weg vor dem Claim. Listen und Prüfung funktionieren auch in der Konsole.</p>
-  <p>Alle Befehle benötigen das Basisrecht <code>simpleplots.use</code> und das passende Einzelrecht, beispielsweise <code>simpleplots.admin.inspect</code>. Das Sammelrecht <code>simpleplots.admin</code> enthält die Admin-Einzelrechte. Für <code>visit</code> ist ein Spieler nötig.</p>
-  <h2 data-anchor="besitzer">Zuweisen, übertragen und freigeben</h2>
-<div class="tbl"><table>
-  <thead><tr><th scope="col">Befehl</th><th scope="col">Voraussetzung und Folge</th></tr></thead>
-  <tbody>
-    <tr><td><code>/plot admin claim 0;0 Alex</code></td><td>Weist eine freie Zelle unabhängig vom Claim-Limit zu. Erstellt bei Bedarf die Plotwelt; dafür muss das Raster bereits stimmen.</td></tr>
-    <tr><td><code>/plot admin setowner 0;0 Alex confirm</code></td><td>Ändert den Besitzer des ganzen Claims ohne Angebot und ohne Claim-Limitprüfung. Rollen, Banns, Besucherfreigaben und Likes werden zurückgesetzt; Bauten und Profil bleiben.</td></tr>
-    <tr><td><code>/plot admin unclaim 0;0 confirm</code></td><td>Gibt den ganzen Claim einschließlich verbundener Zellen frei. Die Bauten bleiben in der Welt. Ein späterer neuer Claim kann diese Fläche beanspruchen.</td></tr>
-  </tbody>
-</table></div>
-  <p>Bei bekannten Namen oder vollständigen UUIDs ist auch die Verwaltung von Offline-Spielern möglich. Aktive Wettbewerbsbeiträge und zensierte Claims lassen sich nicht direkt übertragen oder freigeben. <code>unclaim</code> lässt die Bauten stehen. Für einen leeren Neuanfang die Fläche mit <a href="#/moderation/entfernen">remove entfernen und mit restore als freie Standardplots erzeugen</a>. Frühere Inhalte werden dabei nicht zurückgeholt; dafür ist eine passende Sicherung erforderlich.</p>
-  <h2 data-anchor="rollen">Fremde Rollen und Profile verwalten</h2>
-<pre data-lang="shell">/plot admin role 0;0 trust Alex
-/plot admin profile 0;0 description Öffentlicher Garten</pre>
-  <p>Gültige Rollenaktionen sind <code>trust</code>, <code>untrust</code>, <code>add</code>, <code>unadd</code>, <code>storage</code>, <code>unstore</code>, <code>deny</code> und <code>undeny</code>. Als Profilfelder gelten <code>name</code>, <code>description</code> und <code>category</code>. Die Regeln für Textlängen, Namen und Kategorien bleiben bestehen. <code>description -</code> entfernt eine Beschreibung, <code>category off</code> den Galerieeintrag.</p>
-  <h2 data-anchor="bypass">Admin-Bypass gezielt ausschalten</h2>
-<pre data-lang="shell">/plot admin bypass off</pre>
-  <p>Mit <code>simpleplots.admin.bypass</code> ist der Bypass standardmäßig aktiv, solange er nicht ausgeschaltet wurde. Er erlaubt administrativen Zutritt trotz Bann und Bauzugriff außerhalb gesperrter Flächen. Mit <code>off</code> gelten die normalen Plotrechte; die Wahl wird am Spieler gespeichert. <code>/plot admin bypass on</code> schaltet ihn wieder ein.</p>
-  <p>Der Bypass hebt Zensur und Wettbewerbssperren nicht auf und macht dich nicht zum Besitzer. Für Tests der Spielerrechte verwende Survival ohne Bypass oder einen zweiten Spieler. Adminflug ist davon unabhängig; siehe <a href="#/flug">Flug und Spielmodi</a>.</p>
-  <h2 data-anchor="zensur">Plot reversibel zensieren</h2>
-  <ol>
-    <li>Welt und gesamten Plugin-Datenordner sichern. Den Claim mit <code>/plot admin inspect 0;0</code> prüfen.</li>
-    <li><code>/plot admin censor 0;0</code> ausführen. Der gesamte Claim einschließlich interner Merge-Wege wird gesperrt.</li>
-    <li>Die Abschlussmeldung abwarten. Das Plugin sichert Blöcke, Block-Entity-Daten und Entities unter <code>zensur/</code>, bevor Weltinhalte abschnittsweise ersetzt werden.</li>
-    <li>Danach erscheint die Fläche leer mit roten Randstufen. Sie bleibt begehbar und zeigt einen Hinweis. Änderungen sind auch für Besitzer und Admins gesperrt.</li>
-  </ol>
-  <p>Zensierte Claims verschwinden aus Galerie, Besitzerlisten, Namenssuche, Rasterkarte und Wettbewerbsansichten. Das ist eine Inhaltsausblendung mit erhaltenem Anspruch, keine Freigabe. Standardmäßig erfasst ein Auftrag höchstens 256 Chunks; die Grenze steht in <a href="#/config-protection">protection.yml</a>.</p>
-  <h2 data-anchor="wiederherstellen">Zensur aufheben</h2>
-<pre data-lang="shell">/plot admin censor 0;0 off</pre>
-  <p><code>/plot admin uncensor 0;0</code> ist die Kurzform. Das Plugin stellt die gesicherten Blöcke und Entities wieder her und entsperrt den Claim erst danach. Während Sicherung und Wiederherstellung bleiben Spieler auf den Wegen. Mehrere Aufträge werden nacheinander bearbeitet. Originaldaten bleiben nach einer Wiederherstellung erhalten.</p>
-  <h2 data-anchor="unterbrechung">Unterbrechung und fehlende Originale</h2>
-  <p>Unterbrochene Arbeiten werden beim Neustart fortgesetzt. Nach einem Speicherfehler bleiben Sperren und bestätigte Sicherungen erhalten. Ursache im Log beheben und den gewünschten Befehl erneut ausführen. Beschädigte oder fehlende Originaldateien nicht durch leere Dateien ersetzen oder löschen. Nutze eine gemeinsame Sicherung von Welt und Plugin-Daten.</p>
-  <p>Ein älteres Plugin kann Zensursperren übergehen. Für einen Downgrade deshalb den vollständigen Stand vor dem entsprechenden Update zurücksichern, einschließlich Welt und Daten. Einzelne Originalabschnitte ersetzen keine vollständige Betriebssicherung.</p>
-  <h2 data-anchor="entfernen">Flächen entfernen und leer wiederherstellen</h2>
-<pre data-lang="shell">/plot admin remove ~
-/plot admin restore 0;0
-/plot in creative admin remove -1;2</pre>
-  <p><code>remove</code> löscht die gesamte Fläche bis zum unteren Weltrand: Claim, Rollen, Profil, Blöcke, Block-Entity-Daten und Entities. Bei einem Merge gehören alle verbundenen Zellen und deren ehemaligen Innenwege dazu. Öffentliche Außenwege und Nachbarplots bleiben erhalten. Auch bislang freie Rasterzellen lassen sich entfernen. Die Fläche verschwindet aus allen Plotindizes und bleibt für <code>claim</code>, Admin-Claims und <code>auto</code> gesperrt. Ein Admin-Bypass hebt diese Sperre nicht auf.</p>
-  <p><code>restore</code> erzeugt Standardboden, leere Luft darüber und bei einem früheren Merge wieder die regulären öffentlichen Innenwege. Die einzelnen Plots sind danach frei. Früherer Inhalt, Profile und Eigentum werden nicht zurückgeholt; für reversible Inhalte <code>censor</code> und <code>uncensor</code> verwenden. Zensierte Plots oder aktive Wettbewerbsbeiträge lassen sich erst nach regulärer Entsperrung entfernen.</p>
-  <p>Der Auftrag wird atomar zusammen mit dem Plotbestand gespeichert, bevor die Welt geändert wird. Weltarbeiten laufen abschnittsweise innerhalb der Budgets aus <code>protection.yml: zensur-*</code>. Erst nach erfolgreicher Weltspeicherung wird der Arbeitsabschluss gespeichert; bis dahin bleibt die Fläche gesperrt. Nach einer Unterbrechung wird beim nächsten Pluginstart fortgesetzt. Der ursprüngliche Befehl startet einen abgebrochenen Arbeitsschritt erneut. Bei noch nicht abgeschlossener Entfernung muss diese zuerst fertig werden, bevor eine leere Wiederherstellung möglich ist.</p>
-  <p><code>~</code> wählt bei <code>censor</code>, <code>uncensor</code>, <code>remove</code>, <code>restore</code> und weiteren Verwaltungsbefehlen die Fläche am Standort. Bei Merges wird die Haupt-ID aufgelöst. In der Konsole, in fremden Welten und auf öffentlichen Wegen wird die Standortwahl abgewiesen. <code>X;Z</code> bleibt eine Plot-ID und bezeichnet keine Blockkoordinaten.</p>
+<section class="page" data-id="speicher" data-group="Betrieb" data-title="Speicherung und Sicherungen">
+<h1>Speicherung und Sicherungen</h1>
+<p class="lead">Die Plotwelt und der vollständige Plugin-Datenordner bilden gemeinsam den wiederherstellbaren Spielstand.</p>
+<h2 data-anchor="bestand">Zusammengehörige Dateien</h2>
+<p><code>plots.yml</code> enthält den Grundbestand, <code>plots-aenderungen.yml</code> das zugehörige Journal. Bestandskennung und Speicherstände müssen zusammenpassen. Auch ein leeres älteres Journal ersetzt keinen fehlenden Grundbestand.</p>
+<p>Sichere den gesamten Ordner <code>plugins/SimplePlots/</code>, die Plotwelt und die Spielerdaten gemeinsam. Dazu gehören Weltmetadaten, Wettbewerb, Konfiguration und <code>zensur/</code>. Persönliche Lesezeichen und Rückkehrorte liegen in den Spielerdaten.</p>
+<h2 data-anchor="wiederherstellen">Sichern und wiederherstellen</h2>
+<p>Stoppe den Server regulär und prüfe den Abschluss der Speicheraufträge. Verwende beim Wiederherstellen einen vollständigen, zusammengehörigen Stand. Einzelne <code>.bak</code>-Dateien enthalten nur Vorgänger einer Datei und ersetzen keine gemeinsame Sicherung.</p>
+<p>Die genauen Schritte und Fehlerfälle stehen unter <a href="#/betrieb">Betrieb und Updates</a>; Speicherformat, Migrationen und Schreibgrenzen unter <a href="#/qualitaet">Qualität und Architektur</a>.</p>
 </section>
 
-<section class="page" data-id="betrieb" data-group="Betrieb" data-title="Updates und Sicherungen">
-  <h1>Updates und Sicherungen</h1>
+<section class="page" data-id="betrieb" data-group="Betrieb" data-title="Betrieb und Updates">
+  <h1>Betrieb und Updates</h1>
   <p class="lead">Sichere die Plotwelt und den gesamten Plugin-Datenordner gemeinsam. Welt, Raster und Claim-Zuordnung müssen nach einer Wiederherstellung zusammenpassen.</p>
   <p>Hilfe bei konkreten Problemen findest du unter <a href="#/fehlerbehebung">Fehlerbehebung</a>. Claim-Änderungen und die Zensur sind unter <a href="#/moderation">Plotverwaltung und Zensur</a> beschrieben.</p>
     <h2 data-anchor="update">Update einspielen</h2>
@@ -1761,7 +1803,7 @@ symbole:
         <tr><td>PlotSystem ist noch geladen.</td><td>Paper stoppen und die alte JAR gemäß <a href="#/installation/wechsel">Wechselanleitung</a> entfernen.</td></tr>
         <tr><td>Zwei befüllte Plugin-Datenordner.</td><td>Paper stoppen, beide Bestände sichern und klären, welcher Ordner zur vorhandenen Plotwelt gehört.</td></tr>
         <tr><td>Vorhandene Plotwelt ohne registriertes Raster oder Claims ohne Weltmetadaten beziehungsweise Weltdateien.</td><td>Die passende <code>welt.yml</code> und die Plotwelt aus der gemeinsamen Sicherung wiederherstellen. Das Plugin erzeugt zu vorhandenen Claims keine leere Ersatzwelt.</td></tr>
-        <tr><td>Ungültige oder fehlende Einstellungen unter <code>config/</code>.</td><td>Einrückung sowie die gültigen Ganzzahlwerte für <a href="#/konfiguration/einstellungen">Raster und Claim-Limit</a> prüfen.</td></tr>
+        <tr><td>Ungültige oder fehlende Einstellungen unter <code>config/</code>.</td><td>Einrückung sowie die gültigen Ganzzahlwerte für <a href="#/config-uebersicht/einstellungen">Raster und Claim-Limit</a> prüfen.</td></tr>
         <tr><td>Plot-Änderungsjournal fehlt oder passt nicht zum Grundbestand.</td><td>Grundbestand und Journal aus einer gemeinsamen Sicherung wiederherstellen. Beide Dateien gehören zum aktuellen Spielstand.</td></tr>
         <tr><td>Doppelte YAML-Schlüssel, verkürzte UUIDs oder doppelte Rollen-/Zelleneinträge.</td><td>Die im Log genannte Datei bei gestopptem Server prüfen. Ungültige Daten werden abgewiesen und bleiben zur Prüfung erhalten.</td></tr>
       </tbody>
@@ -1905,7 +1947,7 @@ symbole:
     <p><strong>Update-Hinweis.</strong> Tausche die Plugin-JAR bei gestopptem Server aus. Bei einem Wechsel von PlotSystem zuerst die <a href="#/installation/wechsel">Daten und Plotwelt sichern</a>.</p>
 </section>
 
-<section class="page" data-id="fehlerbehebung" data-group="Hilfe und Entwicklung" data-title="Fehlerbehebung">
+<section class="page" data-id="fehlerbehebung" data-group="Hilfe" data-title="Fehlerbehebung">
   <h1>Fehlerbehebung</h1>
   <p class="lead">Gehe vom sichtbaren Problem aus und lies die zugehörige Meldung im Serverlog. Sichere die betroffenen Dateien, bevor du Spielstände von Hand änderst.</p>
 <h2 data-anchor="eingrenzen">Zuerst eingrenzen</h2>
@@ -1931,7 +1973,7 @@ symbole:
 <div class="tbl"><table>
   <thead><tr><th scope="col">Symptom</th><th scope="col">Prüfung und nächster Schritt</th></tr></thead>
   <tbody>
-    <tr><td>Keine Berechtigung.</td><td><code>simpleplots.use</code> ist für jeden Aufruf nötig. Danach das Einzelrecht des Befehls in der <a href="#/befehle">Referenz</a> prüfen. Plotrollen allein vergeben keine Server-Permissions.</td></tr>
+    <tr><td>Keine Berechtigung.</td><td><code>simpleplots.use</code> ist für jeden Aufruf nötig. Danach das Einzelrecht des Befehls in der <a href="#/befehle">Referenz</a> prüfen. Plotrollen allein vergeben keine Server-Berechtigungen.</td></tr>
     <tr><td>Ein anderes Plugin beantwortet /plot oder /p.</td><td>Den registrierten vollständigen Befehl <code>/simpleplots:plot help</code> testen und danach den Befehlsnamenkonflikt im Server prüfen.</td></tr>
     <tr><td>Nur der Besitzer darf das.</td><td>Auf den eigenen Claim stellen. Trusted und Bauhelfer dürfen bauen, verwalten aber keine Mitglieder. Admin-Bypass ersetzt kein Eigentum; Admin-Verwaltungsbefehle verwenden.</td></tr>
     <tr><td>Spieler unbekannt.</td><td>Einen bekannten Spielernamen oder eine vollständige UUID verwenden. Der Transferempfänger muss stattdessen online und für den Absender sichtbar sein.</td></tr>
@@ -1966,7 +2008,7 @@ symbole:
 </table></div>
   <h2 data-anchor="reload">Konfiguration wird nicht übernommen</h2>
   <p>Das Log nennt Datei und Schlüssel. Prüfe YAML-Einrückung, doppelte Schlüssel, Werttypen und gültige Bereiche. Beispiele: <code>true</code> statt <code>"true"</code>, <code>3</code> statt <code>"3"</code>, <code>0.1</code> statt <code>0,1</code>. Bei einem Menü müssen Slots verschieden und innerhalb des Inventars liegen. Nach erster Weltgenerierung muss das konfigurierte Raster zum gespeicherten Raster passen.</p>
-  <p>Korrigiere die genannte Datei und führe den Reload erneut aus. Ein Fehler in einer der acht Dateien verhindert jede Teilübernahme. Der Befehl lädt keine Claims, keinen Wettbewerb und keine Weltmetadaten neu. Die <a href="#/konfiguration/wegweiser">Konfigurationsübersicht</a> führt zu den gültigen Werten.</p>
+  <p>Korrigiere die genannte Datei und führe den Reload erneut aus. Ein Fehler in einer der acht Dateien verhindert jede Teilübernahme. Der Befehl lädt keine Claims, keinen Wettbewerb und keine Weltmetadaten neu. Die <a href="#/config-uebersicht/wegweiser">Konfigurationsübersicht</a> führt zu den gültigen Werten.</p>
   <h2 data-anchor="speicher">Speicherfehler und Überlastung</h2>
   <p>Bei <em>vorherige Änderung wird noch gespeichert</em> die ausstehende Rückmeldung abwarten. Bei voller Warteschlange später erneut versuchen. Wiederholte Fehler mit dem Serverlog und <code>diagnostics</code> eingrenzen: freier Speicherplatz, Schreibrechte, Dateisperren, Datenträger und vollständiger Spielstand sind relevante Prüfpunkte. Eine Ursache ist erst durch das Log oder eine gezielte Prüfung belegt.</p>
   <p>Ein fehlgeschlagener Auftrag veröffentlicht keine neuen Rechte. Keinen Erfolg aus einem Menüstand ableiten, wenn die Speicherung fehlschlägt. Bei beschädigten Daten den Server stoppen, Dateien zur Diagnose erhalten und die <a href="#/betrieb/sicherungen">gemeinsame Sicherung</a> verwenden. <code>.bak</code> ist kein vollständiges Weltbackup.</p>
@@ -1977,10 +2019,10 @@ symbole:
   <p>Das <a href="https://github.com/thelightrixx/SimplePlots/issues">GitHub-Issueverzeichnis</a> ist der Einstieg für Fehlermeldungen. Eine Meldung ersetzt keine Sicherung des betroffenen Bestands.</p>
 </section>
 
-<section class="page" data-id="faq" data-group="Hilfe und Entwicklung" data-title="Häufige Fragen">
+<section class="page" data-id="faq" data-group="Hilfe" data-title="Häufige Fragen">
   <h1>Häufige Fragen</h1>
   <p class="lead">Antworten auf häufige Fragen zu Claims, Rechten, Flug und Betrieb.</p>
-<details data-anchor="brauche-ich-luckperms-oder-eine-datenbank"><summary>Brauche ich LuckPerms oder eine Datenbank?</summary><div><p>Nein. Die Spielerrechte sind standardmäßig erlaubt, Adminrechte standardmäßig für Operatoren. LuckPerms kann Paper-Permissions verwalten, ist aber keine Voraussetzung. Spielstände werden lokal als YAML und Zensursicherungen gespeichert; es gibt derzeit keine Datenbankanbindung.</p></div></details>
+<details data-anchor="brauche-ich-luckperms-oder-eine-datenbank"><summary>Brauche ich LuckPerms oder eine Datenbank?</summary><div><p>Nein. Die Spielerrechte sind standardmäßig erlaubt, Adminrechte standardmäßig für Operatoren. LuckPerms kann Paper-Berechtigungen verwalten, ist aber keine Voraussetzung. Spielstände werden lokal als YAML und Zensursicherungen gespeichert; es gibt derzeit keine Datenbankanbindung.</p></div></details>
 <details data-anchor="was-kostet-ein-claim"><summary>Was kostet ein Claim?</summary><div><p>Standardmäßig nichts. Mit <code>wirtschaft.aktiv: true</code> in <code>config/general.yml</code> zieht SimplePlots den Preis je Rasterzelle direkt über EconomySystem ein; Vault ist nicht nötig. Ohne erreichbare Anbindung werden Claims dann abgelehnt, ohne etwas abzubuchen. <a href="#/config-general/wirtschaft">Claim-Preise über EconomySystem</a> beschreibt die Einstellungen. <a href="#/schnellstart/claim">/plot auto</a> beansprucht direkt einen freien Plot; du brauchst danach keinen zweiten Claim-Befehl.</p></div></details>
 <details data-anchor="behalte-ich-mein-inventar"><summary>Behalte ich mein Inventar?</summary><div><p>Ja. Die Plotwelt verwendet das normale Inventar und deine eigenen Materialien. SimplePlots legt kein getrenntes Creative- oder Plotinventar an.</p></div></details>
 <details data-anchor="kann-ich-plotgroesse-und-wege-spaeter-aendern"><summary>Kann ich Plotgröße und Wege später ändern?</summary><div><p>Vor der ersten Weltgenerierung ja, danach bleibt das Raster fest. Materialänderungen gelten für neue Chunks. Die gespeicherten Rastermetadaten zu löschen ist kein unterstützter Umbau; siehe <a href="#/plotwelt/festlegen">Raster festlegen</a>.</p></div></details>
@@ -1998,7 +2040,35 @@ symbole:
 <details data-anchor="kann-ich-das-handbuch-ohne-internet-verwenden"><summary>Kann ich das Handbuch ohne Internet verwenden?</summary><div><p>Ja. docs/index.html enthält Inhalte, Skripte und Schriften. Nimm den ganzen docs-Ordner mit, damit auch die lokalen Lizenztexte erreichbar bleiben. Nur externe Links und Downloads benötigen Internet.</p></div></details>
 </section>
 
-<section class="page" data-id="qualitaet" data-group="Hilfe und Entwicklung" data-title="Qualität und Architektur">
+<!-- SHARED:development-guide -->
+<section class="page" data-id="projektstandard" data-title="Entwicklung" data-group="Projekt">
+<h1>Entwicklung</h1>
+<p><code>common/</code> enthält die Logik ohne Server-API. Die Plattformmodule binden sie an den jeweiligen Server an. Alle Module stehen in <code>pom.xml</code>; <code>scripts/project.json</code> nennt die Module, deren JARs veröffentlicht werden. Fachlich benötigte Zusatzmodule bleiben Teil des jeweiligen Projekts.</p>
+<h2 data-anchor="verbindliche-ablage">Die wichtigsten Dateien</h2>
+<p>Das Offline-Handbuch liegt in <code>docs/index.html</code>. Unter <code>scripts/</code> stehen die Werkzeuge; <code>scripts/project.json</code> nennt Projekt, Repository und Release-Module. <code>target/</code>, <code>dist/</code> und <code>.tools/</code> sind lokale Ausgaben. Auch <code>AGENTS.md</code> bleibt lokal.</p>
+<h2 data-anchor="build-und-pruefung">Bauen</h2>
+<p>Du brauchst JDK 25 oder neuer und Python ab 3.10. Unter Windows startet dieser Befehl alle Prüfungen und baut sämtliche Module:</p>
+<pre data-lang="shell">build_all_jars.bat nobump ci</pre>
+<p>Das Skript findet Maven oder lädt Maven 3.9.11 mit Prüfsummenkontrolle nach <code>.tools/</code>. Unter Linux und macOS kannst du mit installiertem Maven dieselben Schritte ausführen:</p>
+<pre data-lang="shell">python scripts/check-standard.py
+python scripts/check-version.py
+python scripts/check-docs.py
+python -m unittest discover -s scripts -p test_project_tools.py
+mvn -B -ntp clean verify
+python scripts/prepare-release.py</pre>
+<p>Die fertigen JARs, das Quellarchiv und <code>SHA256SUMS.txt</code> liegen danach in <code>dist/</code>. Der Bytecode zielt auf Java 21. Die moderne Paper-Variante braucht trotzdem Java 25, weil der Server das voraussetzt.</p>
+<h2 data-anchor="versionen-und-releases">Eine Version veröffentlichen</h2>
+<p>Ein Build ändert keine Versionsnummer. Für Fehlerkorrekturen und kleine Erweiterungen erhöhen wir Patch, für größere Funktionspakete Minor. Jede Plugin-Reihe behält ihre Hauptnummer. Reine Dokumentations- und Werkzeugpflege braucht keinen Plugin-Release.</p>
+<pre data-lang="shell">powershell -NoProfile -ExecutionPolicy Bypass -File scripts/bump-build.ps1 -Increment patch</pre>
+<p>Danach README, Handbuch und Changelog aktualisieren, vollständig bauen und den Commit nach <code>main</code> pushen. Wenn Build auf Windows und Linux sowie Pages für diesen Commit erfolgreich sind, genau diesen Stand als <code>vMajor.Minor.Patch</code> taggen. GitHub Actions veröffentlicht die JARs und Prüfsummen. Abschließend die Downloads und ihre Metadaten prüfen. Veröffentlichte Versionen werden nicht nachträglich ersetzt.</p>
+<h2 data-anchor="gemeinsamen-standard-pflegen">Die gemeinsame Vorlage pflegen</h2>
+<p>Werkzeuge und Handbuchoberfläche zuerst in PunishSystem ändern. <code>python scripts/sync-standard.py --check</code> zeigt Abweichungen in der gemeinsamen Ablage; <code>--write</code> überträgt die Vorlage. Die gemeinsame Oberfläche und markierte Textbausteine werden identisch übertragen. Plugin-Inhalte, Plattformmodule, Lizenzbedingungen und Versionsnummern bleiben projektspezifisch.</p>
+<h2 data-anchor="grenzen-der-automatischen-pruefung">Was der Build prüft</h2>
+<p>Der Build prüft Quellen, Tests, Handbuchlinks und fertige Archive. Das ist kein Spielertest: Das Zusammenspiel mit deinen Plugins, vorhandenen Welten und Clients muss auf einem getrennten Server geprüft werden. Die Werkzeuge installieren nichts auf einem laufenden Server.</p>
+</section>
+<!-- /SHARED:development-guide -->
+
+<section class="page" data-id="qualitaet" data-group="Projekt" data-title="Qualität und Architektur">
   <h1>Qualität und Architektur</h1>
   <p class="lead">Die Plotregeln liegen in <code>common</code>, die Anbindung an Paper im Plattformmodul. Änderungen werden erst für Spieler sichtbar, nachdem sie gespeichert wurden.</p>
     <h2 data-anchor="architektur">Modelle, Dienste und Plattform</h2>
@@ -2035,7 +2105,7 @@ symbole:
     <p>Die HTML-Berichte liegen anschließend unter <code>common/target/site/jacoco/index.html</code> und <code>paper/target/site/jacoco/index.html</code>. Mit <code>-Pcoverage</code> erzeugt Maven die Berichte auf dem jeweiligen Buildsystem. Berichte zeigen ausgeführte Codepfade; sie ersetzen weder fachliche Assertions noch den Laufzeittest.</p>
 </section>
 
-<section class="page" data-id="entwicklung" data-group="Hilfe und Entwicklung" data-title="Bauen und veröffentlichen">
+<section class="page" data-id="entwicklung" data-group="Projekt" data-title="Bauen und veröffentlichen">
   <h1>Bauen und veröffentlichen</h1>
   <p class="lead">Der Maven-Build kompiliert mit JDK 25 oder neuer für Java 21 und erzeugt getrennte JARs für Paper 1.21.8 und 26.1. Python 3.10 oder neuer prüft Dokumentation und Artefakte.</p>
     <h2 data-anchor="bauen">Bauen und testen</h2>
@@ -2072,40 +2142,265 @@ python scripts/prepare-release.py</pre>
     <p>Versioniert werden <code>common/</code>, <code>paper/</code>, <code>docs/</code>, <code>scripts/</code>, die GitHub-Workflows und die Projektdateien. <code>.mvn/jvm.config</code> markiert die Maven-Projektwurzel und setzt UTF-8 für den Build-Prozess. <code>.editorconfig</code> und <code>.gitattributes</code> vereinheitlichen UTF-8 und Zeilenenden. Maven-Daten unter <code>target/</code>, <code>.tools/</code>, <code>dist/</code>, <code>test-server/</code>, IDE-Dateien, Secrets und die lokale <code>AGENTS.md</code> sind ignoriert.</p>
     <h2 data-anchor="versionen">Versionen und Releases</h2>
     <p>Neue Versionen heißen <code>vMajor.Minor.Patch</code> und sind stabil. Patch gilt für Korrekturen und kleine Erweiterungen, Minor für größere Funktionspakete. Normale Builds und reine Dokumentations- oder Werkzeugpflege erhöhen keine Plugin-Version. Die Dokumentation wird unabhängig davon über Pages veröffentlicht.</p>
-    <p>Setze eine geplante Zielversion ausdrücklich mit <code>scripts/bump-build.ps1 -Version &lt;vX.Y.Z-beta&gt;</code>. Bei stabilen Versionen stehen <code>-Increment patch</code> und <code>-Increment minor</code> bereit. Anschließend README, Versionsanzeige und Changelog aktualisieren und <code>python scripts/check-version.py</code> ausführen.</p>
-    <p>Neue Releases sind auf GitHub als stabil gekennzeichnet. Vor einer Veröffentlichung Installation, Befehle, Permissions, Einstellungen, Voraussetzungen und Update-Hinweise mit dem aktuellen Plugin abgleichen und das Veröffentlichungsdatum im neuesten Changelog-Eintrag ergänzen. Veröffentlichte Versionen bleiben unverändert.</p>
+    <p>Setze eine geplante Zielversion ausdrücklich mit <code>scripts/bump-build.ps1 -Version &lt;vX.Y.Z&gt;</code>. Bei stabilen Versionen stehen <code>-Increment patch</code> und <code>-Increment minor</code> bereit. Anschließend README, Versionsanzeige und Changelog aktualisieren und <code>python scripts/check-version.py</code> ausführen.</p>
+    <p>Neue Releases sind auf GitHub als stabil gekennzeichnet. Vor einer Veröffentlichung Installation, Befehle, Berechtigungen, Einstellungen, Voraussetzungen und Update-Hinweise mit dem aktuellen Plugin abgleichen und das Veröffentlichungsdatum im neuesten Changelog-Eintrag ergänzen. Veröffentlichte Versionen bleiben unverändert.</p>
     <p>Das Datum im neuesten Changelog-Eintrag als <code>&lt;time datetime="YYYY-MM-DD"&gt;TT.MM.JJJJ&lt;/time&gt;</code> eintragen und den Hinweis auf den unveröffentlichten Stand ersetzen. <code>python scripts/check-version.py --tag &lt;Version&gt;</code> prüft vor dem Taggen zusätzlich dieses Datum.</p>
     <p>Die GitHub-CI prüft Dokumentation, Werkzeugtests und Maven auf Windows und Linux. Nach erfolgreichem Build auf <code>main</code> wird genau dieser geprüfte Commit mit der vollständigen Version getaggt. Beim passenden Tag erstellt der Release-Workflow einen stabilen Release mit beiden geprüften Paper-JARs, <code>SHA256SUMS.txt</code> und dem Text aus <code>RELEASE_NOTES.md</code>. Anschließend Release-Text, Dateien und Prüfsumme kontrollieren.</p>
     <h2 data-anchor="lizenzen">Lizenzen</h2>
-    <p>Plugin und Quellcode stehen unter der <a href="licenses/SimplePlots-MIT.txt">MIT-Lizenz</a>. Die eingebetteten Schriften haben eigene Lizenzen: <a href="licenses/JetBrainsMono-OFL.txt">JetBrains Mono</a> und <a href="licenses/Poppins-OFL.txt">Poppins</a> verwenden die SIL Open Font License 1.1. Alle Lizenztexte sind lokal enthalten.</p>
+    <p>Plugin und Quellcode stehen unter der <a href="licenses/PROJECT.txt">MIT-Lizenz</a>. Die eingebetteten Schriften haben eigene Lizenzen: <a href="licenses/JetBrainsMono-OFL.txt">JetBrains Mono</a> und <a href="licenses/Poppins-OFL.txt">Poppins</a> verwenden die SIL Open Font License 1.1. Alle Lizenztexte sind lokal enthalten.</p>
     <h2 data-anchor="pages">GitHub Pages</h2>
     <p>Wähle im Repository unter <strong>Settings → Pages</strong> als Quelle <strong>GitHub Actions</strong>. Der Doku-Workflow veröffentlicht den Ordner <code>docs/</code> bei Änderungen auf <code>main</code> und lässt sich nach der Einrichtung einmal manuell starten.</p>
 </section>
 
-<section class="page" data-id="projektstandard" data-title="Entwicklung" data-group="Projekt">
-<h1>Entwicklung</h1>
-<p><code>common/</code> enthält die Logik ohne Server-API. Die Module <code>paper, paper-1.21</code> bauen die jeweiligen Server-JARs. Die Befehle zum Bauen und Veröffentlichen sind in allen Projekten gleich und stammen aus PunishSystem.</p>
-<h2 data-anchor="verbindliche-ablage">Die wichtigsten Dateien</h2>
-<p>Das Offline-Handbuch liegt in <code>docs/index.html</code>. Unter <code>scripts/</code> stehen die Werkzeuge; <code>scripts/project.json</code> nennt Projekt, Repository und Release-Module. <code>target/</code>, <code>dist/</code> und <code>.tools/</code> sind lokale Ausgaben. Auch <code>AGENTS.md</code> bleibt lokal.</p>
-<h2 data-anchor="build-und-pruefung">Bauen</h2>
-<p>Du brauchst JDK 25 oder neuer und Python ab 3.10. Unter Windows startet dieser Befehl alle Prüfungen und baut sämtliche Module:</p>
-<pre data-lang="shell">build_all_jars.bat nobump ci</pre>
-<p>Das Skript findet Maven oder lädt Maven 3.9.11 mit Prüfsummenkontrolle nach <code>.tools/</code>. Unter Linux und macOS kannst du mit installiertem Maven dieselben Schritte ausführen:</p>
-<pre data-lang="shell">python scripts/check-standard.py
-python scripts/check-version.py
-python scripts/check-docs.py
-python -m unittest discover -s scripts -p test_project_tools.py
-mvn -B -ntp clean verify
-python scripts/prepare-release.py</pre>
-<p>Die fertigen JARs, das Quellarchiv und <code>SHA256SUMS.txt</code> liegen danach in <code>dist/</code>. Der Bytecode zielt auf Java 21. Die moderne Paper-Variante braucht trotzdem Java 25, weil der Server das voraussetzt.</p>
-<h2 data-anchor="versionen-und-releases">Eine Version veröffentlichen</h2>
-<p>Ein Build ändert keine Versionsnummer. Für Fehlerkorrekturen und kleine Erweiterungen erhöhen wir Patch, für größere Funktionspakete Minor. Jede Plugin-Reihe behält ihre Hauptnummer. Reine Dokumentations- und Werkzeugpflege braucht keinen Plugin-Release.</p>
-<pre data-lang="shell">powershell -NoProfile -ExecutionPolicy Bypass -File scripts/bump-build.ps1 -Increment patch</pre>
-<p>Danach README, Handbuch und Changelog aktualisieren, vollständig bauen und den Commit nach <code>main</code> pushen. Wenn Build und Pages für diesen Commit erfolgreich sind, genau diesen Stand als <code>vMajor.Minor.Patch</code> taggen. GitHub Actions veröffentlicht die JARs und Prüfsummen. Abschließend die Downloads und ihre Metadaten prüfen. Veröffentlichte Versionen werden nicht nachträglich ersetzt.</p>
-<h2 data-anchor="gemeinsamen-standard-pflegen">Die gemeinsame Vorlage pflegen</h2>
-<p>Werkzeuge und Handbuchoberfläche zuerst in PunishSystem ändern. <code>python scripts/sync-standard.py --check</code> zeigt Abweichungen in der gemeinsamen Ablage; <code>--write</code> überträgt die Vorlage. Plugin-Inhalte und Versionsnummern werden dabei nicht übernommen.</p>
-<h2 data-anchor="grenzen-der-automatischen-pruefung">Was der Build prüft</h2>
-<p>Der Build prüft Quellen, Tests, Handbuchlinks und fertige Archive. Das ist kein Spielertest: Das Zusammenspiel mit deinen Plugins, vorhandenen Welten und Clients muss auf einem getrennten Server geprüft werden. Die Werkzeuge installieren nichts auf einem laufenden Server.</p>
+<section class="page" data-id="lizenz" data-group="Projekt" data-title="Lizenzen">
+<h1>Lizenzen</h1>
+<p class="lead">Plugin, Handbuchoberfläche und Schriften haben die folgenden Lizenzbedingungen. Die vollständigen Texte sind auch offline enthalten.</p>
+<h2 data-anchor="plugin">Plugin und Quellcode</h2>
+<p>Plugin und Quellcode stehen unter der <a href="licenses/PROJECT.txt">MIT-Lizenz</a>. Maßgeblich ist die Datei <code>LICENSE</code> im Repository.</p>
+<details data-anchor="vollstaendige-pluginlizenz"><summary>Vollständige MIT-Lizenz</summary><div><pre class="license-text" data-source="LICENSE">MIT License
+
+Copyright (c) 2026 lightrixx (de.lightrixx)
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+</pre></div></details>
+<!-- SHARED:interface-license -->
+<h2 data-anchor="handbuchoberflaeche">Handbuchoberfläche</h2>
+<p>Die gemeinsame Handbuchoberfläche stammt aus PunishSystem und steht unter der MIT-Lizenz. Der Lizenztext liegt zusätzlich unter <code>docs/licenses/PunishSystem-MIT.txt</code>.</p>
+<details data-anchor="vollstaendige-vorlagenlizenz"><summary>Vollständige Lizenz der Handbuchvorlage</summary><div><pre class="license-text" data-source="docs/licenses/PunishSystem-MIT.txt">MIT License
+
+Copyright (c) 2026 lightrixx (de.lightrixx)
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+</pre></div></details>
+<!-- /SHARED:interface-license -->
+<!-- SHARED:font-licenses -->
+<h2 data-anchor="schriften">Schriften</h2>
+<p>Poppins und JetBrains Mono sind in die HTML-Datei eingebettet. Beide stehen unter der SIL Open Font License 1.1. Ihre Lizenzhinweise sind auch unter <code>docs/licenses/</code> enthalten.</p>
+<details data-anchor="vollstaendige-schriftlizenzen"><summary>Vollständige Schriftlizenzen</summary><div>
+<h3 data-anchor="poppins">Poppins</h3>
+<pre class="license-text" data-source="docs/licenses/Poppins-OFL.txt">Copyright 2014-2019 Indian Type Foundry (info@indiantypefoundry.com)
+
+This Font Software is licensed under the SIL Open Font License, Version 1.1.
+This license is copied below, and is also available with a FAQ at:
+http://scripts.sil.org/OFL
+
+
+-----------------------------------------------------------
+SIL OPEN FONT LICENSE Version 1.1 - 26 February 2007
+-----------------------------------------------------------
+
+PREAMBLE
+The goals of the Open Font License (OFL) are to stimulate worldwide
+development of collaborative font projects, to support the font creation
+efforts of academic and linguistic communities, and to provide a free and
+open framework in which fonts may be shared and improved in partnership
+with others.
+
+The OFL allows the licensed fonts to be used, studied, modified and
+redistributed freely as long as they are not sold by themselves. The
+fonts, including any derivative works, can be bundled, embedded,
+redistributed and/or sold with any software provided that any reserved
+names are not used by derivative works. The fonts and derivatives,
+however, cannot be released under any other type of license. The
+requirement for fonts to remain under this license does not apply
+to any document created using the fonts or their derivatives.
+
+DEFINITIONS
+"Font Software" refers to the set of files released by the Copyright
+Holder(s) under this license and clearly marked as such. This may
+include source files, build scripts and documentation.
+
+"Reserved Font Name" refers to any names specified as such after the
+copyright statement(s).
+
+"Original Version" refers to the collection of Font Software components as
+distributed by the Copyright Holder(s).
+
+"Modified Version" refers to any derivative made by adding to, deleting,
+or substituting -- in part or in whole -- any of the components of the
+Original Version, by changing formats or by porting the Font Software to a
+new environment.
+
+"Author" refers to any designer, engineer, programmer, technical
+writer or other person who contributed to the Font Software.
+
+PERMISSION &amp; CONDITIONS
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of the Font Software, to use, study, copy, merge, embed, modify,
+redistribute, and sell modified and unmodified copies of the Font
+Software, subject to the following conditions:
+
+1) Neither the Font Software nor any of its individual components,
+in Original or Modified Versions, may be sold by itself.
+
+2) Original or Modified Versions of the Font Software may be bundled,
+redistributed and/or sold with any software, provided that each copy
+contains the above copyright notice and this license. These can be
+included either as stand-alone text files, human-readable headers or
+in the appropriate machine-readable metadata fields within text or
+binary files as long as those fields can be easily viewed by the user.
+
+3) No Modified Version of the Font Software may use the Reserved Font
+Name(s) unless explicit written permission is granted by the corresponding
+Copyright Holder. This restriction only applies to the primary font name as
+presented to the users.
+
+4) The name(s) of the Copyright Holder(s) or the Author(s) of the Font
+Software shall not be used to promote, endorse or advertise any
+Modified Version, except to acknowledge the contribution(s) of the
+Copyright Holder(s) and the Author(s) or with their explicit written
+permission.
+
+5) The Font Software, modified or unmodified, in part or in whole,
+must be distributed entirely under this license, and must not be
+distributed under any other license. The requirement for fonts to
+remain under this license does not apply to any document created
+using the Font Software.
+
+TERMINATION
+This license becomes null and void if any of the above conditions are
+not met.
+
+DISCLAIMER
+THE FONT SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO ANY WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT
+OF COPYRIGHT, PATENT, TRADEMARK, OR OTHER RIGHT. IN NO EVENT SHALL THE
+COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+INCLUDING ANY GENERAL, SPECIAL, INDIRECT, INCIDENTAL, OR CONSEQUENTIAL
+DAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM
+OTHER DEALINGS IN THE FONT SOFTWARE.
+</pre>
+<h3 data-anchor="jetbrains-mono">JetBrains Mono</h3>
+<pre class="license-text" data-source="docs/licenses/JetBrainsMono-OFL.txt">Copyright 2020 The JetBrains Mono Project Authors (https://github.com/JetBrains/JetBrainsMono)
+
+This Font Software is licensed under the SIL Open Font License, Version 1.1.
+This license is copied below, and is also available with a FAQ at:
+https://openfontlicense.org
+
+
+-----------------------------------------------------------
+SIL OPEN FONT LICENSE Version 1.1 - 26 February 2007
+-----------------------------------------------------------
+
+PREAMBLE
+The goals of the Open Font License (OFL) are to stimulate worldwide
+development of collaborative font projects, to support the font creation
+efforts of academic and linguistic communities, and to provide a free and
+open framework in which fonts may be shared and improved in partnership
+with others.
+
+The OFL allows the licensed fonts to be used, studied, modified and
+redistributed freely as long as they are not sold by themselves. The
+fonts, including any derivative works, can be bundled, embedded,
+redistributed and/or sold with any software provided that any reserved
+names are not used by derivative works. The fonts and derivatives,
+however, cannot be released under any other type of license. The
+requirement for fonts to remain under this license does not apply
+to any document created using the fonts or their derivatives.
+
+DEFINITIONS
+"Font Software" refers to the set of files released by the Copyright
+Holder(s) under this license and clearly marked as such. This may
+include source files, build scripts and documentation.
+
+"Reserved Font Name" refers to any names specified as such after the
+copyright statement(s).
+
+"Original Version" refers to the collection of Font Software components as
+distributed by the Copyright Holder(s).
+
+"Modified Version" refers to any derivative made by adding to, deleting,
+or substituting -- in part or in whole -- any of the components of the
+Original Version, by changing formats or by porting the Font Software to a
+new environment.
+
+"Author" refers to any designer, engineer, programmer, technical
+writer or other person who contributed to the Font Software.
+
+PERMISSION &amp; CONDITIONS
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of the Font Software, to use, study, copy, merge, embed, modify,
+redistribute, and sell modified and unmodified copies of the Font
+Software, subject to the following conditions:
+
+1) Neither the Font Software nor any of its individual components,
+in Original or Modified Versions, may be sold by itself.
+
+2) Original or Modified Versions of the Font Software may be bundled,
+redistributed and/or sold with any software, provided that each copy
+contains the above copyright notice and this license. These can be
+included either as stand-alone text files, human-readable headers or
+in the appropriate machine-readable metadata fields within text or
+binary files as long as those fields can be easily viewed by the user.
+
+3) No Modified Version of the Font Software may use the Reserved Font
+Name(s) unless explicit written permission is granted by the corresponding
+Copyright Holder. This restriction only applies to the primary font name as
+presented to the users.
+
+4) The name(s) of the Copyright Holder(s) or the Author(s) of the Font
+Software shall not be used to promote, endorse or advertise any
+Modified Version, except to acknowledge the contribution(s) of the
+Copyright Holder(s) and the Author(s) or with their explicit written
+permission.
+
+5) The Font Software, modified or unmodified, in part or in whole,
+must be distributed entirely under this license, and must not be
+distributed under any other license. The requirement for fonts to
+remain under this license does not apply to any document created
+using the Font Software.
+
+TERMINATION
+This license becomes null and void if any of the above conditions are
+not met.
+
+DISCLAIMER
+THE FONT SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO ANY WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT
+OF COPYRIGHT, PATENT, TRADEMARK, OR OTHER RIGHT. IN NO EVENT SHALL THE
+COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+INCLUDING ANY GENERAL, SPECIAL, INDIRECT, INCIDENTAL, OR CONSEQUENTIAL
+DAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM
+OTHER DEALINGS IN THE FONT SOFTWARE.
+</pre>
+</div></details>
+<!-- /SHARED:font-licenses -->
 </section>
 
   </main>
@@ -2229,7 +2524,7 @@ python scripts/prepare-release.py</pre>
     }
     return out + esc(line.slice(last));
   }
-  var LABEL = { cmd: 'Befehl', yaml: 'YAML', text: 'Text', shell: 'Terminal' };
+  var LABEL = { cmd: 'Befehl', yaml: 'YAML', text: 'Text', shell: 'Terminal', powershell: 'PowerShell' };
 
   function copyText(text, btn) {
     function done() {
@@ -2277,6 +2572,11 @@ python scripts/prepare-release.py</pre>
   });
   var byId = {};
   pages.forEach(function (p) { byId[p.id] = p; });
+  pages.forEach(function (p) {
+    (p.el.getAttribute('data-aliases') || '').split(/\s+/).forEach(function (alias) {
+      if (alias) byId[alias] = p;
+    });
+  });
 
   pages.forEach(function (p) {
     var used = {};
@@ -2502,6 +2802,17 @@ python scripts/prepare-release.py</pre>
     }
     var p = byId[id];
     if (!p) { p = byId.ueberblick; anchor = ''; }
+    if (anchor && !findAnchor(p.el, anchor)) {
+      (p.el.getAttribute('data-anchor-aliases') || '').split(/\s+/).some(function (entry) {
+        var pair = entry.split(':');
+        if (pair[0] !== anchor || pair.length !== 2) return false;
+        anchor = pair[1];
+        return true;
+      });
+    }
+    if (p.id !== id || anchor !== (parts[1] ? dec(parts[1]) : '')) {
+      history.replaceState(null, '', '#/' + p.id + (anchor ? '/' + anchor : ''));
+    }
     if (p !== current) {
       current = p;
       document.title = (p.id === 'ueberblick' ? projectName + ' Handbuch' : p.title + ' | ' + projectName + ' Handbuch');
