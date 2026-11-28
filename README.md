@@ -28,6 +28,8 @@ Das [Release v0.9.0](https://github.com/thelightrixx/SimplePlots/releases/tag/v0
 
 Genau eine passende Paper-JAR installieren. Beide Varianten enthalten dieselben Funktionen; sie werden getrennt gegen ihre jeweilige API gebaut. Vor Updates Datenordner und Welten sichern, alte JAR ersetzen und regulär neu starten. Folia wird nicht unterstützt.
 
+Für den Wechsel von v0.8.0-beta auf v0.9.0 die passende JAR einmal manuell installieren, da sich der Dateiname durch die Plattformvarianten ändert. Anschließend unterstützt der Updater die neuen Namen.
+
 ## Funktionen und bestehende Betriebshinweise
 
 SimplePlots ergänzt einen Paper-Server um mehrere getrennt konfigurierbare Survival-Plotwelten mit Claims, Baurechten, Plotgalerie und Bauwettbewerben. Spieler behalten beim Weltwechsel ihr Inventar.
