@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 import re
 from documentation import check_structure, fragments
+from command_standard import check as check_commands
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -36,6 +37,7 @@ def check(root=ROOT):
     if actual != standard["readmeFragments"]:
         errors.append("Gemeinsame README-Texte weichen von der Vorlage ab.")
     check_structure(root, handbook)
+    check_commands(root)
     if errors:
         raise ValueError("\n".join(errors))
     return len(standard["files"])

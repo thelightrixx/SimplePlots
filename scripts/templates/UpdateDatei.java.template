@@ -1,0 +1,33 @@
+package @PACKAGE@;
+
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
+import java.nio.file.*;
+
+public final class UpdateDatei {
+    private UpdateDatei() {}
+
+    public static Path speichern(Path original, Path ordner, byte[] daten) throws IOException {
+        original = original.toAbsolutePath().normalize(); ordner = ordner.toAbsolutePath().normalize();
+        if (!Files.isRegularFile(original) || !original.getFileName().toString().endsWith(".jar")) throw new IOException("Die installierte JAR wurde nicht gefunden.");
+        Path ziel = ordner.resolve(original.getFileName());
+        if (ordner.equals(original.getParent())) throw new IOException("Der Update-Ordner darf nicht der laufende Pluginordner sein.");
+        Files.createDirectories(ordner);
+        if (ordner.toRealPath().equals(original.toRealPath().getParent()) || Files.isSymbolicLink(ziel)
+                || (Files.exists(ziel) && Files.isSameFile(ziel, original))) throw new IOException("Das Update-Ziel zeigt auf die laufende JAR oder eine Verknüpfung.");
+        Path temp = Files.createTempFile(ordner, original.getFileName() + ".", ".tmp");
+        try {
+            try (var kanal = FileChannel.open(temp, StandardOpenOption.WRITE)) {
+                var puffer = ByteBuffer.wrap(daten);
+                while (puffer.hasRemaining()) kanal.write(puffer);
+                kanal.force(true);
+            }
+            Files.move(temp, ziel, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+            return ziel;
+        } catch (IOException | RuntimeException fehler) {
+            try { Files.deleteIfExists(temp); } catch (IOException aufraeumen) { fehler.addSuppressed(aufraeumen); }
+            throw fehler;
+        }
+    }
+}

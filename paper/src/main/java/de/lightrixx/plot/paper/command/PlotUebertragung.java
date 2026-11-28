@@ -78,7 +78,7 @@ final class PlotUebertragung {
         int limit = welt.konfiguration().claimLimit();
         UUID ziel = spieler.getUniqueId();
         angebote.remove(id);
-        auftraege.ausfuehren(spieler, "/plot accept", () -> angebot.bis() <= System.currentTimeMillis()
+        auftraege.ausfuehren(spieler, "/simpleplots accept", () -> angebot.bis() <= System.currentTimeMillis()
                 ? PlotDienst.Uebertragung.VERAENDERT : plots.uebertragen(angebot.stand(), ziel, limit, wettbewerbe::gesperrt), ergebnis -> {
             texte.senden(spieler, "transfer." + ergebnis.name().toLowerCase(Locale.ROOT).replace('_', '-'), unparsed("id", id.toString()));
             if (ergebnis == PlotDienst.Uebertragung.UEBERTRAGEN) {

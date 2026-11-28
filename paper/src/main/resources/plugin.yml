@@ -6,11 +6,16 @@ folia-supported: false
 softdepend: [EconomySystem]
 description: Mehrere Plotwelten mit Claims, Rollen, Flugregeln und Moderation.
 commands:
-  plot:
+  simpleplots:
     description: Betritt die Plotwelt oder verwalte deine Plots.
-    usage: /plot help
-    aliases: [p]
+    usage: /simpleplots help
+    aliases: [plot, p]
 permissions:
+  simpleplots.help: { description: Erlaubte Befehle und ihre Verwendung anzeigen., default: true }
+  simpleplots.version: { description: Installierte Plugin-Version anzeigen., default: true }
+  simpleplots.reload: { description: Konfiguration nach vollständiger Prüfung neu laden., default: op }
+  simpleplots.diagnostics: { description: Betriebszustand prüfen., default: op }
+  simpleplots.update: { description: Updates prüfen und bestätigt für den nächsten Start vorbereiten., default: op }
   simpleplots.bookmark:
     description: Persönliche Plot-Lesezeichen verwalten und besuchen.
     default: true
@@ -18,7 +23,7 @@ permissions:
     description: Die Plotgrenze vorübergehend als private Partikel sehen.
     default: true
   simpleplots.use:
-    description: Basisrecht für /plot.
+    description: Basisrecht für /simpleplots.
     default: true
   simpleplots.claim:
     description: Eigene Plots beanspruchen.
@@ -30,12 +35,16 @@ permissions:
     description: Plotwelt administrieren, alle Spielmodi nutzen und überall in der Plotwelt fliegen.
     default: op
     children:
+      simpleplots.update: true
+      simpleplots.diagnostics: true
+      simpleplots.reload: true
+      simpleplots.version: true
+      simpleplots.help: true
       simpleplots.use: true
       simpleplots.claim: true
       simpleplots.manage: true
       simpleplots.fly: true
       simpleplots.admin.update: true
-      simpleplots.admin.bypass: true
       simpleplots.admin.list: true
       simpleplots.admin.inspect: true
       simpleplots.admin.visit: true
@@ -55,6 +64,7 @@ permissions:
     description: Einstellungen, Nachrichten und Menüs sicher neu laden.
     default: op
     children:
+      simpleplots.reload: true
       simpleplots.use: true
   simpleplots.fly:
     description: Fly auf eigenen Plots innerhalb der konfigurierten Höhe einschalten.
@@ -62,9 +72,11 @@ permissions:
   simpleplots.admin.update:
     description: GitHub-Updates prüfen und für den nächsten Start vorbereiten.
     default: op
+    children:
+      simpleplots.update: true
   simpleplots.admin.bypass:
     description: Admin-Bypass für Baurechte und Banns schalten.
-    default: op
+    default: false
   simpleplots.admin.list:
     description: Plots eines Besitzers auflisten.
     default: op
@@ -108,6 +120,7 @@ permissions:
     description: Version, Plotwelt und Speicherwarteschlange prüfen.
     default: op
     children:
+      simpleplots.diagnostics: true
       simpleplots.use: true
 
 authors: [lightrixx]

@@ -70,7 +70,7 @@ public final class PlotEntfernen implements Listener {
                 beginnen(sender, welt.ladenOderErstellen(), eintrag); return;
             }
             var plotwelt = welt.ladenOderErstellen();
-            auftraege.ausfuehren(sender, "/plot admin restore",
+            auftraege.ausfuehren(sender, "/simpleplots admin restore",
                     () -> plots.entfernungsphase(eintrag, PlotEntfernung.Phase.WIEDERHERSTELLEN), erfolgreich -> {
                         if (erfolgreich) beginnen(sender, plotwelt, eintrag.mitPhase(PlotEntfernung.Phase.WIEDERHERSTELLEN));
                         else texte.senden(sender, "entfernen.veraendert");
@@ -103,7 +103,7 @@ public final class PlotEntfernen implements Listener {
             }
         } catch (ArithmeticException e) { texte.senden(sender, "fehler.plot-id"); return; }
         World plotwelt = welt.ladenOderErstellen();
-        auftraege.ausfuehren(sender, "/plot admin remove", () -> plots.entfernen(id, erwartet, sperre), erfolgreich -> {
+        auftraege.ausfuehren(sender, "/simpleplots admin remove", () -> plots.entfernen(id, erwartet, sperre), erfolgreich -> {
             if (erfolgreich) beginnen(sender, plotwelt, eintrag);
             else texte.senden(sender, "entfernen.veraendert");
         });

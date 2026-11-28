@@ -6,6 +6,7 @@ import de.lightrixx.plot.paper.storage.BinaerDatei;
 import de.lightrixx.plot.storage.SpeicherAuftraege;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.plugin.IllegalPluginAccessException;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.io.IOException;
@@ -15,6 +16,7 @@ import java.time.Duration;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.TimeUnit;
 
 import static net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.unparsed;
 import static net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.component;
@@ -31,6 +33,9 @@ public final class PlotUpdater {
     private String zustand = "ungeprueft";
     private String vorbereitet = "–";
     private BukkitTask timer;
+    private volatile long generation;
+    private volatile boolean beendet;
+    private long geprueftAm;
 
     public PlotUpdater(JavaPlugin plugin, PlotKonfiguration config, PlotNachrichten texte, Path original) {
         this(plugin, config, texte, original, new GithubUpdates(plugin.getServer().getMinecraftVersion(), plugin.getPluginMeta().getAPIVersion().startsWith("1.21")));
@@ -44,9 +49,13 @@ public final class PlotUpdater {
         this.github = github;
     }
 
-    public void planen(boolean start) {
+    public synchronized void planen(boolean start) {
+        if (beendet) return;
+        generation++;
         if (timer != null) timer.cancel();
+        timer = null;
         verfuegbar = Optional.empty();
+        geprueftAm = 0;
         zustand = vorbereitet.equals("–") ? "ungeprueft" : "vorbereitet";
         if (!config.aktiv("updates.aktiviert")) return;
         long intervall = config.zahl("updates.intervall-minuten") * 1200L;
@@ -55,7 +64,7 @@ public final class PlotUpdater {
     }
 
     public void befehl(CommandSender sender, String[] args) {
-        if (!sender.hasPermission("simpleplots.admin.update")) {
+        if (!sender.hasPermission("simpleplots.update")) {
             texte.senden(sender, "fehler.kein-recht");
             return;
         }
@@ -77,11 +86,13 @@ public final class PlotUpdater {
 
     private void pruefen(CommandSender sender) {
         if (!bereit(sender)) return;
+        long stand = generation;
         String aktuell = plugin.getPluginMeta().getVersion();
         String kanal = config.text("updates.kanal");
         zustand = "prueft";
         auftraege.einreichen(() -> github.pruefen(aktuell, kanal)).whenComplete((release, fehler) -> rueckmeldung(() -> {
             laeuft.set(false);
+            if (stand != generation || beendet) return;
             if (fehler != null) {
                 fehlgeschlagen(sender, fehler);
                 return;
@@ -92,23 +103,25 @@ public final class PlotUpdater {
                 return;
             }
             verfuegbar = release;
+            geprueftAm = System.nanoTime();
             zustand = release.isPresent() ? "verfuegbar" : "aktuell";
             if (sender != null) {
                 texte.senden(sender, release.isPresent() ? "update.verfuegbar" : "update.aktuell",
                         unparsed("version", release.map(GithubUpdates.Release::version).orElse(aktuell)));
             } else if (release.isPresent()) {
-                plugin.getSLF4JLogger().info("SimplePlots {} ist verfügbar. /plot admin update status", release.get().version());
+                plugin.getSLF4JLogger().info("SimplePlots {} ist verfügbar. /simpleplots update status", release.get().version());
             }
         }));
     }
 
     private void anwenden(CommandSender sender) {
-        if (verfuegbar.isEmpty()) {
+        if (verfuegbar.isEmpty() || System.nanoTime() - geprueftAm > TimeUnit.MINUTES.toNanos(15)) {
             texte.senden(sender, "update.zuerst-pruefen");
             return;
         }
         if (!bereit(sender)) return;
         var release = verfuegbar.orElseThrow();
+        long stand = generation;
         Path ziel;
         try {
             String ordner = plugin.getServer().getUpdateFolder();
@@ -133,10 +146,15 @@ public final class PlotUpdater {
                 throw new IOException("Der Update-Ordner darf nicht auf die laufende Plugin-JAR zeigen.");
             }
             byte[] jar = github.herunterladen(release);
-            BinaerDatei.speichern(ziel, jar);
+            synchronized (this) {
+                if (beendet || stand != generation || !config.aktiv("updates.aktiviert"))
+                    throw new IOException("Die Update-Einstellungen wurden während des Downloads geändert.");
+                BinaerDatei.speichern(ziel, jar);
+            }
             return release.version();
         }).whenComplete((version, fehler) -> rueckmeldung(() -> {
             laeuft.set(false);
+            if (stand != generation || beendet) return;
             if (fehler != null) {
                 fehlgeschlagen(sender, fehler);
             } else {
@@ -149,7 +167,7 @@ public final class PlotUpdater {
     }
 
     private boolean bereit(CommandSender sender) {
-        if (!config.aktiv("updates.aktiviert")) {
+        if (beendet || !config.aktiv("updates.aktiviert")) {
             if (sender != null) texte.senden(sender, "fehler.deaktiviert");
             return false;
         }
@@ -167,10 +185,13 @@ public final class PlotUpdater {
     }
 
     private void rueckmeldung(Runnable auftrag) {
-        if (plugin.isEnabled()) plugin.getServer().getScheduler().runTask(plugin, auftrag);
+        if (beendet || !plugin.isEnabled()) return;
+        try { plugin.getServer().getScheduler().runTask(plugin, () -> { if (!beendet) auftrag.run(); }); }
+        catch (IllegalPluginAccessException fehler) { plugin.getSLF4JLogger().debug("Update-Rückmeldung beim Abschalten verworfen.", fehler); }
     }
 
     public void beenden() {
+        synchronized (this) { beendet = true; generation++; }
         if (timer != null) timer.cancel();
         if (!auftraege.beenden(Duration.ofSeconds(2))) {
             plugin.getSLF4JLogger().warn("Ein Update-Abruf wird beim Beenden noch abgeschlossen.");

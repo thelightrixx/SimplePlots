@@ -1,0 +1,56 @@
+package @PACKAGE@;
+
+import io.papermc.paper.plugin.configuration.PluginMeta;
+import org.bukkit.Server;
+import org.bukkit.command.CommandSender;
+import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitScheduler;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+import org.slf4j.Logger;
+
+import java.net.URI;
+import java.nio.file.Path;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+class UpdateReloadTest {
+    @TempDir Path ordner;
+
+    @Test void spaetePruefungNachReloadAktiviertKeinenAltenDownload() throws Exception {
+        var plugin = mock(JavaPlugin.class);
+        var server = mock(Server.class); when(plugin.getServer()).thenReturn(server);
+        when(plugin.isEnabled()).thenReturn(true); when(plugin.getName()).thenReturn("Test");
+        when(plugin.getSLF4JLogger()).thenReturn(mock(Logger.class));
+        var meta = mock(PluginMeta.class); when(plugin.getPluginMeta()).thenReturn(meta);
+        when(meta.getVersion()).thenReturn("v1.0.0");
+        var scheduler = mock(BukkitScheduler.class); when(server.getScheduler()).thenReturn(scheduler);
+        var rueckmeldungen = new LinkedBlockingQueue<Runnable>();
+        when(scheduler.runTask(eq(plugin), any(Runnable.class))).thenAnswer(call -> {
+            rueckmeldungen.add(call.getArgument(1)); return null;
+        });
+        var sender = mock(CommandSender.class); when(sender.hasPermission("test.update")).thenReturn(true);
+        var github = mock(GithubUpdates.class);
+        var release = new GithubUpdates.Release("v1.1.0", "Test-v1.1.0-paper.jar",
+                URI.create("https://github.com/test.jar"), URI.create("https://github.com/SHA256SUMS.txt"), 3, "null");
+        when(github.pruefen("v1.0.0", "stable")).thenReturn(Optional.of(release));
+        var config = new UpdateEinstellungen(true, false, 60, Map.of(
+                "prefix", "", "status", "<state>", "hilfe", "Hilfe", "zuerst-pruefen", "Erst prüfen"));
+        var updater = new PluginUpdater(plugin, ordner.resolve("Test.jar"), "test", "test.update", config, github);
+        try {
+            updater.befehl(sender, new String[]{"check"});
+            Runnable alt = rueckmeldungen.poll(5, TimeUnit.SECONDS); assertNotNull(alt);
+            updater.uebernehmen(config);
+            alt.run();
+            updater.befehl(sender, new String[]{"apply", "confirm"});
+            verify(github, never()).herunterladen(any());
+            assertEquals(java.util.List.of("apply", "check", "status"),
+                    updater.vorschlaege(sender, new String[]{""}).stream().sorted().toList());
+        } finally { updater.beenden(); }
+    }
+}

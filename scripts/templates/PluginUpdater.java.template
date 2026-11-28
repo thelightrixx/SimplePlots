@@ -1,0 +1,189 @@
+package @PACKAGE@;
+
+import org.bukkit.command.CommandSender;
+import org.bukkit.plugin.IllegalPluginAccessException;
+import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitTask;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+/** Prüft im Hintergrund; ein Download braucht einen ausdrücklichen, bestätigten Befehl. */
+public final class PluginUpdater {
+    private final JavaPlugin plugin;
+    private final Path original;
+    private final String befehl;
+    private final String recht;
+    private final GithubUpdates github;
+    private final ThreadPoolExecutor auftraege;
+    private final AtomicBoolean laeuft = new AtomicBoolean();
+    private volatile UpdateEinstellungen config;
+    private volatile long generation;
+    private volatile boolean beendet;
+    private volatile Optional<GithubUpdates.Release> verfuegbar = Optional.empty();
+    private volatile long geprueftAm;
+    private volatile String zustand = "ungeprüft";
+    private volatile String vorbereitet = "–";
+    private BukkitTask timer;
+
+    public static PluginUpdater starten(JavaPlugin plugin, Path original, String befehl, String recht) {
+        UpdateEinstellungen config;
+        try { config = UpdateEinstellungen.laden(plugin); }
+        catch (IllegalArgumentException fehler) {
+            plugin.getSLF4JLogger().error("Die Update-Einstellungen sind ungültig. Das Plugin wird deaktiviert.", fehler);
+            plugin.getServer().getPluginManager().disablePlugin(plugin); throw fehler;
+        }
+        var updater = new PluginUpdater(plugin, original, befehl, recht, config, new GithubUpdates(plugin.getServer().getMinecraftVersion(), plugin.getPluginMeta().getAPIVersion().startsWith("1.21")));
+        var kommando = Objects.requireNonNull(plugin.getCommand(befehl), "Hauptbefehl fehlt: " + befehl);
+        var vorher = kommando.getExecutor(); var ergaenzen = kommando.getTabCompleter();
+        kommando.setExecutor((sender, cmd, label, args) -> {
+            if (args.length > 0 && args[0].equalsIgnoreCase("update")) { updater.befehl(sender, Arrays.copyOfRange(args, 1, args.length)); return true; }
+            boolean ergebnis = vorher.onCommand(sender, cmd, label, args);
+            if (args.length == 1 && args[0].equalsIgnoreCase("help") && sender.hasPermission(recht)) updater.senden(sender, "hilfe");
+            return ergebnis;
+        });
+        kommando.setTabCompleter((sender, cmd, alias, args) -> {
+            if (args.length > 0 && args[0].equalsIgnoreCase("update")) return updater.vorschlaege(sender, Arrays.copyOfRange(args, 1, args.length));
+            var ausgabe = new ArrayList<String>();
+            if (ergaenzen != null) { var weitere = ergaenzen.onTabComplete(sender, cmd, alias, args); if (weitere != null) ausgabe.addAll(weitere); }
+            if (args.length == 1 && sender.hasPermission(recht) && "update".startsWith(args[0].toLowerCase(Locale.ROOT))) ausgabe.add("update");
+            return ausgabe.stream().distinct().toList();
+        });
+        updater.planen(true); return updater;
+    }
+
+    PluginUpdater(JavaPlugin plugin, Path original, String befehl, String recht, UpdateEinstellungen config, GithubUpdates github) {
+        this.plugin = plugin; this.original = original.toAbsolutePath().normalize(); this.befehl = befehl; this.recht = recht; this.config = config; this.github = github;
+        auftraege = new ThreadPoolExecutor(1, 1, 0, TimeUnit.SECONDS, new ArrayBlockingQueue<>(2), task -> {
+            Thread thread = new Thread(task, plugin.getName() + "-Updates"); thread.setDaemon(true); return thread;
+        });
+    }
+
+    private void planen(boolean start) {
+        if (timer != null) { timer.cancel(); timer = null; }
+        if (!config.aktiviert()) return;
+        long intervall = config.intervallMinuten() * 1200L;
+        timer = plugin.getServer().getScheduler().runTaskTimer(plugin, () -> pruefen(null), start && config.beimStart() ? 100 : intervall, intervall);
+    }
+
+    public UpdateEinstellungen vorbereiten() {
+        return UpdateEinstellungen.laden(plugin);
+    }
+
+    /** Erst nach erfolgreicher Prüfung sämtlicher Plugin-Dateien übernehmen. */
+    public synchronized void uebernehmen(UpdateEinstellungen neu) {
+        if (beendet) return;
+        config = Objects.requireNonNull(neu);
+        generation++;
+        verfuegbar = Optional.empty();
+        geprueftAm = 0;
+        zustand = vorbereitet.equals("–") ? "ungeprüft" : "vorbereitet";
+        planen(false);
+    }
+
+    public void befehl(CommandSender sender, String[] args) {
+        if (!sender.hasPermission(recht)) { senden(sender, "kein-recht"); return; }
+        String aktion = args.length == 0 ? "status" : args[0].toLowerCase(Locale.ROOT);
+        if (aktion.equals("status") && args.length <= 1) {
+            senden(sender, "status", Map.of("state", config.aktiviert() ? zustand : "deaktiviert", "current", plugin.getPluginMeta().getVersion(), "available", verfuegbar.map(GithubUpdates.Release::version).orElse("–"), "staged", vorbereitet));
+            senden(sender, "hilfe");
+        } else if (aktion.equals("reload") && args.length == 1) {
+            try {
+                uebernehmen(vorbereiten());
+                senden(sender, "neu-geladen");
+            } catch (IllegalArgumentException fehler) { plugin.getSLF4JLogger().warn("Update-Reload abgebrochen. Die bisherigen Werte bleiben aktiv.", fehler); senden(sender, "reload-fehler"); }
+        } else if (aktion.equals("check") && args.length == 1) pruefen(sender);
+        else if (aktion.equals("apply") && args.length == 2 && args[1].equalsIgnoreCase("confirm")) anwenden(sender);
+        else senden(sender, "hilfe");
+    }
+
+    private void pruefen(CommandSender sender) {
+        if (!bereit(sender)) return;
+        long stand = generation; String aktuell = plugin.getPluginMeta().getVersion(); zustand = "prüft";
+        einreichen(sender, () -> github.pruefen(aktuell, "stable"), release -> {
+            if (stand != generation) return;
+            verfuegbar = release; geprueftAm = System.nanoTime(); zustand = release.isPresent() ? "verfügbar" : "aktuell";
+            if (sender != null) senden(sender, release.isPresent() ? "verfuegbar" : "aktuell", Map.of("version", release.map(GithubUpdates.Release::version).orElse(aktuell)));
+            else if (release.isPresent()) plugin.getSLF4JLogger().info("{} {} ist verfügbar. /{} update status", plugin.getName(), release.get().version(), befehl);
+        });
+    }
+
+    private void anwenden(CommandSender sender) {
+        if (!config.aktiviert()) { senden(sender, "deaktiviert"); return; }
+        if (verfuegbar.isEmpty() || System.nanoTime() - geprueftAm > TimeUnit.MINUTES.toNanos(15)) { senden(sender, "zuerst-pruefen"); return; }
+        if (!bereit(sender)) return;
+        var release = verfuegbar.orElseThrow(); long stand = generation;
+        String ordnerName = plugin.getServer().getUpdateFolder();
+        if (ordnerName == null || ordnerName.isBlank()) { laeuft.set(false); senden(sender, "ordner-deaktiviert"); return; }
+        Path ordner = plugin.getServer().getUpdateFolderFile().toPath();
+        zustand = "lädt"; senden(sender, "laedt", Map.of("version", release.version()));
+        einreichen(sender, () -> {
+            byte[] jar = github.herunterladen(release);
+            synchronized (this) {
+                if (beendet || stand != generation || !config.aktiviert()) throw new IOException("Die Update-Einstellungen wurden während des Downloads geändert.");
+                return UpdateDatei.speichern(original, ordner, jar);
+            }
+        }, ziel -> {
+            vorbereitet = release.version(); zustand = "vorbereitet";
+            senden(sender, "vorbereitet", Map.of("version", release.version()));
+            plugin.getSLF4JLogger().info("{} {} in {} vorbereitet. Paper übernimmt die JAR beim nächsten normalen Start.", plugin.getName(), release.version(), ziel);
+        });
+    }
+
+    private boolean bereit(CommandSender sender) {
+        if (beendet || !config.aktiviert()) { if (sender != null) senden(sender, "deaktiviert"); return false; }
+        if (!laeuft.compareAndSet(false, true)) { if (sender != null) senden(sender, "laeuft"); return false; }
+        return true;
+    }
+
+    private <T> void einreichen(CommandSender sender, Callable<T> arbeit, java.util.function.Consumer<T> danach) {
+        long stand = generation;
+        try {
+            auftraege.execute(() -> {
+                T ergebnis;
+                try { ergebnis = arbeit.call(); }
+                catch (Exception fehler) { rueckmeldung(() -> {
+                    synchronized (this) { laeuft.set(false); if (stand == generation) fehlgeschlagen(sender, fehler); }
+                }); return; }
+                rueckmeldung(() -> {
+                    synchronized (this) { laeuft.set(false); if (stand == generation) danach.accept(ergebnis); }
+                });
+            });
+        } catch (RejectedExecutionException fehler) { laeuft.set(false); fehlgeschlagen(sender, fehler); }
+    }
+
+    private void rueckmeldung(Runnable auftrag) {
+        if (beendet || !plugin.isEnabled()) return;
+        try { plugin.getServer().getScheduler().runTask(plugin, () -> { if (!beendet) auftrag.run(); }); }
+        catch (IllegalPluginAccessException fehler) { plugin.getSLF4JLogger().debug("Update-Rückmeldung beim Abschalten verworfen.", fehler); }
+    }
+
+    private void fehlgeschlagen(CommandSender sender, Throwable fehler) {
+        verfuegbar = Optional.empty(); zustand = "fehlgeschlagen";
+        plugin.getSLF4JLogger().warn("Update fehlgeschlagen. Laufende JAR und vorhandenes Update bleiben erhalten.", fehler);
+        if (sender != null) senden(sender, "fehler");
+    }
+
+    private void senden(CommandSender sender, String key) { senden(sender, key, Map.of()); }
+    private void senden(CommandSender sender, String key, Map<String, String> werte) {
+        var values = new HashMap<>(werte); values.put("plugin", plugin.getName()); values.put("command", "/" + befehl);
+        sender.sendMessage(config.text(key, values));
+    }
+
+    public List<String> vorschlaege(CommandSender sender, String[] args) {
+        if (!sender.hasPermission(recht)) return List.of();
+        if (args.length == 1) return List.of("status", "check", "apply").stream().filter(s -> s.startsWith(args[0].toLowerCase(Locale.ROOT))).toList();
+        if (args.length == 2 && args[0].equalsIgnoreCase("apply") && "confirm".startsWith(args[1].toLowerCase(Locale.ROOT))) return List.of("confirm");
+        return List.of();
+    }
+
+    public void beenden() {
+        synchronized (this) { beendet = true; generation++; }
+        if (timer != null) timer.cancel();
+        auftraege.shutdownNow();
+        try { if (!auftraege.awaitTermination(2, TimeUnit.SECONDS)) plugin.getSLF4JLogger().warn("Ein Update-Abruf wird noch beendet."); }
+        catch (InterruptedException fehler) { Thread.currentThread().interrupt(); plugin.getSLF4JLogger().warn("Warten auf Update-Abrufe unterbrochen.", fehler); }
+    }
+}

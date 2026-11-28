@@ -103,7 +103,10 @@ public final class PlotBefehl implements TabExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (!sender.hasPermission(USE)) {
+        boolean betriebsbefehl = args.length > 0 && args[0].equalsIgnoreCase("version")
+                || args.length > 1 && args[0].equalsIgnoreCase("admin")
+                    && List.of("reload", "diagnostics", "update", "setup").contains(args[1].toLowerCase(Locale.ROOT));
+        if (!betriebsbefehl && !sender.hasPermission(USE)) {
             texte.senden(sender, "fehler.kein-recht");
             return true;
         }
@@ -124,7 +127,7 @@ public final class PlotBefehl implements TabExecutor {
                 texte.senden(sender, "fehler.nur-spieler");
             }
         } catch (IOException e) {
-            log.error("/plot {} für {} fehlgeschlagen.", aktion, sender.getName(), e);
+            log.error("/simpleplots {} für {} fehlgeschlagen.", aktion, sender.getName(), e);
             texte.senden(sender, "fehler.verarbeitung");
         }
         return true;
@@ -236,7 +239,7 @@ public final class PlotBefehl implements TabExecutor {
         int limit = konfiguration.claimLimit();
         UUID besitzer = spieler.getUniqueId();
         var kaeufer = new PlotKauf.Kaeufer(besitzer, spieler.getName());
-        auftraege.ausfuehren(spieler, "/plot " + (auto ? "auto" : "claim"), () -> {
+        auftraege.ausfuehren(spieler, "/simpleplots " + (auto ? "auto" : "claim"), () -> {
             PlotId ziel = auto ? plots.naechsterFreierPlot() : id.orElseThrow();
             return new ClaimAntwort(ziel, plots.claim(ziel, kaeufer, limit));
         }, antwort -> {
@@ -415,7 +418,7 @@ public final class PlotBefehl implements TabExecutor {
 
         var aenderung = Plot.RollenAktion.valueOf(aktion.toUpperCase(Locale.ROOT));
         UUID besitzer = spieler.getUniqueId();
-        auftraege.ausfuehren(spieler, "/plot " + aktion,
+        auftraege.ausfuehren(spieler, "/simpleplots " + aktion,
                 () -> plots.rolleAendern(id.get(), besitzer, zielId, aenderung), ergebnis -> {
             switch (ergebnis) {
                 case FREMDER_PLOT -> texte.senden(spieler, "fehler.nicht-besitzer");
@@ -493,7 +496,9 @@ public final class PlotBefehl implements TabExecutor {
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
-        if (args.length == 0 || !sender.hasPermission(USE)) {
+        boolean betriebsbefehl = args.length > 1 && args[0].equalsIgnoreCase("admin")
+                && List.of("reload", "diagnostics", "update", "setup").contains(args[1].toLowerCase(Locale.ROOT));
+        if (args.length == 0 || !betriebsbefehl && !sender.hasPermission(USE)) {
             return List.of();
         }
         String aktion = args[0].toLowerCase(Locale.ROOT);

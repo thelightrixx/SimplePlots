@@ -112,8 +112,9 @@ final class PlotAdminBefehl {
         return switch (aktion) {
             case "reload" -> PlotBerechtigungen.RELOAD;
             case "diagnostics" -> PlotBerechtigungen.DIAGNOSE;
+            case "update" -> "simpleplots.update";
             case "uncensor" -> "simpleplots.admin.censor";
-            case "update", "bypass", "list", "inspect", "visit", "claim", "unclaim", "setowner", "role", "profile", "censor", "remove", "restore", "setup" ->
+            case "bypass", "list", "inspect", "visit", "claim", "unclaim", "setowner", "role", "profile", "censor", "remove", "restore", "setup" ->
                     "simpleplots.admin." + aktion;
             default -> PlotBerechtigungen.ADMIN;
         };

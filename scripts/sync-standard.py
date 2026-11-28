@@ -6,6 +6,7 @@ from pathlib import Path
 import re
 import uuid
 from documentation import check_structure, fragments, replace_fragments
+from command_standard import runtime_files, replace_command_table, replace_command_readme, replace_permission_table
 
 FILES = [
     ".editorconfig", ".gitattributes", ".gitignore", ".mvn/jvm.config", "build_all_jars.bat",
@@ -15,6 +16,13 @@ FILES = [
     "scripts/check-standard.py", "scripts/sync-standard.py",
     "scripts/documentation.py",
     "scripts/test-tools.ps1",
+    "scripts/command_standard.py",
+    "scripts/templates/FamilienBefehle.java.template",
+    "scripts/templates/FamilienBefehleTest.java.template",
+    "scripts/templates/PluginUpdater.java.template",
+    "scripts/templates/UpdateEinstellungen.java.template",
+    "scripts/templates/UpdateDatei.java.template",
+    "scripts/templates/UpdateReloadTest.java.template",
 ]
 
 
@@ -82,12 +90,13 @@ def sync(workspace, write=False):
         manifest = project / "scripts/project.json"
         if not manifest.is_file():
             continue
-        if json.loads(manifest.read_text(encoding="utf-8"))["reference"] != "PunishSystem":
+        project_manifest = json.loads(manifest.read_text(encoding="utf-8"))
+        if project_manifest["reference"] != "PunishSystem":
             continue
         if project.is_symlink():
             raise ValueError("Ein Projektordner ist ein symbolischer Link.")
         projects.append(project.name)
-        for relative, data in contents.items():
+        for relative, data in {**contents, **runtime_files(reference, project_manifest)}.items():
             path = project / relative
             if path.is_symlink() or not path.resolve().is_relative_to(project.resolve()):
                 raise ValueError("Ziel liegt außerhalb des Projekts: " + str(path))
@@ -97,13 +106,14 @@ def sync(workspace, write=False):
         docs = project / "docs/index.html"
         text = docs.read_text(encoding="utf-8-sig")
         blocks(text)  # Validate every destination before any write.
-        updated = replace_fragments(replace_blocks(text, source_blocks), source_fragments)
+        updated = replace_permission_table(replace_command_table(
+            replace_fragments(replace_blocks(text, source_blocks), source_fragments), project_manifest), project, project_manifest)
         if updated != text:
             changes.append(project.name + "/docs/index.html (shared interface)")
             updates.append((docs, updated.encode("utf-8")))
         readme = project / "README.md"
         text = readme.read_text(encoding="utf-8-sig")
-        updated = replace_fragments(text, readme_fragments)
+        updated = replace_command_readme(replace_fragments(text, readme_fragments), project_manifest)
         if updated != text:
             changes.append(project.name + "/README.md (gemeinsame Texte)")
             updates.append((readme, updated.encode("utf-8")))

@@ -20,6 +20,7 @@ import java.nio.file.Path;
 import java.util.Optional;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.CountDownLatch;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -57,13 +58,41 @@ class PlotUpdaterTest {
         when(server.getUpdateFolderFile()).thenReturn(ordner.resolve("update").toFile());
         when(config.aktiv("updates.aktiviert")).thenReturn(true);
         when(config.text("updates.kanal")).thenReturn("alpha");
-        when(sender.hasPermission("simpleplots.admin.update")).thenReturn(true);
+        when(sender.hasPermission("simpleplots.update")).thenReturn(true);
         when(github.pruefen("v0.5.0-alpha", "alpha")).thenReturn(Optional.of(release));
         when(github.herunterladen(release)).thenReturn(new byte[]{1, 2, 3});
         updater = new PlotUpdater(plugin, config, texte, original, github);
     }
 
     @AfterEach void beenden() { updater.beenden(); }
+
+    @Test
+    void reloadVerwirftBereitsEingetroffenePruefergebnisse() throws Exception {
+        updater.befehl(sender, new String[]{"admin", "update", "check"});
+        Runnable alt = serverthread.poll(5, TimeUnit.SECONDS); assertNotNull(alt);
+        updater.planen(false);
+        alt.run();
+        updater.befehl(sender, new String[]{"admin", "update", "apply", "confirm"});
+        verify(github, never()).herunterladen(any());
+        verify(texte).senden(sender, "update.zuerst-pruefen");
+    }
+
+    @Test
+    void reloadWaerendDownloadErhaeltEinVorbereitetesUpdate() throws Exception {
+        Files.createDirectories(ordner.resolve("update"));
+        Files.writeString(ordner.resolve("update/IndividuellerName.jar"), "vorbereitet");
+        var laedt = new CountDownLatch(1); var fortsetzen = new CountDownLatch(1);
+        when(github.herunterladen(release)).thenAnswer(call -> {
+            laedt.countDown(); assertTrue(fortsetzen.await(5, TimeUnit.SECONDS)); return new byte[]{1, 2, 3};
+        });
+        updater.befehl(sender, new String[]{"admin", "update", "check"}); naechsterTick();
+        updater.befehl(sender, new String[]{"admin", "update", "apply", "confirm"});
+        assertTrue(laedt.await(5, TimeUnit.SECONDS));
+        try { updater.planen(false); } finally { fortsetzen.countDown(); }
+        naechsterTick();
+        assertEquals("vorbereitet", Files.readString(ordner.resolve("update/IndividuellerName.jar")));
+        assertEquals("laufendes Plugin", Files.readString(original));
+    }
 
     @Test
     void bereitetErstNachBestaetigungUnterDemInstalliertenDateinamenVor() throws Exception {
@@ -93,10 +122,10 @@ class PlotUpdaterTest {
 
     @Test
     void beachtetPermissionUndVerweigertDeaktiviertenPaperUpdateOrdner() throws Exception {
-        when(sender.hasPermission("simpleplots.admin.update")).thenReturn(false);
+        when(sender.hasPermission("simpleplots.update")).thenReturn(false);
         updater.befehl(sender, new String[]{"admin", "update", "check"});
         verifyNoInteractions(github);
-        when(sender.hasPermission("simpleplots.admin.update")).thenReturn(true);
+        when(sender.hasPermission("simpleplots.update")).thenReturn(true);
         updater.befehl(sender, new String[]{"admin", "update", "check"}); naechsterTick();
         when(server.getUpdateFolder()).thenReturn("");
         updater.befehl(sender, new String[]{"admin", "update", "apply", "confirm"});

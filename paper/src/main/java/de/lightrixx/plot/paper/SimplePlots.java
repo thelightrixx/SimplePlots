@@ -110,7 +110,11 @@ public final class SimplePlots extends JavaPlugin {
                         auftraege, betrieb, wirtschaft);
                 befehl.funktionen(flug, updater, zensur, entfernen);
                 befehl.grenzen(grenzen);
-                kontexte.put(config.weltname(), new PlotWeltenBefehl.Kontext(welt, befehl));
+                var familienBefehl = de.lightrixx.plot.paper.command.FamilienBefehle.verbinden(befehl, befehl,
+                        (sender, key, werte) -> texte.senden(sender, key, werte.entrySet().stream()
+                                .map(e -> net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.unparsed(e.getKey(), e.getValue()))
+                                .toArray(net.kyori.adventure.text.minimessage.tag.resolver.TagResolver[]::new)));
+                kontexte.put(config.weltname(), new PlotWeltenBefehl.Kontext(welt, familienBefehl));
                 getSLF4JLogger().info("Plotwelt {} bereit: {} Plots mit {} Rasterzellen, {} entfernte Flächen.",
                         config.weltname(), plots.anzahlPlots(), plots.anzahlZellen(), plots.entfernungen().size());
             }
@@ -126,9 +130,13 @@ public final class SimplePlots extends JavaPlugin {
             }
             updater.planen(true);
             var befehl = new PlotWeltenBefehl(kontexte, () -> konfiguration.text("general.welten.standard"), texte);
-            var plotBefehl = Objects.requireNonNull(getCommand("plot"), "/plot fehlt in plugin.yml");
+            var plotBefehl = Objects.requireNonNull(getCommand("simpleplots"), "/simpleplots fehlt in plugin.yml");
             plotBefehl.setExecutor(befehl);
             plotBefehl.setTabCompleter(befehl);
+            de.lightrixx.plot.paper.command.FamilienBefehle.registrieren(this,
+                    (sender, key, werte) -> texte.senden(sender, key, werte.entrySet().stream()
+                            .map(e -> net.kyori.adventure.text.minimessage.tag.resolver.Placeholder.unparsed(e.getKey(), e.getValue()))
+                            .toArray(net.kyori.adventure.text.minimessage.tag.resolver.TagResolver[]::new)));
             getSLF4JLogger().info("SimplePlots {} bereit: {} Plotwelten, gemeinsame YAML-I/O-Warteschlange.",
                     getPluginMeta().getVersion(), kontexte.size());
         } catch (IOException | RuntimeException e) {

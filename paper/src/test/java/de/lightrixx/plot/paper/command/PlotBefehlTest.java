@@ -34,6 +34,18 @@ class PlotBefehlTest {
             mock(PlotKonfiguration.class), texte, menue, mock(WettbewerbDienst.class), auftraege, betrieb,
             mock(Wirtschaft.class));
 
+    @Test void gemeinsameVerwaltungsbefehleFunktionierenMitEinzelrechtenOhneSpielrecht() {
+        var sender = mock(CommandSender.class);
+        rechte(sender, PlotBerechtigungen.RELOAD, PlotBerechtigungen.DIAGNOSE);
+        var familie = FamilienBefehle.verbinden(befehl, befehl, (ziel, key, werte) -> { });
+        familie.onCommand(sender, null, "simpleplots", new String[]{"reload"});
+        familie.onCommand(sender, null, "simpleplots", new String[]{"diagnostics"});
+        verify(betrieb).neuladen(sender);
+        verify(betrieb).diagnose(sender);
+        familie.onCommand(sender, null, "simpleplots", new String[]{"admin", "create"});
+        verifyNoInteractions(welt);
+    }
+
     @Test
     void verweigertBefehleOhneBasisrechtBevorSieZustandAnfassen() {
         var spieler = mock(Player.class);

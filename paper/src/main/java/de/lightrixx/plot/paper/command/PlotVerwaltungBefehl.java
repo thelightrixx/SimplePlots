@@ -49,7 +49,7 @@ final class PlotVerwaltungBefehl {
             case "like", "unlike" -> {
                 boolean vergeben = aktion.equals("like");
                 UUID spielerId = spieler.getUniqueId();
-                auftraege.ausfuehren(spieler, "/plot " + aktion, () -> plots.like(id, spielerId, vergeben),
+                auftraege.ausfuehren(spieler, "/simpleplots " + aktion, () -> plots.like(id, spielerId, vergeben),
                         ergebnis -> aenderungSenden(spieler, ergebnis, "profil." + aktion));
             }
             case "merge" -> zusammenlegen(spieler, id, args);
@@ -91,7 +91,7 @@ final class PlotVerwaltungBefehl {
             return;
         }
         UUID besitzer = spieler.getUniqueId();
-        auftraege.ausfuehren(spieler, "/plot profile", () -> plots.profilAendern(id, besitzer, aenderung),
+        auftraege.ausfuehren(spieler, "/simpleplots profile", () -> plots.profilAendern(id, besitzer, aenderung),
                 ergebnis -> aenderungSenden(spieler, ergebnis, "profil.gespeichert"));
     }
 
@@ -112,7 +112,7 @@ final class PlotVerwaltungBefehl {
             return;
         }
         UUID besitzer = spieler.getUniqueId();
-        auftraege.ausfuehren(spieler, "/plot sethome",
+        auftraege.ausfuehren(spieler, "/simpleplots sethome",
                 () -> plots.profilAendern(id, besitzer, profil -> profil.mitBesuchspunkt(punkt)),
                 ergebnis -> aenderungSenden(spieler, ergebnis, punkt.isEmpty() ? "profil.ort-entfernt" : "profil.ort-gesetzt"));
     }
@@ -131,7 +131,7 @@ final class PlotVerwaltungBefehl {
         }
         boolean erlaubt = args[2].equalsIgnoreCase("on");
         UUID besitzer = spieler.getUniqueId();
-        auftraege.ausfuehren(spieler, "/plot flag", () -> plots.besucherRecht(id, besitzer, flag, erlaubt),
+        auftraege.ausfuehren(spieler, "/simpleplots flag", () -> plots.besucherRecht(id, besitzer, flag, erlaubt),
                 ergebnis -> aenderungSenden(spieler, ergebnis, erlaubt ? "rollen.flag-an" : "rollen.flag-aus"));
     }
 
@@ -150,7 +150,7 @@ final class PlotVerwaltungBefehl {
         UUID besitzer = spieler.getUniqueId();
         boolean bestaetigt = args.length == 3;
         var plotwelt = spieler.getWorld();
-        auftraege.ausfuehren(spieler, "/plot merge",
+        auftraege.ausfuehren(spieler, "/simpleplots merge",
                 () -> plots.zusammenlegen(id, nachbar, besitzer, wettbewerbe::gesperrt, bestaetigt), ergebnis -> {
             texte.senden(spieler, "merge." + ergebnis.name().toLowerCase(Locale.ROOT).replace('_', '-'),
                     unparsed("target", nachbar.toString()), unparsed("source", id.toString()));
@@ -189,7 +189,7 @@ final class PlotVerwaltungBefehl {
         var vorher = plots.finden(id);
         var plotwelt = spieler.getWorld();
         boolean bestaetigt = args.length == 2;
-        auftraege.ausfuehren(spieler, "/plot unlink",
+        auftraege.ausfuehren(spieler, "/simpleplots unlink",
                 () -> plots.aufteilen(id, besitzer, wettbewerbe::gesperrt, bestaetigt), ergebnis -> {
             texte.senden(spieler, "trennen." + ergebnis.name().toLowerCase(Locale.ROOT).replace('_', '-'));
             if (ergebnis == PlotDienst.TrennErgebnis.GETRENNT) {
@@ -219,7 +219,7 @@ final class PlotVerwaltungBefehl {
         var ziel = biom;
         UUID besitzer = spieler.getUniqueId();
         var plotwelt = spieler.getWorld();
-        auftraege.ausfuehren(spieler, "/plot biome", () -> plots.finden(id).filter(plot -> wettbewerbe.gesperrt(plot.id())).isPresent()
+        auftraege.ausfuehren(spieler, "/simpleplots biome", () -> plots.finden(id).filter(plot -> wettbewerbe.gesperrt(plot.id())).isPresent()
                 ? PlotDienst.Aenderung.GESPERRT : plots.profilAendern(id, besitzer, profil -> profil.mitBiom(ziel)), ergebnis -> {
             if (ergebnis == PlotDienst.Aenderung.GESPERRT) texte.senden(spieler, "biom.gesperrt");
             else aenderungSenden(spieler, ergebnis, "biom.gespeichert");

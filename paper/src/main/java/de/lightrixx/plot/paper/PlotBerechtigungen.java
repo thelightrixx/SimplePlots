@@ -12,8 +12,8 @@ public final class PlotBerechtigungen {
     public static final String CLAIM = "simpleplots.claim";
     public static final String MANAGE = "simpleplots.manage";
     public static final String ADMIN = "simpleplots.admin";
-    public static final String RELOAD = "simpleplots.admin.reload";
-    public static final String DIAGNOSE = "simpleplots.admin.diagnostics";
+    public static final String RELOAD = "simpleplots.reload";
+    public static final String DIAGNOSE = "simpleplots.diagnostics";
     public static final String FLY = "simpleplots.fly";
     private static final NamespacedKey PLOT_MODUS = new NamespacedKey("simpleplots", "plot-kreativ");
     private static final NamespacedKey BYPASS_AUS = new NamespacedKey("simpleplots", "bypass-aus");

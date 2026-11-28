@@ -1,4 +1,4 @@
-# SimplePlots v0.10.1
+# SimplePlots v0.11.0
 
 SimplePlots ergänzt Paper um Plotwelten mit öffentlichen Wegen, Claims und Baurechten. Spieler bauen im Survival-Modus mit ihrem eigenen Inventar. Sie können Freunde einladen, Nachbarplots verbinden, Besuchspunkte setzen und an Bauwettbewerben teilnehmen.
 
@@ -15,9 +15,13 @@ Lege das Raster fest, bevor die Plotwelt erzeugt wird. Standardmäßig sind Plot
 
 ## Benutzen
 
+<!-- COMMAND-QUICKSTART -->
+Mit `/simpleplots` oder `/simpleplots help [Seite]` siehst du die für deine Rechte verfügbaren Befehle. Die Verwaltung folgt `/simpleplots version`, `reload`, `diagnostics` und `update`. Ein Aufruf ohne Unterbefehl zeigt die Hilfe.
+<!-- /COMMAND-QUICKSTART -->
+
 ### Im Spiel
 
-Mit `/plot world` betrittst du die Plotwelt, mit `/plot auto` beanspruchst du den nächsten freien Plot. `/plot help` zeigt die weiteren Befehle. Das [Spielerhandbuch](docs/index.html#/schnellstart) erklärt Baurechte, Besuchslisten und Menüs.
+Mit `/simpleplots world` betrittst du die Plotwelt, mit `/simpleplots auto` beanspruchst du den nächsten freien Plot. `/simpleplots help` zeigt die weiteren Befehle. Das [Spielerhandbuch](docs/index.html#/schnellstart) erklärt Baurechte, Besuchslisten und Menüs.
 
 Sichere Plugin-Daten und Plotwelt gemeinsam. `plots.yml` und `plots-aenderungen.yml` bilden zusammen den gespeicherten Plotbestand; eine der beiden Dateien allein ist keine vollständige Sicherung.
 
@@ -25,15 +29,19 @@ Beim Update von v0.8.0-beta oder älter ist der Wechsel zu den neuen JAR-Dateina
 
 ### Wiederfinden und Grenzen ansehen
 
-`/plot bookmark add Mein Haus` merkt den aktuellen Plot. Mit `/plot bookmark go Mein Haus` besuchst du ihn später wieder; `list` zeigt die Namen und `remove` entfernt einen Eintrag. Lesezeichen gelten je Plotwelt und bleiben in den Spielerdaten erhalten. Vor einem Besuch werden Welt, Besitzer, Zutritt und Zensur erneut geprüft.
+`/simpleplots bookmark add Mein Haus` merkt den aktuellen Plot. Mit `/simpleplots bookmark go Mein Haus` besuchst du ihn später wieder; `list` zeigt die Namen und `remove` entfernt einen Eintrag. Lesezeichen gelten je Plotwelt und bleiben in den Spielerdaten erhalten. Vor einem Besuch werden Welt, Besitzer, Zutritt und Zensur erneut geprüft.
 
-`/plot border` zeigt dir für 15 Sekunden die Außengrenze als grüne Partikel. Auch zusammengelegte Flächen und ihre Innenwege werden berücksichtigt. Die Anzeige verändert keine Blöcke und lädt keine Chunks. Dauer und Grenzen stehen unter `navigation` in `config/general.yml`.
+`/simpleplots border` zeigt dir für 15 Sekunden die Außengrenze als grüne Partikel. Auch zusammengelegte Flächen und ihre Innenwege werden berücksichtigt. Die Anzeige verändert keine Blöcke und lädt keine Chunks. Dauer und Grenzen stehen unter `navigation` in `config/general.yml`.
 
 Schreibänderungen werden vor dem Ersetzen gegen die Lesegrenze von 64 MiB je YAML-Datei geprüft. Eine zu große Änderung lässt den bisherigen Stand und seine Sicherung erhalten.
 
 ## Betrieb und Updates
 
-Mit `/plot admin update check` prüfst du auf Updates; `status` zeigt den Stand. `/plot admin update apply confirm` legt die geprüfte JAR der laufenden Plattformvariante für den nächsten normalen Serverstart in Papers Update-Ordner. Die Einstellungen stehen in `config/updates.yml`.
+<!-- COMMAND-MIGRATION -->
+/simpleplots ist der gemeinsame Hauptbefehl; /plot und /p bleiben Aliase. Reload, Diagnose, Updates und Setup sind direkt darunter erreichbar. Bisherige Aufrufe mit admin und die Rechte simpleplots.admin.reload, .diagnostics und .update bleiben nutzbar und gewähren die neuen Einzelrechte. simpleplots.admin enthält keinen Plot-Bypass mehr; simpleplots.admin.bypass muss ausdrücklich vergeben werden. Ein leerer Aufruf zeigt die Hilfe; zur Plotwelt mit /simpleplots world reisen.
+<!-- /COMMAND-MIGRATION -->
+
+Mit `/simpleplots update check` prüfst du auf Updates; `status` zeigt den Stand. `/simpleplots update apply confirm` legt die geprüfte JAR der laufenden Plattformvariante für den nächsten normalen Serverstart in Papers Update-Ordner. Die Einstellungen stehen in `config/updates.yml`.
 
 <!-- SHARED:readme-update-note -->
 Lies vor einem Update den [Changelog](docs/index.html#/changelog). [Speicherung und Sicherungen](docs/index.html#/speicher) nennt die zusammengehörigen Daten; [Betrieb und Updates](docs/index.html#/betrieb) beschreibt Vorbereitung, Neustart und Wiederherstellung.
@@ -51,7 +59,7 @@ Direkt zu [Installation](docs/index.html#/installation), [Schnellstart](docs/ind
 
 ## Download und eigener Build
 
-Im [Release v0.10.1](https://github.com/thelightrixx/SimplePlots/releases/tag/v0.10.1) findest du die JARs und `SHA256SUMS.txt`. Prüfe den Hash der gewählten Datei vor der Installation.
+Im [Release v0.11.0](https://github.com/thelightrixx/SimplePlots/releases/tag/v0.11.0) findest du die JARs und `SHA256SUMS.txt`. Prüfe den Hash der gewählten Datei vor der Installation.
 
 <!-- SHARED:readme-build -->
 Zum Bauen brauchst du JDK 25 oder neuer und Python ab 3.10. Unter Windows führt `build_all_jars.bat nobump ci` alle Prüfungen aus und stellt die Ergebnisse in `dist/` bereit. Maven wird gefunden oder als Version 3.9.11 heruntergeladen. Die [Entwicklungsanleitung](docs/index.html#/projektstandard) beschreibt auch den Build unter Linux und macOS. Ein Build erhöht keine Versionsnummer.

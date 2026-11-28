@@ -9,7 +9,7 @@ welten:
 rang-buendel:
   spieler: [simpleplots.use, simpleplots.claim, simpleplots.manage, simpleplots.fly]
   supporter: [simpleplots.use, simpleplots.admin.list, simpleplots.admin.inspect, simpleplots.admin.visit]
-  moderator: [simpleplots.use, simpleplots.admin.list, simpleplots.admin.inspect, simpleplots.admin.visit, simpleplots.admin.role, simpleplots.admin.profile, simpleplots.admin.censor, simpleplots.admin.diagnostics]
+  moderator: [simpleplots.use, simpleplots.admin.list, simpleplots.admin.inspect, simpleplots.admin.visit, simpleplots.admin.role, simpleplots.admin.profile, simpleplots.admin.censor, simpleplots.diagnostics]
   admin: [simpleplots.admin]
 funktionen:
   galerie: true
@@ -23,7 +23,7 @@ profil:
   name-laenge: 32
   beschreibung-laenge: 120
 # Bindet EconomySystem direkt an (ohne Vault). Der Preis gilt je beanspruchter Rasterzelle.
-# /plot claim und /plot auto buchen ihn ab; Claims der Verwaltung bleiben kostenlos.
+# /simpleplots claim und /simpleplots auto buchen ihn ab; Claims der Verwaltung bleiben kostenlos.
 # plugin nennt das Bukkit-Plugin, zeitlimit-millis begrenzt den Zugriff auf dessen Speicher.
 wirtschaft:
   aktiv: false
@@ -44,7 +44,7 @@ betreten:
 navigation:
   # Persönliche Lesezeichen je Spieler und Plotwelt; gespeichert in den Spielerdaten.
   lesezeichen-limit: 12
-  # /plot border zeigt nur diesem Spieler Partikel an. Es werden keine Chunks geladen.
+  # /simpleplots border zeigt nur diesem Spieler Partikel an. Es werden keine Chunks geladen.
   grenzen-sekunden: 15
   grenzen-max-sekunden: 60
   grenzen-max-spieler: 32

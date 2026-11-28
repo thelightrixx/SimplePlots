@@ -1,0 +1,79 @@
+package @PACKAGE@;
+
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.MiniMessage;
+import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
+import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
+import org.bukkit.plugin.java.JavaPlugin;
+import org.yaml.snakeyaml.LoaderOptions;
+import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.constructor.SafeConstructor;
+
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.util.*;
+
+public record UpdateEinstellungen(boolean aktiviert, boolean beimStart, int intervallMinuten, Map<String, String> nachrichten) {
+    private static final MiniMessage MM = MiniMessage.builder().strict(true).build();
+    public UpdateEinstellungen {
+        if (intervallMinuten < 1 || intervallMinuten > 10080) throw new IllegalArgumentException("intervall-minuten muss zwischen 1 und 10080 liegen.");
+        nachrichten = Map.copyOf(nachrichten);
+    }
+
+    public static UpdateEinstellungen laden(JavaPlugin plugin) {
+        var pfad = plugin.getDataFolder().toPath().resolve("config/updates.yml");
+        try (var quelle = plugin.getResource("config/updates.yml")) {
+            if (quelle == null) throw new IOException("Die Update-Vorgaben fehlen in der JAR.");
+            byte[] standard = quelle.readNBytes(262145);
+            if (!Files.exists(pfad)) {
+                Files.createDirectories(pfad.getParent()); Files.write(pfad, standard, java.nio.file.StandardOpenOption.CREATE_NEW);
+            }
+            if (Files.size(pfad) > 262144) throw new IOException("config/updates.yml ist größer als 256 KiB.");
+            return lesen(Files.readString(pfad), new String(standard, StandardCharsets.UTF_8));
+        } catch (IOException | RuntimeException fehler) {
+            throw new IllegalArgumentException("config/updates.yml konnte nicht gelesen werden. Die Datei bleibt erhalten.", fehler);
+        }
+    }
+
+    static UpdateEinstellungen lesen(String text, String vorgabe) {
+        var standard = yaml(vorgabe);
+        var daten = yaml(text);
+        var texte = new LinkedHashMap<String, String>();
+        if (!(standard.get("nachrichten") instanceof Map<?, ?> muster)) throw new IllegalArgumentException("Update-Nachrichten fehlen.");
+        Object eigeneTexte = daten.getOrDefault("nachrichten", Map.of());
+        if (!(eigeneTexte instanceof Map<?, ?> eigene)) throw new IllegalArgumentException("nachrichten muss eine Zuordnung sein.");
+        var resolver = TagResolver.resolver(List.of("plugin", "version", "current", "available", "staged", "state", "command").stream()
+                .map(name -> Placeholder.unparsed(name, "Test")).toArray(TagResolver[]::new));
+        for (var eintrag : muster.entrySet()) {
+            String key = String.valueOf(eintrag.getKey());
+            Object wert = eigene.containsKey(key) ? eigene.get(key) : eintrag.getValue();
+            if (!(wert instanceof String zeile) || zeile.isBlank() || zeile.length() > 8192) throw new IllegalArgumentException("Ungültige Update-Nachricht: " + key);
+            MM.deserialize(zeile, resolver); texte.put(key, zeile);
+        }
+        Object minuten = daten.getOrDefault("intervall-minuten", standard.get("intervall-minuten"));
+        if (!(minuten instanceof Integer intervall)) throw new IllegalArgumentException("intervall-minuten muss eine ganze Zahl sein.");
+        return new UpdateEinstellungen(bool(daten, standard, "aktiviert"), bool(daten, standard, "beim-start-pruefen"), intervall, texte);
+    }
+
+    private static boolean bool(Map<?, ?> daten, Map<?, ?> vorgabe, String key) {
+        Object wert = daten.containsKey(key) ? daten.get(key) : vorgabe.get(key);
+        if (!(wert instanceof Boolean flag)) throw new IllegalArgumentException(key + " muss true oder false sein.");
+        return flag;
+    }
+
+    private static Map<String, Object> yaml(String text) {
+        if (text.getBytes(StandardCharsets.UTF_8).length > 262144) throw new IllegalArgumentException("Update-Einstellungen sind zu groß.");
+        var optionen = new LoaderOptions(); optionen.setAllowDuplicateKeys(false); optionen.setMaxAliasesForCollections(0); optionen.setCodePointLimit(262144);
+        Object inhalt = new Yaml(new SafeConstructor(optionen)).load(text);
+        if (!(inhalt instanceof Map<?, ?> map) || map.isEmpty()) throw new IllegalArgumentException("Die Update-Datei muss eine nicht leere Zuordnung sein.");
+        var ausgabe = new LinkedHashMap<String, Object>();
+        map.forEach((key, value) -> { if (!(key instanceof String name)) throw new IllegalArgumentException("Update-Schlüssel müssen Text sein."); ausgabe.put(name, value); });
+        return ausgabe;
+    }
+
+    public Component text(String key, Map<String, String> werte) {
+        var resolver = TagResolver.resolver(werte.entrySet().stream().map(e -> Placeholder.unparsed(e.getKey(), e.getValue())).toArray(TagResolver[]::new));
+        return MM.deserialize(nachrichten.get("prefix") + nachrichten.get(key), resolver);
+    }
+}

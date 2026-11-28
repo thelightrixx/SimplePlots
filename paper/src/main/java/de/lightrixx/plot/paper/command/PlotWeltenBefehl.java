@@ -36,7 +36,10 @@ public final class PlotWeltenBefehl implements TabExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (!sender.hasPermission(PlotBerechtigungen.USE)) { texte.senden(sender, "fehler.kein-recht"); return true; }
+        boolean betriebsbefehl = args.length > 0 && args[0].equalsIgnoreCase("version")
+                || args.length > 1 && args[0].equalsIgnoreCase("admin")
+                    && List.of("reload", "diagnostics", "update", "setup").contains(args[1].toLowerCase(Locale.ROOT));
+        if (!betriebsbefehl && !sender.hasPermission(PlotBerechtigungen.USE)) { texte.senden(sender, "fehler.kein-recht"); return true; }
         if (args.length > 0 && args[0].equalsIgnoreCase("worlds")) {
             texte.senden(sender, "welten.liste", unparsed("worlds", String.join(", ", welten.keySet().stream().sorted().toList())));
             return true;
@@ -60,7 +63,9 @@ public final class PlotWeltenBefehl implements TabExecutor {
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
-        if (!sender.hasPermission(PlotBerechtigungen.USE)) return List.of();
+        boolean betriebsbefehl = args.length > 1 && args[0].equalsIgnoreCase("admin")
+                && List.of("reload", "diagnostics", "update", "setup").contains(args[1].toLowerCase(Locale.ROOT));
+        if (!betriebsbefehl && !sender.hasPermission(PlotBerechtigungen.USE)) return List.of();
         if (args.length == 2 && (args[0].equalsIgnoreCase("world") || args[0].equalsIgnoreCase("in")))
             return welten.keySet().stream().filter(name -> name.startsWith(args[1].toLowerCase(Locale.ROOT))).sorted().toList();
         if (args.length >= 3 && args[0].equalsIgnoreCase("in")) {

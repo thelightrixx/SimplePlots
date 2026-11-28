@@ -1,0 +1,182 @@
+package de.lightrixx.plot.paper.command;
+
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandExecutor;
+import org.bukkit.command.CommandSender;
+import org.bukkit.command.TabCompleter;
+import org.bukkit.command.TabExecutor;
+import org.bukkit.entity.Player;
+import org.bukkit.plugin.java.JavaPlugin;
+
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
+import java.util.function.BiPredicate;
+import java.util.stream.IntStream;
+
+/** Gemeinsame Bedienung; die fachlichen Befehle bleiben beim jeweiligen Plugin. */
+public final class FamilienBefehle implements TabExecutor {
+    private static final int SEITENGROESSE = 10;
+
+    @FunctionalInterface
+    public interface Texte {
+        void senden(CommandSender sender, String schluessel, Map<String, String> werte);
+    }
+
+    public record Eintrag(String name, String syntax, List<String> rechte, List<String> einesVon, boolean nurSpieler,
+                          int minimum, int maximum, List<String> route, List<String> aliase) {
+        public Eintrag {
+            Objects.requireNonNull(name);
+            Objects.requireNonNull(syntax);
+            rechte = List.copyOf(rechte);
+            einesVon = List.copyOf(einesVon);
+            route = List.copyOf(route);
+            aliase = List.copyOf(aliase);
+            if (minimum < 0 || maximum < minimum) throw new IllegalArgumentException("Ungültige Argumentgrenzen.");
+        }
+
+        boolean sichtbar(CommandSender sender, BiPredicate<CommandSender, String> pruefung) {
+            return (!nurSpieler || sender instanceof Player) && berechtigt(sender, pruefung);
+        }
+
+        boolean berechtigt(CommandSender sender, BiPredicate<CommandSender, String> pruefung) {
+            return rechte.stream().allMatch(recht -> pruefung.test(sender, recht))
+                    && (einesVon.isEmpty() || einesVon.stream().anyMatch(recht -> pruefung.test(sender, recht)));
+        }
+    }
+
+    private final String wurzel;
+    private final List<Eintrag> eintraege;
+    private final CommandExecutor ausfuehren;
+    private final TabCompleter ergaenzen;
+    private final Texte texte;
+    private final BiPredicate<CommandSender, String> rechte;
+
+    FamilienBefehle(String wurzel, List<Eintrag> eintraege, CommandExecutor ausfuehren,
+                    TabCompleter ergaenzen, Texte texte) {
+        this(wurzel, eintraege, ausfuehren, ergaenzen, texte, CommandSender::hasPermission);
+    }
+
+    FamilienBefehle(String wurzel, List<Eintrag> eintraege, CommandExecutor ausfuehren,
+                    TabCompleter ergaenzen, Texte texte, BiPredicate<CommandSender, String> rechte) {
+        this.wurzel = Objects.requireNonNull(wurzel);
+        this.eintraege = List.copyOf(eintraege);
+        this.ausfuehren = Objects.requireNonNull(ausfuehren);
+        this.ergaenzen = ergaenzen;
+        this.texte = Objects.requireNonNull(texte);
+        this.rechte = Objects.requireNonNull(rechte);
+    }
+
+    public static FamilienBefehle registrieren(JavaPlugin plugin, Texte texte) {
+        return registrieren(plugin, texte, CommandSender::hasPermission);
+    }
+
+    public static FamilienBefehle registrieren(JavaPlugin plugin, Texte texte, BiPredicate<CommandSender, String> rechte) {
+        var befehl = Objects.requireNonNull(plugin.getCommand(BefehlsKatalog.WURZEL), "Hauptbefehl fehlt.");
+        var familie = new FamilienBefehle(BefehlsKatalog.WURZEL, BefehlsKatalog.EINTRAEGE,
+                befehl.getExecutor(), befehl.getTabCompleter(), texte, rechte);
+        befehl.setExecutor(familie);
+        befehl.setTabCompleter(familie);
+        return familie;
+    }
+
+    public static FamilienBefehle verbinden(CommandExecutor ausfuehren, TabCompleter ergaenzen, Texte texte) {
+        return new FamilienBefehle(BefehlsKatalog.WURZEL, BefehlsKatalog.EINTRAEGE, ausfuehren, ergaenzen, texte);
+    }
+
+    private Eintrag finden(String name) {
+        String klein = name.toLowerCase(Locale.ROOT);
+        return eintraege.stream().filter(e -> e.name().equals(klein) || e.aliase().contains(klein))
+                .findFirst().orElse(null);
+    }
+
+    private String syntax(Eintrag eintrag) {
+        return "/" + wurzel + " " + eintrag.syntax();
+    }
+
+    private String[] argumente(Eintrag eintrag, String[] args) {
+        int anzahl = Math.max(0, args.length - 1);
+        String[] ergebnis = new String[eintrag.route().size() + anzahl];
+        for (int i = 0; i < eintrag.route().size(); i++) ergebnis[i] = eintrag.route().get(i);
+        if (anzahl > 0) System.arraycopy(args, 1, ergebnis, eintrag.route().size(), anzahl);
+        return ergebnis;
+    }
+
+    @Override
+    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        String name = args.length == 0 ? "help" : args[0];
+        Eintrag eintrag = finden(name);
+        if (eintrag == null) {
+            texte.senden(sender, "standard-unbekannt", Map.of("eingabe", name, "befehl", "/" + wurzel + " help"));
+            return true;
+        }
+        if (!eintrag.berechtigt(sender, rechte)) {
+            texte.senden(sender, "standard-kein-recht", Map.of());
+            return true;
+        }
+        if (eintrag.nurSpieler() && !(sender instanceof Player)) {
+            texte.senden(sender, "standard-nur-spieler", Map.of());
+            return true;
+        }
+        int anzahl = Math.max(0, args.length - 1);
+        if (anzahl < eintrag.minimum() || anzahl > eintrag.maximum()) {
+            verwendung(sender, eintrag);
+            return true;
+        }
+        if (eintrag.name().equals("help")) {
+            hilfe(sender, eintrag, args);
+            return true;
+        }
+        return ausfuehren.onCommand(sender, command, label, argumente(eintrag, args));
+    }
+
+    private void verwendung(CommandSender sender, Eintrag eintrag) {
+        texte.senden(sender, "standard-syntax", Map.of("befehl", syntax(eintrag)));
+    }
+
+    private void hilfe(CommandSender sender, Eintrag hilfe, String[] args) {
+        List<Eintrag> sichtbar = eintraege.stream().filter(e -> e.sichtbar(sender, rechte)).toList();
+        int seiten = Math.max(1, (sichtbar.size() + SEITENGROESSE - 1) / SEITENGROESSE);
+        int seite;
+        try {
+            seite = args.length < 2 ? 1 : Integer.parseInt(args[1]);
+        } catch (NumberFormatException fehler) {
+            verwendung(sender, hilfe);
+            return;
+        }
+        if (seite < 1 || seite > seiten) {
+            texte.senden(sender, "standard-seite", Map.of("seiten", Integer.toString(seiten), "befehl", syntax(hilfe)));
+            return;
+        }
+        texte.senden(sender, "standard-kopf", Map.of("befehl", "/" + wurzel,
+                "seite", Integer.toString(seite), "seiten", Integer.toString(seiten)));
+        if (sichtbar.isEmpty()) texte.senden(sender, "standard-leer", Map.of());
+        sichtbar.stream().skip((long) (seite - 1) * SEITENGROESSE).limit(SEITENGROESSE)
+                .forEach(e -> texte.senden(sender, "standard-" + e.name(), Map.of("befehl", syntax(e))));
+        texte.senden(sender, "standard-fuss", Map.of("befehl", "/" + wurzel + " help", "seiten", Integer.toString(seiten)));
+    }
+
+    @Override
+    public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
+        if (args.length == 0) return List.of();
+        String prefix = args[args.length - 1].toLowerCase(Locale.ROOT);
+        if (args.length == 1) {
+            return eintraege.stream().filter(e -> e.sichtbar(sender, rechte)).map(Eintrag::name)
+                    .filter(name -> name.startsWith(prefix)).distinct().sorted().toList();
+        }
+        Eintrag eintrag = finden(args[0]);
+        if (eintrag == null || !eintrag.sichtbar(sender, rechte) || args.length - 1 > eintrag.maximum()) return List.of();
+        if (eintrag.name().equals("help")) {
+            long anzahl = eintraege.stream().filter(e -> e.sichtbar(sender, rechte)).count();
+            return IntStream.rangeClosed(1, Math.max(1, (int) ((anzahl + SEITENGROESSE - 1) / SEITENGROESSE)))
+                    .mapToObj(Integer::toString).filter(seite -> seite.startsWith(prefix)).toList();
+        }
+        if (ergaenzen == null) return List.of();
+        List<String> vorschlaege = ergaenzen.onTabComplete(sender, command, label, argumente(eintrag, args));
+        if (vorschlaege == null) return List.of();
+        return vorschlaege.stream().filter(Objects::nonNull).filter(s -> !s.isBlank())
+                .filter(s -> s.toLowerCase(Locale.ROOT).startsWith(prefix)).distinct()
+                .sorted(String.CASE_INSENSITIVE_ORDER).toList();
+    }
+}

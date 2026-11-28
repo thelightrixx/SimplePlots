@@ -310,5 +310,118 @@ class ReleaseContractTest(unittest.TestCase):
             self.assertEqual(data, path.read_bytes())
 
 
+class CommandStandardTest(unittest.TestCase):
+    def manifest(self):
+        from command_standard import REQUIRED
+        return {"name": "Test", "artifacts": [{"module": "paper", "metadata": "plugin.yml"}],
+                "commands": {"root": "test", "package": "de.lightrixx.test.command",
+                    "messages": "paper/src/main/resources/messages.yml",
+                    "entries": [{"name": name, "syntax": name, "description": "Beschreibung",
+                        "permissions": ["test." + name], "min": 0, "max": 0, "route": [name]}
+                        for name in sorted(REQUIRED)]}}
+
+    def test_incomplete_ambiguous_and_unsafe_contracts_are_rejected(self):
+        from command_standard import contract
+        mutations = [lambda m: m["commands"].update(root="other"),
+                     lambda m: m["commands"].update(package="../../outside"),
+                     lambda m: m["commands"]["entries"].pop(),
+                     lambda m: m["commands"]["entries"][0].update(aliases=["reload"]),
+                     lambda m: m["commands"]["entries"][0].update(min=2, max=1)]
+        for mutation in mutations:
+            manifest = self.manifest()
+            mutation(manifest)
+            with self.subTest(manifest=manifest), self.assertRaises(ValueError):
+                contract(manifest)
+
+    def test_runtime_templates_use_the_project_package_and_canonical_routes(self):
+        from command_standard import runtime_files
+        manifest = self.manifest()
+        manifest["commands"]["entries"][0]["route"] = ["admin", "diagnostics"]
+        files = runtime_files(Path(__file__).resolve().parents[1], manifest)
+        self.assertEqual(3, len(files))
+        for name, data in files.items():
+            self.assertTrue(name.startswith("paper/src/"))
+            self.assertNotIn(b"@PACKAGE@", data)
+            self.assertTrue(data.startswith(b"package de.lightrixx.test.command;"))
+        catalog = next(data for name, data in files.items() if name.endswith("BefehlsKatalog.java"))
+        self.assertIn(b'List.of("admin", "diagnostics")', catalog)
+
+    def test_metadata_text_and_runtime_drift_are_detected(self):
+        from command_standard import check, runtime_files, command_table, command_readme, permission_table
+        manifest = self.manifest()
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            (root / "scripts").mkdir()
+            (root / "scripts/project.json").write_text(json.dumps(manifest), encoding="utf-8")
+            templates = Path(__file__).resolve().parent / "templates"
+            for template in templates.glob("*.template"):
+                target = root / "scripts/templates" / template.name
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.write_bytes(template.read_bytes())
+            for name, data in runtime_files(root, manifest).items():
+                target = root / name
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.write_bytes(data)
+            resource = root / manifest["commands"]["messages"]
+            resource.parent.mkdir(parents=True)
+            keys = ["kopf", "fuss", "leer", "syntax", "seite", "unbekannt", "kein-recht", "nur-spieler"]
+            keys += [e["name"] for e in manifest["commands"]["entries"]]
+            resource.write_text("standard-dauer: 30m\n" + "".join("standard-" + key + ": 'Text'\n" for key in keys), encoding="utf-8")
+            (root / "docs").mkdir()
+            (root / "docs/index.html").write_text(command_table(manifest["commands"]), encoding="utf-8")
+            (root / "README.md").write_text(command_readme(manifest["commands"]), encoding="utf-8")
+            metadata = resource.with_name("plugin.yml")
+            valid = "commands:\n  test:\n    usage: /test help\npermissions:\n"
+            valid += "  test.admin: {description: Verwaltung, default: op}\n"
+            valid += "".join("  test." + e["name"] + ": {default: op}\n" for e in manifest["commands"]["entries"])
+            metadata.write_text(valid, encoding="utf-8")
+            (root / "docs/index.html").write_text(command_table(manifest["commands"]) + permission_table(root, manifest), encoding="utf-8")
+            check(root)
+            metadata.write_text(valid.replace("  test.reload:", "  wrong.reload:"), encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "Berechtigungsübersicht|Befehlsrecht fehlt"):
+                check(root)
+            metadata.write_text(valid, encoding="utf-8")
+            resource.write_text("standard-kopf: 'Text'\n", encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "Befehlstexte"):
+                check(root)
+
+    def test_permission_metadata_keeps_defaults_descriptions_and_children(self):
+        from command_standard import permission_definitions
+        text = '''commands:
+  test:
+    usage: /test help
+permissions:
+  test.help: { description: Hilfe, default: true }
+  test.admin:
+    description: Verwaltung ohne Bypass.
+    default: op
+    children:
+      test.help: true
+      test.bypass: false
+  test.bypass: { description: Schutz umgehen., default: false }
+website: https://example.com/
+'''
+        permissions = permission_definitions(text)
+        self.assertEqual("Hilfe", permissions["test.help"]["description"])
+        self.assertEqual("Verwaltung ohne Bypass.", permissions["test.admin"]["description"])
+        self.assertEqual({"test.help": "true", "test.bypass": "false"}, permissions["test.admin"]["children"])
+        self.assertEqual("false", permissions["test.bypass"]["default"])
+
+    def test_duplicate_cyclic_and_implicitly_granted_protection_rights_are_rejected(self):
+        from command_standard import permission_definitions, check_permissions
+        with self.assertRaises(ValueError):
+            permission_definitions("permissions:\n  test.use: {default: true}\n  test.use: {default: true}\n")
+        valid = {"test.admin": {"default": "op", "children": {"test.reload": "true"}},
+                 "test.reload": {"default": "op", "children": {}},
+                 "test.bypass": {"default": "false", "children": {}}}
+        check_permissions(valid, "test")
+        valid["test.reload"]["children"]["test.admin"] = "true"
+        with self.assertRaisesRegex(ValueError, "Zyklische"):
+            check_permissions(valid, "test")
+        valid["test.reload"]["children"] = {"test.bypass": "true"}
+        with self.assertRaisesRegex(ValueError, "Schutzumgehung"):
+            check_permissions(valid, "test")
+
+
 if __name__ == "__main__":
     unittest.main()

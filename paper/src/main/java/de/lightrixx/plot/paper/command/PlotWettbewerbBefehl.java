@@ -62,20 +62,20 @@ final class PlotWettbewerbBefehl {
         if (!konfiguration.aktiv("contests.aktiviert")) { texte.senden(spieler, "fehler.deaktiviert"); return; }
         UUID id = spieler.getUniqueId();
         int limit = konfiguration.zahl("contests.maximale-beitraege");
-        auftraege.ausfuehren(spieler, "/plot submit", () -> wettbewerbe.einreichen(plot, id, limit),
+        auftraege.ausfuehren(spieler, "/simpleplots submit", () -> wettbewerbe.einreichen(plot, id, limit),
                 ergebnis -> senden(spieler, "submit", ergebnis));
     }
 
     void zurueckziehen(Player spieler) {
         UUID id = spieler.getUniqueId();
-        auftraege.ausfuehren(spieler, "/plot withdraw", () -> wettbewerbe.zurueckziehen(id),
+        auftraege.ausfuehren(spieler, "/simpleplots withdraw", () -> wettbewerbe.zurueckziehen(id),
                 ergebnis -> senden(spieler, "withdraw", ergebnis));
     }
 
     void abstimmen(Player spieler, PlotId plot) {
         if (!konfiguration.aktiv("contests.aktiviert")) { texte.senden(spieler, "fehler.deaktiviert"); return; }
         UUID id = spieler.getUniqueId();
-        auftraege.ausfuehren(spieler, "/plot vote", () -> wettbewerbe.abstimmen(plot, id),
+        auftraege.ausfuehren(spieler, "/simpleplots vote", () -> wettbewerbe.abstimmen(plot, id),
                 ergebnis -> senden(spieler, "vote", ergebnis));
     }
 
@@ -96,11 +96,11 @@ final class PlotWettbewerbBefehl {
                 texte.senden(sender, "wettbewerb.thema-ungueltig");
                 return;
             }
-            auftraege.ausfuehren(sender, "/plot contest start", () -> wettbewerbe.starten(thema),
+            auftraege.ausfuehren(sender, "/simpleplots contest start", () -> wettbewerbe.starten(thema),
                     ergebnis -> senden(sender, aktion, ergebnis));
             return;
         }
-        auftraege.ausfuehren(sender, "/plot contest " + aktion, () -> switch (aktion) {
+        auftraege.ausfuehren(sender, "/simpleplots contest " + aktion, () -> switch (aktion) {
             case "voting" -> wettbewerbe.abstimmungOeffnen();
             case "finish" -> wettbewerbe.beenden();
             case "cancel" -> wettbewerbe.abbrechen();

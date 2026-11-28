@@ -62,7 +62,7 @@ public final class PlotBetrieb {
             return;
         }
         reloadLaeuft = true;
-        auftraege.ausfuehren(sender, "/plot admin reload", this::vorbereiten, neu -> {
+        auftraege.ausfuehren(sender, "/simpleplots reload", this::vorbereiten, neu -> {
             if (welt.rasterFestgelegt() && !welt.raster().equals(neu.einstellungen().raster())) {
                 texte.senden(sender, "admin.reload-raster");
                 return;
@@ -78,7 +78,7 @@ public final class PlotBetrieb {
     private void verbundNeuladen(CommandSender sender) {
         if (verbund.stream().anyMatch(PlotBetrieb::reloadLaeuft)) { texte.senden(sender, "admin.reload-laeuft"); return; }
         verbund.forEach(betrieb -> betrieb.reloadLaeuft = true);
-        auftraege.ausfuehren(sender, "/plot admin reload", () -> {
+        auftraege.ausfuehren(sender, "/simpleplots reload", () -> {
             var global = basis.vorbereiten();
             var einstellungen = new java.util.LinkedHashMap<PlotBetrieb, PlotKonfiguration.Werte>();
             for (var betrieb : verbund) einstellungen.put(betrieb, betrieb.konfiguration.vorbereiten());
@@ -102,7 +102,7 @@ public final class PlotBetrieb {
     }
 
     public void einrichtung(CommandSender sender) {
-        auftraege.ausfuehren(sender, "/plot admin setup", () -> {
+        auftraege.ausfuehren(sender, "/simpleplots setup", () -> {
             if (basis != null) basis.vorbereiten();
             for (var betrieb : verbund == null ? java.util.List.of(this) : verbund) {
                 var neu = betrieb.vorbereiten();

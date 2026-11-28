@@ -13,5 +13,742 @@
       "module": "paper-1.21",
       "metadata": "plugin.yml"
     }
-  ]
+  ],
+  "commands": {
+    "root": "simpleplots",
+    "package": "de.lightrixx.plot.paper.command",
+    "entries": [
+      {
+        "name": "help",
+        "syntax": "help [Seite]",
+        "description": "Erlaubte Befehle und ihre Verwendung anzeigen.",
+        "permissions": [
+          "simpleplots.help"
+        ],
+        "playerOnly": false,
+        "min": 0,
+        "max": 1,
+        "route": [
+          "help"
+        ],
+        "aliases": [
+          "hilfe"
+        ]
+      },
+      {
+        "name": "version",
+        "syntax": "version",
+        "description": "Installierte Plugin-Version anzeigen.",
+        "permissions": [
+          "simpleplots.version"
+        ],
+        "playerOnly": false,
+        "min": 0,
+        "max": 0,
+        "route": [
+          "version"
+        ]
+      },
+      {
+        "name": "world",
+        "syntax": "world [Welt]",
+        "description": "Eine registrierte Plotwelt betreten.",
+        "permissions": [
+          "simpleplots.use"
+        ],
+        "playerOnly": true,
+        "min": 0,
+        "max": 1,
+        "route": [
+          "world"
+        ]
+      },
+      {
+        "name": "back",
+        "syntax": "back",
+        "description": "Zum gespeicherten Ort der Spielwelt zurückkehren.",
+        "permissions": [
+          "simpleplots.use"
+        ],
+        "playerOnly": true,
+        "min": 0,
+        "max": 0,
+        "route": [
+          "back"
+        ]
+      },
+      {
+        "name": "claim",
+        "syntax": "claim",
+        "description": "Den freien Plot am Standort beanspruchen.",
+        "permissions": [
+          "simpleplots.use",
+          "simpleplots.claim"
+        ],
+        "playerOnly": true,
+        "min": 0,
+        "max": 0,
+        "route": [
+          "claim"
+        ]
+      },
+      {
+        "name": "auto",
+        "syntax": "auto",
+        "description": "Einen freien Plot suchen und beanspruchen.",
+        "permissions": [
+          "simpleplots.use",
+          "simpleplots.claim"
+        ],
+        "playerOnly": true,
+        "min": 0,
+        "max": 0,
+        "route": [
+          "auto"
+        ]
+      },
+      {
+        "name": "home",
+        "syntax": "home [Nummer]",
+        "description": "Zum eigenen Plot reisen.",
+        "permissions": [
+          "simpleplots.use"
+        ],
+        "playerOnly": true,
+        "min": 0,
+        "max": 1,
+        "route": [
+          "home"
+        ]
+      },
+      {
+        "name": "visit",
+        "syntax": "visit <Spieler|Plot-ID|#Name> [Nummer]",
+        "description": "Einen Plot eines anderen Spielers besuchen.",
+        "permissions": [
+          "simpleplots.use"
+        ],
+        "playerOnly": true,
+        "min": 1,
+        "max": 9999,
+        "route": [
+          "visit"
+        ]
+      },
+      {
+        "name": "list",
+        "syntax": "list",
+        "description": "Eigene Plots auflisten.",
+        "permissions": [
+          "simpleplots.use"
+        ],
+        "playerOnly": true,
+        "min": 0,
+        "max": 0,
+        "route": [
+          "list"
+        ]
+      },
+      {
+        "name": "info",
+        "syntax": "info",
+        "description": "Den Plot am Standort prüfen.",
+        "permissions": [
+          "simpleplots.use"
+        ],
+        "playerOnly": true,
+        "min": 0,
+        "max": 0,
+        "route": [
+          "info"
+        ]
+      },
+      {
+        "name": "menu",
+        "syntax": "menu",
+        "description": "Das Plot-Menü öffnen.",
+        "permissions": [
+          "simpleplots.use"
+        ],
+        "playerOnly": true,
+        "min": 0,
+        "max": 0,
+        "route": [
+          "menu"
+        ]
+      },
+      {
+        "name": "discover",
+        "syntax": "discover [Kategorie] [new|popular]",
+        "description": "Veröffentlichte Plots entdecken.",
+        "permissions": [
+          "simpleplots.use"
+        ],
+        "playerOnly": true,
+        "min": 0,
+        "max": 2,
+        "route": [
+          "discover"
+        ]
+      },
+      {
+        "name": "profile",
+        "syntax": "profile <name|description|category> <Wert>",
+        "description": "Das Profil des eigenen Plots ändern.",
+        "permissions": [
+          "simpleplots.use",
+          "simpleplots.manage"
+        ],
+        "playerOnly": true,
+        "min": 2,
+        "max": 9999,
+        "route": [
+          "profile"
+        ]
+      },
+      {
+        "name": "flag",
+        "syntax": "flag <doors|switches> <on|off>",
+        "description": "Besucherzugriffe auf Türen und Schalter steuern.",
+        "permissions": [
+          "simpleplots.use",
+          "simpleplots.manage"
+        ],
+        "playerOnly": true,
+        "min": 2,
+        "max": 2,
+        "route": [
+          "flag"
+        ]
+      },
+      {
+        "name": "sethome",
+        "syntax": "sethome [off]",
+        "description": "Den Ankunftspunkt des Plots setzen oder zurücksetzen.",
+        "permissions": [
+          "simpleplots.use",
+          "simpleplots.manage"
+        ],
+        "playerOnly": true,
+        "min": 0,
+        "max": 1,
+        "route": [
+          "sethome"
+        ]
+      },
+      {
+        "name": "merge",
+        "syntax": "merge <Richtung> [confirm]",
+        "description": "Benachbarte eigene Plots nach Vorschau zusammenlegen.",
+        "permissions": [
+          "simpleplots.use",
+          "simpleplots.manage"
+        ],
+        "playerOnly": true,
+        "min": 1,
+        "max": 2,
+        "route": [
+          "merge"
+        ]
+      },
+      {
+        "name": "unlink",
+        "syntax": "unlink [confirm]",
+        "description": "Einen Verbund nach Vorschau wieder aufteilen.",
+        "permissions": [
+          "simpleplots.use",
+          "simpleplots.manage"
+        ],
+        "playerOnly": true,
+        "min": 0,
+        "max": 1,
+        "route": [
+          "unlink"
+        ],
+        "aliases": [
+          "unmerge"
+        ]
+      },
+      {
+        "name": "biome",
+        "syntax": "biome <Biom|off>",
+        "description": "Die Biomvorgabe des eigenen Plots ändern.",
+        "permissions": [
+          "simpleplots.use",
+          "simpleplots.manage"
+        ],
+        "playerOnly": true,
+        "min": 1,
+        "max": 1,
+        "route": [
+          "biome"
+        ]
+      },
+      {
+        "name": "like",
+        "syntax": "like",
+        "description": "Den besuchten Plot empfehlen.",
+        "permissions": [
+          "simpleplots.use"
+        ],
+        "playerOnly": true,
+        "min": 0,
+        "max": 0,
+        "route": [
+          "like"
+        ]
+      },
+      {
+        "name": "unlike",
+        "syntax": "unlike",
+        "description": "Eine eigene Empfehlung entfernen.",
+        "permissions": [
+          "simpleplots.use"
+        ],
+        "playerOnly": true,
+        "min": 0,
+        "max": 0,
+        "route": [
+          "unlike"
+        ]
+      },
+      {
+        "name": "submit",
+        "syntax": "submit",
+        "description": "Den eigenen Plot beim laufenden Wettbewerb einreichen.",
+        "permissions": [
+          "simpleplots.use",
+          "simpleplots.manage"
+        ],
+        "playerOnly": true,
+        "min": 0,
+        "max": 0,
+        "route": [
+          "submit"
+        ]
+      },
+      {
+        "name": "vote",
+        "syntax": "vote",
+        "description": "Für den besuchten Wettbewerbsbeitrag stimmen.",
+        "permissions": [
+          "simpleplots.use"
+        ],
+        "playerOnly": true,
+        "min": 0,
+        "max": 0,
+        "route": [
+          "vote"
+        ]
+      },
+      {
+        "name": "withdraw",
+        "syntax": "withdraw",
+        "description": "Den eigenen Wettbewerbsbeitrag zurückziehen.",
+        "permissions": [
+          "simpleplots.use",
+          "simpleplots.manage"
+        ],
+        "playerOnly": true,
+        "min": 0,
+        "max": 0,
+        "route": [
+          "withdraw"
+        ]
+      },
+      {
+        "name": "ban",
+        "syntax": "ban <Spieler>",
+        "description": "Einen Spieler vom eigenen Plot ausschließen.",
+        "permissions": [
+          "simpleplots.use",
+          "simpleplots.manage"
+        ],
+        "playerOnly": true,
+        "min": 1,
+        "max": 1,
+        "route": [
+          "ban"
+        ]
+      },
+      {
+        "name": "unban",
+        "syntax": "unban <Spieler>",
+        "description": "Einen Plotausschluss aufheben.",
+        "permissions": [
+          "simpleplots.use",
+          "simpleplots.manage"
+        ],
+        "playerOnly": true,
+        "min": 1,
+        "max": 1,
+        "route": [
+          "unban"
+        ]
+      },
+      {
+        "name": "trust",
+        "syntax": "trust <Spieler>",
+        "description": "Dauerhafte Baurechte vergeben.",
+        "permissions": [
+          "simpleplots.use",
+          "simpleplots.manage"
+        ],
+        "playerOnly": true,
+        "min": 1,
+        "max": 1,
+        "route": [
+          "trust"
+        ]
+      },
+      {
+        "name": "untrust",
+        "syntax": "untrust <Spieler>",
+        "description": "Dauerhafte Baurechte entfernen.",
+        "permissions": [
+          "simpleplots.use",
+          "simpleplots.manage"
+        ],
+        "playerOnly": true,
+        "min": 1,
+        "max": 1,
+        "route": [
+          "untrust"
+        ]
+      },
+      {
+        "name": "deny",
+        "syntax": "deny <Spieler>",
+        "description": "Einen Spieler vom Plot ausschließen.",
+        "permissions": [
+          "simpleplots.use",
+          "simpleplots.manage"
+        ],
+        "playerOnly": true,
+        "min": 1,
+        "max": 1,
+        "route": [
+          "deny"
+        ]
+      },
+      {
+        "name": "undeny",
+        "syntax": "undeny <Spieler>",
+        "description": "Einen Plotausschluss aufheben.",
+        "permissions": [
+          "simpleplots.use",
+          "simpleplots.manage"
+        ],
+        "playerOnly": true,
+        "min": 1,
+        "max": 1,
+        "route": [
+          "undeny"
+        ]
+      },
+      {
+        "name": "kick",
+        "syntax": "kick <Spieler>",
+        "description": "Einen Besucher vom Plot entfernen.",
+        "permissions": [
+          "simpleplots.use",
+          "simpleplots.manage"
+        ],
+        "playerOnly": true,
+        "min": 1,
+        "max": 1,
+        "route": [
+          "kick"
+        ]
+      },
+      {
+        "name": "add",
+        "syntax": "add <Spieler>",
+        "description": "Baurechte während der Anwesenheit des Besitzers vergeben.",
+        "permissions": [
+          "simpleplots.use",
+          "simpleplots.manage"
+        ],
+        "playerOnly": true,
+        "min": 1,
+        "max": 1,
+        "route": [
+          "add"
+        ]
+      },
+      {
+        "name": "unadd",
+        "syntax": "unadd <Spieler>",
+        "description": "Vorübergehende Baurechte entfernen.",
+        "permissions": [
+          "simpleplots.use",
+          "simpleplots.manage"
+        ],
+        "playerOnly": true,
+        "min": 1,
+        "max": 1,
+        "route": [
+          "unadd"
+        ]
+      },
+      {
+        "name": "storage",
+        "syntax": "storage <Spieler>",
+        "description": "Zugriff auf Behälter vergeben.",
+        "permissions": [
+          "simpleplots.use",
+          "simpleplots.manage"
+        ],
+        "playerOnly": true,
+        "min": 1,
+        "max": 1,
+        "route": [
+          "storage"
+        ]
+      },
+      {
+        "name": "unstore",
+        "syntax": "unstore <Spieler>",
+        "description": "Zugriff auf Behälter entfernen.",
+        "permissions": [
+          "simpleplots.use",
+          "simpleplots.manage"
+        ],
+        "playerOnly": true,
+        "min": 1,
+        "max": 1,
+        "route": [
+          "unstore"
+        ]
+      },
+      {
+        "name": "transfer",
+        "syntax": "transfer <Spieler|cancel>",
+        "description": "Eine Eigentumsübertragung anbieten oder zurückziehen.",
+        "permissions": [
+          "simpleplots.use",
+          "simpleplots.manage"
+        ],
+        "playerOnly": true,
+        "min": 1,
+        "max": 1,
+        "route": [
+          "transfer"
+        ]
+      },
+      {
+        "name": "accept",
+        "syntax": "accept <Plot-ID>",
+        "description": "Ein Plot-Übertragungsangebot annehmen.",
+        "permissions": [
+          "simpleplots.use",
+          "simpleplots.manage"
+        ],
+        "playerOnly": true,
+        "min": 1,
+        "max": 1,
+        "route": [
+          "accept"
+        ]
+      },
+      {
+        "name": "decline",
+        "syntax": "decline <Plot-ID>",
+        "description": "Ein Plot-Übertragungsangebot ablehnen.",
+        "permissions": [
+          "simpleplots.use",
+          "simpleplots.manage"
+        ],
+        "playerOnly": true,
+        "min": 1,
+        "max": 1,
+        "route": [
+          "decline"
+        ]
+      },
+      {
+        "name": "bookmark",
+        "syntax": "bookmark [list|add|remove|go] [Name]",
+        "description": "Persönliche Plot-Lesezeichen verwalten.",
+        "permissions": [
+          "simpleplots.use",
+          "simpleplots.bookmark"
+        ],
+        "playerOnly": true,
+        "min": 0,
+        "max": 9999,
+        "route": [
+          "bookmark"
+        ]
+      },
+      {
+        "name": "border",
+        "syntax": "border [Sekunden|off]",
+        "description": "Die Plotgrenze als private Partikel anzeigen.",
+        "permissions": [
+          "simpleplots.use",
+          "simpleplots.border"
+        ],
+        "playerOnly": true,
+        "min": 0,
+        "max": 1,
+        "route": [
+          "border"
+        ]
+      },
+      {
+        "name": "fly",
+        "syntax": "fly [on|off]",
+        "description": "Die erlaubte Fluganzeige auf eigenen Plots umschalten.",
+        "permissions": [
+          "simpleplots.use"
+        ],
+        "playerOnly": true,
+        "min": 0,
+        "max": 1,
+        "route": [
+          "fly"
+        ],
+        "anyPermissions": [
+          "simpleplots.fly",
+          "simpleplots.admin"
+        ]
+      },
+      {
+        "name": "worlds",
+        "syntax": "worlds",
+        "description": "Registrierte Plotwelten auflisten.",
+        "permissions": [
+          "simpleplots.use"
+        ],
+        "playerOnly": false,
+        "min": 0,
+        "max": 0,
+        "route": [
+          "worlds"
+        ]
+      },
+      {
+        "name": "in",
+        "syntax": "in <Welt> <Unterbefehl> [Argumente]",
+        "description": "Einen Befehl ausdrücklich für eine Plotwelt ausführen.",
+        "permissions": [
+          "simpleplots.use"
+        ],
+        "playerOnly": false,
+        "min": 2,
+        "max": 9999,
+        "route": [
+          "in"
+        ]
+      },
+      {
+        "name": "contest",
+        "syntax": "contest [Unterbefehl] [Argumente]",
+        "description": "Bauwettbewerbe ansehen und mit Verwaltungsrecht bearbeiten.",
+        "permissions": [
+          "simpleplots.use"
+        ],
+        "playerOnly": false,
+        "min": 0,
+        "max": 9999,
+        "route": [
+          "contest"
+        ]
+      },
+      {
+        "name": "admin",
+        "syntax": "admin [Unterbefehl] [Argumente]",
+        "description": "Plots, Welt und Moderation mit den jeweiligen Einzelrechten verwalten.",
+        "permissions": [],
+        "playerOnly": false,
+        "min": 0,
+        "max": 9999,
+        "route": [
+          "admin"
+        ],
+        "anyPermissions": [
+          "simpleplots.admin",
+          "simpleplots.reload",
+          "simpleplots.diagnostics",
+          "simpleplots.update",
+          "simpleplots.admin.bypass",
+          "simpleplots.admin.list",
+          "simpleplots.admin.inspect",
+          "simpleplots.admin.visit",
+          "simpleplots.admin.claim",
+          "simpleplots.admin.unclaim",
+          "simpleplots.admin.setowner",
+          "simpleplots.admin.role",
+          "simpleplots.admin.profile",
+          "simpleplots.admin.censor",
+          "simpleplots.admin.remove",
+          "simpleplots.admin.restore",
+          "simpleplots.admin.setup",
+          "simpleplots.admin.contest"
+        ]
+      },
+      {
+        "name": "setup",
+        "syntax": "setup",
+        "description": "Die Konfiguration aller registrierten Plotwelten prüfen.",
+        "permissions": [
+          "simpleplots.admin.setup"
+        ],
+        "playerOnly": false,
+        "min": 0,
+        "max": 0,
+        "route": [
+          "admin",
+          "setup"
+        ]
+      },
+      {
+        "name": "reload",
+        "syntax": "reload",
+        "description": "Konfiguration nach vollständiger Prüfung neu laden.",
+        "permissions": [
+          "simpleplots.reload"
+        ],
+        "playerOnly": false,
+        "min": 0,
+        "max": 0,
+        "route": [
+          "admin",
+          "reload"
+        ]
+      },
+      {
+        "name": "diagnostics",
+        "syntax": "diagnostics",
+        "description": "Betriebszustand und Anbindungen prüfen.",
+        "permissions": [
+          "simpleplots.diagnostics"
+        ],
+        "playerOnly": false,
+        "min": 0,
+        "max": 0,
+        "route": [
+          "admin",
+          "diagnostics"
+        ]
+      },
+      {
+        "name": "update",
+        "syntax": "update [status|check|apply confirm]",
+        "description": "Updates prüfen und für den nächsten Start vorbereiten.",
+        "permissions": [
+          "simpleplots.update"
+        ],
+        "playerOnly": false,
+        "min": 0,
+        "max": 2,
+        "route": [
+          "admin",
+          "update"
+        ]
+      }
+    ],
+    "messages": "paper/src/main/resources/config/messages.yml"
+  }
 }

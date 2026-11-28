@@ -93,7 +93,7 @@ final class PlotModerationBefehl {
                 Math.toIntExact((long) id.z() * welt.raster().rasterweite() + welt.raster().groesse() - 1);
             } catch (ArithmeticException e) { texte.senden(sender, "fehler.plot-id"); return; }
             welt.ladenOderErstellen();
-            spielerId(sender, args[3]).ifPresent(ziel -> auftraege.ausfuehren(sender, "/plot admin claim",
+            spielerId(sender, args[3]).ifPresent(ziel -> auftraege.ausfuehren(sender, "/simpleplots admin claim",
                     () -> plots.claimKostenlos(id, ziel, Integer.MAX_VALUE), ergebnis -> {
                         texte.senden(sender, ergebnis == PlotDienst.ClaimErgebnis.CLAIMED ? "moderation.gespeichert" : "claim.belegt",
                                 unparsed("id", id.toString()));
@@ -119,7 +119,7 @@ final class PlotModerationBefehl {
         }
         if (aktion.equals("setowner")) {
             if (args.length != 5 || !args[4].equalsIgnoreCase("confirm")) { hilfe(sender); return; }
-            spielerId(sender, args[3]).ifPresent(ziel -> auftraege.ausfuehren(sender, "/plot admin setowner",
+            spielerId(sender, args[3]).ifPresent(ziel -> auftraege.ausfuehren(sender, "/simpleplots admin setowner",
                     () -> plots.uebertragen(plot, ziel, Integer.MAX_VALUE, wettbewerbe::gesperrt), ergebnis -> {
                         texte.senden(sender, "transfer." + ergebnis.name().toLowerCase(Locale.ROOT).replace('_', '-'),
                                 unparsed("id", plot.id().toString()));
@@ -130,7 +130,7 @@ final class PlotModerationBefehl {
         if (aktion.equals("unclaim")) {
             if (args.length != 4 || !args[3].equalsIgnoreCase("confirm")) { hilfe(sender); return; }
             var plotwelt = welt.ladenOderErstellen();
-            auftraege.ausfuehren(sender, "/plot admin unclaim", () -> plots.freigeben(id, wettbewerbe::gesperrt),
+            auftraege.ausfuehren(sender, "/simpleplots admin unclaim", () -> plots.freigeben(id, wettbewerbe::gesperrt),
                     ergebnis -> {
                         if (ergebnis == PlotDienst.Aenderung.GEAENDERT) welt.wegrandAktualisieren(plotwelt, plot);
                         antwort(sender, ergebnis);
@@ -142,7 +142,7 @@ final class PlotModerationBefehl {
             Plot.RollenAktion rolle;
             try { rolle = Plot.RollenAktion.valueOf(args[3].toUpperCase(Locale.ROOT)); }
             catch (IllegalArgumentException e) { hilfe(sender); return; }
-            spielerId(sender, args[4]).ifPresent(ziel -> auftraege.ausfuehren(sender, "/plot admin role",
+            spielerId(sender, args[4]).ifPresent(ziel -> auftraege.ausfuehren(sender, "/simpleplots admin role",
                     () -> plots.rolleAendern(id, plot.besitzer(), ziel, rolle), ergebnis -> {
                         texte.senden(sender, ergebnis == PlotDienst.RollenErgebnis.GEAENDERT ? "moderation.gespeichert"
                                 : ergebnis == PlotDienst.RollenErgebnis.GESPERRT ? "zensur.gesperrt" : "rollen.unveraendert");
@@ -179,7 +179,7 @@ final class PlotModerationBefehl {
                 };
                 aenderung.apply(plot.profil());
             } catch (IllegalArgumentException e) { texte.senden(sender, "profil.ungueltig"); return; }
-            auftraege.ausfuehren(sender, "/plot admin profile", () -> plots.profilAendern(id, plot.besitzer(), aenderung),
+            auftraege.ausfuehren(sender, "/simpleplots admin profile", () -> plots.profilAendern(id, plot.besitzer(), aenderung),
                     ergebnis -> antwort(sender, ergebnis));
             return;
         }
