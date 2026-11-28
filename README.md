@@ -29,6 +29,8 @@ Beim Update von v0.8.0-beta oder älter ist der Wechsel zu den neuen JAR-Dateina
 
 Schreibänderungen werden vor dem Ersetzen gegen die Lesegrenze von 64 MiB je YAML-Datei geprüft. Eine zu große Änderung lässt den bisherigen Stand und seine Sicherung erhalten.
 
+Beim Start zeigt ein Banner in der Handbuchfarbe Pluginversion und Plattform.
+
 ## Nachlesen
 
 Das [Handbuch](https://thelightrixx.github.io/SimplePlots/) enthält [Befehle](docs/index.html#/befehle), [Rechte](docs/index.html#/rechte), [Konfiguration](docs/index.html#/konfiguration) und Hinweise zu Sicherung und Wiederherstellung. `docs/index.html` funktioniert auch offline.

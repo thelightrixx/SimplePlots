@@ -33,7 +33,7 @@ public final class PlotUpdater {
     private BukkitTask timer;
 
     public PlotUpdater(JavaPlugin plugin, PlotKonfiguration config, PlotNachrichten texte, Path original) {
-        this(plugin, config, texte, original, new GithubUpdates(plugin.getServer().getMinecraftVersion()));
+        this(plugin, config, texte, original, new GithubUpdates(plugin.getServer().getMinecraftVersion(), plugin.getPluginMeta().getAPIVersion().startsWith("1.21")));
     }
 
     PlotUpdater(JavaPlugin plugin, PlotKonfiguration config, PlotNachrichten texte, Path original, GithubUpdates github) {

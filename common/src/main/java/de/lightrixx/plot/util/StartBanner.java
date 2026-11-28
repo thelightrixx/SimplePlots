@@ -5,7 +5,7 @@ import java.util.List;
 
 public final class StartBanner {
 
-    private static final String GRUEN = "\u001B[32m";
+    private static final String AKZENT = "\u001B[38;2;103;214;160m";
     private static final String WEISS = "\u001B[97m";
     private static final String GRAU = "\u001B[90m";
     private static final String RESET = "\u001B[0m";
@@ -34,10 +34,10 @@ public final class StartBanner {
         breite += 3;
         List<String> ergebnis = new ArrayList<>();
         for (int i = 0; i < LOGO.length; i++) {
-            String logoTeil = GRUEN + auffuellen(LOGO[i], breite) + RESET;
+            String logoTeil = AKZENT + auffuellen(LOGO[i], breite) + RESET;
             String infoTeil = "";
             if (i == 2) {
-                infoTeil = GRUEN + "SimplePlots " + saubereVersion + GRAU + " by lightrixx" + RESET;
+                infoTeil = AKZENT + "SimplePlots " + saubereVersion + GRAU + " by lightrixx" + RESET;
             } else if (i == 3) {
                 infoTeil = WEISS + "Running on " + sauberePlattform + RESET;
             }

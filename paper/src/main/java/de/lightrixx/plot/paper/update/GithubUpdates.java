@@ -29,10 +29,13 @@ public final class GithubUpdates {
     private static final long MAX_JAR = 64L * 1024 * 1024;
     private final Abruf abruf;
     private final String minecraft;
+    private final boolean legacy;
 
     public GithubUpdates(String minecraft) { this(GithubUpdates::http, minecraft); }
+    public GithubUpdates(String minecraft, boolean legacy) { this(GithubUpdates::http, minecraft, legacy); }
     GithubUpdates(Abruf abruf) { this(abruf, "26.1.2"); }
-    GithubUpdates(Abruf abruf, String minecraft) { this.abruf = abruf; this.minecraft = minecraft; }
+    GithubUpdates(Abruf abruf, String minecraft) { this(abruf, minecraft, minecraft.startsWith("1.21")); }
+    GithubUpdates(Abruf abruf, String minecraft, boolean legacy) { this.abruf = abruf; this.minecraft = minecraft; this.legacy = legacy; }
 
     public Optional<Release> pruefen(String installiert, boolean vorab) throws IOException {
         return pruefen(installiert, vorab ? "alpha" : "stable");
@@ -41,7 +44,7 @@ public final class GithubUpdates {
     public Optional<Release> pruefen(String installiert, String kanal) throws IOException {
         String json = new String(abruf.laden(URI.create("https://api.github.com/repos/" + REPO + "/releases?per_page=30"),
                 2 * 1024 * 1024), StandardCharsets.UTF_8);
-        return auswerten(json, installiert, kanal, minecraft);
+        return auswerten(json, installiert, kanal, minecraft, legacy);
     }
 
     static Optional<Release> auswerten(String json, String installiert, boolean vorab) throws IOException {
@@ -53,6 +56,10 @@ public final class GithubUpdates {
     }
 
     static Optional<Release> auswerten(String json, String installiert, String kanal, String minecraft) throws IOException {
+        return auswerten(json, installiert, kanal, minecraft, minecraft.startsWith("1.21"));
+    }
+
+    static Optional<Release> auswerten(String json, String installiert, String kanal, String minecraft, boolean legacy) throws IOException {
         if (!List.of("stable", "beta", "alpha").contains(kanal)) throw new IOException("Ungültiger Update-Kanal.");
         boolean vorab = !kanal.equals("stable");
         var optionen = new LoaderOptions();
@@ -77,9 +84,9 @@ public final class GithubUpdates {
                 if (kanal.equals("beta") && !vergleich.vorab().isEmpty()
                         && !List.of("beta", "rc").contains(vergleich.vorab().getFirst())) continue;
                 if (!(release.get("assets") instanceof List<?> assets)) throw new IOException("Release-Dateien fehlen.");
-                String name = "SimplePlots-" + version + (minecraft.startsWith("1.21") ? "-paper-1.21.jar" : "-paper.jar");
+                String name = "SimplePlots-" + version + (legacy ? "-paper-1.21.jar" : "-paper.jar");
                 Map<?, ?> jar = asset(assets, name), sums = asset(assets, "SHA256SUMS.txt");
-                if (jar == null && !minecraft.startsWith("1.21")) {
+                if (jar == null && !legacy) {
                     name = "SimplePlots-" + version + ".jar";
                     jar = asset(assets, name);
                 }
@@ -132,7 +139,7 @@ public final class GithubUpdates {
                 || (!release.digest().equals("null") && !release.digest().equals("sha256:" + erwartet))) {
             throw new IOException("Die Update-JAR stimmt nicht mit der veröffentlichten SHA-256-Prüfsumme überein.");
         }
-        pruefeJar(jar, release.version(), minecraft);
+        pruefeJar(jar, release.version(), minecraft, legacy);
         return jar;
     }
 
@@ -141,6 +148,10 @@ public final class GithubUpdates {
     }
 
     private static void pruefeJar(byte[] bytes, String version, String minecraft) throws IOException {
+        pruefeJar(bytes, version, minecraft, minecraft.startsWith("1.21"));
+    }
+
+    private static void pruefeJar(byte[] bytes, String version, String minecraft, boolean legacy) throws IOException {
         boolean ende = false;
         for (int i = bytes.length - 22; i >= Math.max(0, bytes.length - 65557); i--) {
             if (bytes[i] == 0x50 && bytes[i + 1] == 0x4b && bytes[i + 2] == 0x05 && bytes[i + 3] == 0x06
@@ -171,7 +182,8 @@ public final class GithubUpdates {
                             || !version.equals(meta.get("version")) || !"de.lightrixx.plot.paper.SimplePlots".equals(meta.get("main"))) {
                         throw new IOException("Die Update-JAR ist keine passende SimplePlots-Version.");
                     }
-                    if (!apiPasst(String.valueOf(meta.get("api-version")), minecraft)) {
+                    if (!apiPasst(String.valueOf(meta.get("api-version")), minecraft)
+                            || legacy != String.valueOf(meta.get("api-version")).startsWith("1.21")) {
                         throw new IOException("Das Update benötigt eine neuere Paper-Version.");
                     }
                     gefunden = true;

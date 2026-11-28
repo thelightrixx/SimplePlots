@@ -548,8 +548,8 @@ details>div{padding:14px 18px 2px}
 :root[data-project="ServerMonitor"][data-theme="dark"]{--accent:#58d1df;--accent-ink:#88e1eb;--accent-soft:#102e33;--link:#88e1eb;--focus:#88e1eb;--chrome-active:#102e33}
 :root[data-project="SimplePlots"]{--accent:#187850;--accent-ink:#12613f;--accent-soft:#e8f5ee;--link:#12613f;--focus:#12613f}
 :root[data-project="SimplePlots"][data-theme="dark"]{--accent:#67d6a0;--accent-ink:#86e3b5;--accent-soft:#112a20;--link:#86e3b5;--focus:#86e3b5;--chrome-active:#112a20}
-:root[data-project="VcExtension"]{--accent:#b32a70;--accent-ink:#96205d;--accent-soft:#fce8f2;--link:#96205d;--focus:#96205d}
-:root[data-project="VcExtension"][data-theme="dark"]{--accent:#f68dbd;--accent-ink:#ffaed1;--accent-soft:#331a28;--link:#ffaed1;--focus:#ffaed1;--chrome-active:#331a28}
+:root[data-project="AdvancedSVC"]{--accent:#b32a70;--accent-ink:#96205d;--accent-soft:#fce8f2;--link:#96205d;--focus:#96205d}
+:root[data-project="AdvancedSVC"][data-theme="dark"]{--accent:#f68dbd;--accent-ink:#ffaed1;--accent-soft:#331a28;--link:#ffaed1;--focus:#ffaed1;--chrome-active:#331a28}
 </style>
 </head>
 <body>
@@ -1774,7 +1774,7 @@ symbole:
   <h1>Changelog</h1><div class="command-tools" role="search" aria-label="Versionen filtern"><label for="changelogFilter">Versionen filtern</label><div class="command-filter-row"><input id="changelogFilter" type="search" placeholder="Name, Stichwort oder Version" autocomplete="off" spellcheck="false" aria-controls="changelogVersions" aria-describedby="changelogFilterHint"><button type="button" id="changelogReset">Zurücksetzen</button></div><p id="changelogFilterHint">Mehrere Wörter grenzen die Treffer ein.</p><p id="changelogCount" role="status"></p></div><p id="changelogEmpty" class="empty" hidden>Keine passenden Treffer. Filter zurücksetzen.</p>
 <h2 data-anchor="v0-10-1">v0.10.1</h2>
 <p><time datetime="2026-11-28">28.11.2026</time> · Stabile Version</p>
-<ul><li>YAML-Änderungen werden vor dem Dateiaustausch gegen dieselbe UTF-8-Größengrenze wie beim Laden geprüft. Zu große Änderungen lassen Daten, aktive Zustände und die Vorgängersicherung erhalten.</li><li>Regressionstests prüfen Umlaute, die unveränderte Sicherung und das erneute Laden nach einer abgewiesenen Änderung.</li></ul>
+<ul><li>Das Startbanner verwendet die eigene Handbuchfarbe.</li><li>Die Updateauswahl behält auch auf einem neueren Server die tatsächlich installierte Paper-Variante.</li><li>YAML-Änderungen werden vor dem Dateiaustausch gegen dieselbe UTF-8-Größengrenze wie beim Laden geprüft. Zu große Änderungen lassen Daten, aktive Zustände und die Vorgängersicherung erhalten.</li><li>Regressionstests prüfen Umlaute, die unveränderte Sicherung und das erneute Laden nach einer abgewiesenen Änderung.</li></ul>
 <p><strong>Update:</strong> Die passende JAR bei gestopptem Server ersetzen. Dateien und Konfiguration bleiben erhalten. Die Lesegrenze von 64 MiB je YAML-Datei gilt jetzt auch vor dem Schreiben. Bei einer bereits zu großen Datei zuerst die Logmeldung prüfen und eine passende Sicherung vergleichen.</p>
 <h2 data-anchor="v0-10-0">v0.10.0</h2>
 <p><time datetime="2026-11-28">28.11.2026</time> · Stabile Version</p>

@@ -16,6 +16,8 @@ class GithubPlattformTest {
                 GithubUpdates.auswerten(json, "v0.8.0-beta", "stable", "26.1.2").orElseThrow().name());
         assertEquals("SimplePlots-v0.9.0-paper-1.21.jar",
                 GithubUpdates.auswerten(json, "v0.8.0-beta", "stable", "1.21.8").orElseThrow().name());
+        assertEquals("SimplePlots-v0.9.0-paper-1.21.jar",
+                GithubUpdates.auswerten(json, "v0.8.0-beta", "stable", "26.1.2", true).orElseThrow().name());
         String onlyModern = json.replace("SimplePlots-v0.9.0-paper-1.21.jar", "unrelated.jar");
         assertTrue(GithubUpdates.auswerten(onlyModern, "v0.8.0-beta", "stable", "1.21.8").isEmpty());
     }
